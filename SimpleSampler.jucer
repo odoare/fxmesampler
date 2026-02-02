@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="VTY3rl" name="SimpleSampler" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
+  <MAINGROUP id="zBzLwc" name="SimpleSampler">
+    <GROUP id="{AC82C2F8-19E7-6905-EBEF-3BA5D7E86B11}" name="Sounds">
+      <FILE id="Vo1v9P" name="HH closed 01 1 42 42.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH closed 01 1 42 42.wav"/>
+      <FILE id="ah8EYC" name="HH closed 02 1 42 42.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH closed 02 1 42 42.wav"/>
+      <FILE id="mMJe1C" name="HH closed 03 1 42 42.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH closed 03 1 42 42.wav"/>
+      <FILE id="y3MncH" name="HH closed 04 1 42 42.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH closed 04 1 42 42.wav"/>
+      <FILE id="yZH2Qm" name="HH open 01 1 44 44.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH open 01 1 44 44.wav"/>
+      <FILE id="GpaNv3" name="HH open 02 1 44 44.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH open 02 1 44 44.wav"/>
+      <FILE id="t3CoyZ" name="HH open 03 1 44 44.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH open 03 1 44 44.wav"/>
+      <FILE id="QcWBf7" name="HH open 04 1 44 44.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/HH open 04 1 44 44.wav"/>
+      <FILE id="ON3GqU" name="Kick Kick 01 0 36 36.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Kick Kick 01 0 36 36.wav"/>
+      <FILE id="HtOedO" name="Kick Kick 02 0 36 36.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Kick Kick 02 0 36 36.wav"/>
+      <FILE id="lLahqw" name="Kick Kick 03 0 36 36.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Kick Kick 03 0 36 36.wav"/>
+      <FILE id="rJPkqQ" name="Kick Kick 04 0 36 36.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Kick Kick 04 0 36 36.wav"/>
+      <FILE id="Wo9kkq" name="mapping.xml" compile="0" resource="1" file="wav/mapping.xml"/>
+      <FILE id="sQacTJ" name="Snare Snare 01 0 38 38.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Snare Snare 01 0 38 38.wav"/>
+      <FILE id="hkwSgb" name="Snare Snare 02 0 38 38.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Snare Snare 02 0 38 38.wav"/>
+      <FILE id="Cua3YQ" name="Snare Snare 03 0 38 38.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Snare Snare 03 0 38 38.wav"/>
+      <FILE id="yaUwNy" name="Snare Snare 04 0 38 38.wav" compile="0" resource="1"
+            file="wav/reaper_testproject/Media/Snare Snare 04 0 38 38.wav"/>
+    </GROUP>
+    <GROUP id="{81A13946-40E6-2C1D-D0EA-A6C5479467E3}" name="Source">
+      <FILE id="IgWHhf" name="VuMeterComponent.cpp" compile="1" resource="0"
+            file="Source/VuMeterComponent.cpp"/>
+      <FILE id="AnrDWZ" name="VuMeterComponent.h" compile="0" resource="0"
+            file="Source/VuMeterComponent.h"/>
+      <FILE id="z9XUx8" name="VuMeter.cpp" compile="1" resource="0" file="Source/VuMeter.cpp"/>
+      <FILE id="iyx9TQ" name="VuMeter.h" compile="0" resource="0" file="Source/VuMeter.h"/>
+      <FILE id="w8EQyC" name="EqualizerComponent.cpp" compile="1" resource="0"
+            file="Source/EqualizerComponent.cpp"/>
+      <FILE id="iP3wjI" name="EqualizerComponent.h" compile="0" resource="0"
+            file="Source/EqualizerComponent.h"/>
+      <FILE id="LKnvhn" name="CompressorComponent.cpp" compile="1" resource="0"
+            file="Source/CompressorComponent.cpp"/>
+      <FILE id="gJVr15" name="CompressorComponent.h" compile="0" resource="0"
+            file="Source/CompressorComponent.h"/>
+      <FILE id="KdqJ1z" name="MixerComponent.cpp" compile="1" resource="0"
+            file="Source/MixerComponent.cpp"/>
+      <FILE id="cjXg8l" name="MixerComponent.h" compile="0" resource="0"
+            file="Source/MixerComponent.h"/>
+      <FILE id="Ea6Nmm" name="AmbixToMS.cpp" compile="1" resource="0" file="Source/AmbixToMS.cpp"/>
+      <FILE id="GEWjQs" name="AmbixToMS.h" compile="0" resource="0" file="Source/AmbixToMS.h"/>
+      <FILE id="jiF8nB" name="Equalizer.cpp" compile="1" resource="0" file="Source/Equalizer.cpp"/>
+      <FILE id="GOjdnx" name="Equalizer.h" compile="0" resource="0" file="Source/Equalizer.h"/>
+      <FILE id="vswp5d" name="Compressor.cpp" compile="1" resource="0" file="Source/Compressor.cpp"/>
+      <FILE id="vKLTCt" name="Compressor.h" compile="0" resource="0" file="Source/Compressor.h"/>
+      <FILE id="j3EFnG" name="Mixer.cpp" compile="1" resource="0" file="Source/Mixer.cpp"/>
+      <FILE id="UCmmEU" name="Mixer.h" compile="0" resource="0" file="Source/Mixer.h"/>
+      <FILE id="Sb3GV8" name="Sampler.cpp" compile="1" resource="0" file="Source/Sampler.cpp"/>
+      <FILE id="UV3Ljb" name="Sampler.h" compile="0" resource="0" file="Source/Sampler.h"/>
+      <FILE id="OabFdN" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="sfxMdM" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="CTHdVI" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="gCZgJK" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="0" name="Release" targetName="SimpleSampler"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+</JUCERPROJECT>

@@ -1,0 +1,8 @@
+**/Builds
+**/JuceLibraryCode
+**/.vscode
+**/wav
+**/wav/reaper_testproject/Media/peaks
+**/wav/reaper_testproject/reaper_testplug/Backups
+**/wav/reaper_testproject/Backups
+

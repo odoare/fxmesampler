@@ -20,8 +20,23 @@ void AmbisonicStrip::prepare (double sampleRate, int samplesPerBlock)
     tempBuffer.setSize (2, samplesPerBlock);
 }
 
+void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    azParam = apvts.getRawParameterValue (name + "_Azimuth");
+    elParam = apvts.getRawParameterValue (name + "_Elevation");
+    wParam = apvts.getRawParameterValue (name + "_Width");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+}
+
 void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
 {
+    if (azParam) ambix.setAzimuth (*azParam);
+    if (elParam) ambix.setElevation (*elParam);
+    if (wParam) ambix.setWidth (*wParam);
+    if (lvlParam) ambix.setLevel (*lvlParam);
+
     tempBuffer.clear();
     // AmbixToMS expects 4 channels starting at 0 in its input buffer logic, 
     // but we pass a subset or use pointers. AmbixToMS::process takes buffers.
@@ -37,7 +52,9 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers.data()), 4, input.getNumSamples());
 
     ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
+    eq.checkParameters();
     eq.process (tempBuffer);
+    comp.checkParameters();
     comp.process (tempBuffer);
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
@@ -59,8 +76,19 @@ void StereoStrip::prepare (double sampleRate, int samplesPerBlock)
     tempBuffer.setSize (2, samplesPerBlock);
 }
 
+void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    wParam = apvts.getRawParameterValue (name + "_Width");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+}
+
 void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
 {
+    if (wParam) width = *wParam;
+    if (lvlParam) level = *lvlParam;
+
     tempBuffer.clear();
     // Copy input to temp
     for (int i = 0; i < 2; ++i)
@@ -83,7 +111,9 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
         }
     }
 
+    eq.checkParameters();
     eq.process (tempBuffer);
+    comp.checkParameters();
     comp.process (tempBuffer);
     tempBuffer.applyGain (level);
 
@@ -105,12 +135,25 @@ void MonoStrip::prepare (double sampleRate, int samplesPerBlock)
     tempBuffer.setSize (1, samplesPerBlock);
 }
 
+void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+}
+
 void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
 {
+    if (panParam) pan = *panParam;
+    if (lvlParam) level = *lvlParam;
+
     tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
+    eq.checkParameters();
     eq.process (tempBuffer);
+    comp.checkParameters();
     comp.process (tempBuffer);
     tempBuffer.applyGain (level);
 
@@ -168,6 +211,12 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
     // Re-prepare if we are already running
     if (currentSampleRate > 0)
         prepare (currentSampleRate, currentSamplesPerBlock);
+}
+
+void Mixer::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    for (auto& strip : strips)
+        strip->assignParameters (apvts);
 }
 
 void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::AudioBuffer<float>& outputBuffer)

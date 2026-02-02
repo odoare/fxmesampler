@@ -13,28 +13,31 @@
 #include "VuMeterComponent.h"
 
 class CompressorComponent : public juce::Component,
-                            public juce::Slider::Listener,
-                            public juce::Button::Listener,
                             public juce::Timer
 {
 public:
-    CompressorComponent (Compressor& compressorToControl);
+    CompressorComponent (Compressor& compressorToControl, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
     ~CompressorComponent() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
-    void sliderValueChanged (juce::Slider* slider) override;
-    void buttonClicked (juce::Button* button) override;
     void timerCallback() override;
 
 private:
     Compressor& compressor;
+    juce::AudioProcessorValueTreeState& apvts;
 
     juce::ToggleButton onButton;
     juce::Label titleLabel;
     VuMeterComponent grMeter;
     juce::Label attackLabel, releaseLabel, threshLabel, ratioLabel, gainLabel;
     juce::Slider attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
+
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+
+    std::unique_ptr<ButtonAttachment> onAtt;
+    std::unique_ptr<SliderAttachment> attackAtt, releaseAtt, threshAtt, ratioAtt, gainAtt;
 
     void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
 

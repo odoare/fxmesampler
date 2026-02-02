@@ -8,12 +8,12 @@
 
 #include "CompressorComponent.h"
 
-CompressorComponent::CompressorComponent (Compressor& comp) : compressor (comp)
+CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
+    : compressor (comp), apvts (state)
 {
     addAndMakeVisible (onButton);
     onButton.setButtonText ("On");
-    onButton.setToggleState (compressor.isOn(), juce::dontSendNotification);
-    onButton.addListener (this);
+    onAtt = std::make_unique<ButtonAttachment> (apvts, prefix + "_Comp_On", onButton);
 
     addAndMakeVisible (titleLabel);
     titleLabel.setText ("Compressor", juce::NotificationType::dontSendNotification);
@@ -25,6 +25,12 @@ CompressorComponent::CompressorComponent (Compressor& comp) : compressor (comp)
     setupSlider (threshSlider, threshLabel, "Thresh (dB)", -60.0, 0.0, 0.0);
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
     setupSlider (gainSlider, gainLabel, "Gain (dB)", 0.0, 24.0, 0.0);
+
+    attackAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Attack", attackSlider);
+    releaseAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Release", releaseSlider);
+    threshAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Thresh", threshSlider);
+    ratioAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Ratio", ratioSlider);
+    gainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Gain", gainSlider);
 
     addAndMakeVisible (grMeter);
     grMeter.setMeterColor (juce::Colours::red);
@@ -48,7 +54,6 @@ void CompressorComponent::setupSlider (juce::Slider& slider, juce::Label& label,
     slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 20);
     slider.setRange (min, max);
     slider.setValue (def);
-    slider.addListener (this);
 }
 
 void CompressorComponent::paint (juce::Graphics& g)
@@ -82,26 +87,6 @@ void CompressorComponent::resized()
     layout (threshSlider, threshLabel, 2);
     layout (ratioSlider, ratioLabel, 3);
     layout (gainSlider, gainLabel, 4);
-}
-
-void CompressorComponent::sliderValueChanged (juce::Slider* slider)
-{
-    if (slider == &attackSlider)
-        compressor.setAttack ((float) slider->getValue());
-    else if (slider == &releaseSlider)
-        compressor.setRelease ((float) slider->getValue());
-    else if (slider == &threshSlider)
-        compressor.setThreshold ((float) slider->getValue());
-    else if (slider == &ratioSlider)
-        compressor.setRatio ((float) slider->getValue());
-    else if (slider == &gainSlider)
-        compressor.setPostGain ((float) slider->getValue());
-}
-
-void CompressorComponent::buttonClicked (juce::Button* button)
-{
-    if (button == &onButton)
-        compressor.setOn (onButton.getToggleState());
 }
 
 void CompressorComponent::timerCallback()

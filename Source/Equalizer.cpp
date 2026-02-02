@@ -108,6 +108,44 @@ void Equalizer::process (juce::AudioBuffer<float>& buffer)
     }
 }
 
+void Equalizer::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
+{
+    onParam = apvts.getRawParameterValue (prefix + "_EQ_On");
+    lsFreqParam = apvts.getRawParameterValue (prefix + "_EQ_LS_Freq");
+    lsGainParam = apvts.getRawParameterValue (prefix + "_EQ_LS_Gain");
+    b1FreqParam = apvts.getRawParameterValue (prefix + "_EQ_B1_Freq");
+    b1QParam = apvts.getRawParameterValue (prefix + "_EQ_B1_Q");
+    b1GainParam = apvts.getRawParameterValue (prefix + "_EQ_B1_Gain");
+    b2FreqParam = apvts.getRawParameterValue (prefix + "_EQ_B2_Freq");
+    b2QParam = apvts.getRawParameterValue (prefix + "_EQ_B2_Q");
+    b2GainParam = apvts.getRawParameterValue (prefix + "_EQ_B2_Gain");
+    hsFreqParam = apvts.getRawParameterValue (prefix + "_EQ_HS_Freq");
+    hsGainParam = apvts.getRawParameterValue (prefix + "_EQ_HS_Gain");
+}
+
+void Equalizer::checkParameters()
+{
+    if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }
+    
+    bool changed = false;
+    if (lsFreqParam && *lsFreqParam != lastLsFreq) { lsParams.f = *lsFreqParam; lastLsFreq = lsParams.f; changed = true; }
+    if (lsGainParam && *lsGainParam != lastLsGain) { lsParams.g = *lsGainParam; lastLsGain = lsParams.g; changed = true; }
+    
+    if (b1FreqParam && *b1FreqParam != lastB1Freq) { b1Params.f = *b1FreqParam; lastB1Freq = b1Params.f; changed = true; }
+    if (b1QParam && *b1QParam != lastB1Q)       { b1Params.q = *b1QParam;    lastB1Q = b1Params.q;    changed = true; }
+    if (b1GainParam && *b1GainParam != lastB1Gain) { b1Params.g = *b1GainParam; lastB1Gain = b1Params.g; changed = true; }
+
+    if (b2FreqParam && *b2FreqParam != lastB2Freq) { b2Params.f = *b2FreqParam; lastB2Freq = b2Params.f; changed = true; }
+    if (b2QParam && *b2QParam != lastB2Q)       { b2Params.q = *b2QParam;    lastB2Q = b2Params.q;    changed = true; }
+    if (b2GainParam && *b2GainParam != lastB2Gain) { b2Params.g = *b2GainParam; lastB2Gain = b2Params.g; changed = true; }
+
+    if (hsFreqParam && *hsFreqParam != lastHsFreq) { hsParams.f = *hsFreqParam; lastHsFreq = hsParams.f; changed = true; }
+    if (hsGainParam && *hsGainParam != lastHsGain) { hsParams.g = *hsGainParam; lastHsGain = hsParams.g; changed = true; }
+
+    if (changed)
+        updateCoefficients();
+}
+
 // RBJ Cookbook Formulas
 void Equalizer::calcLowShelf (Biquad& bq, float f, float g)
 {

@@ -8,12 +8,12 @@
 
 #include "EqualizerComponent.h"
 
-EqualizerComponent::EqualizerComponent (Equalizer& eq) : equalizer (eq)
+EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
+    : equalizer (eq), apvts (state)
 {
     addAndMakeVisible (onButton);
     onButton.setButtonText ("On");
-    onButton.setToggleState (equalizer.isOn(), juce::dontSendNotification);
-    onButton.addListener (this);
+    onAtt = std::make_unique<ButtonAttachment> (apvts, prefix + "_EQ_On", onButton);
 
     addAndMakeVisible (titleLabel);
     titleLabel.setText ("Equalizer (LS / Peak / Peak / HS)", juce::NotificationType::dontSendNotification);
@@ -26,26 +26,35 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq) : equalizer (eq)
         s.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 40, 15);
         s.setRange (min, max);
         s.setValue (def);
-        s.addListener (this);
     };
 
     // Low Shelf
     setup (lsFreq, 20.0, 1000.0, 100.0);
     setup (lsGain, -15.0, 15.0, 0.0);
+    lsFreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_LS_Freq", lsFreq);
+    lsGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_LS_Gain", lsGain);
 
     // Band 1
     setup (b1Freq, 100.0, 5000.0, 500.0);
     setup (b1Q, 0.1, 10.0, 1.0);
     setup (b1Gain, -15.0, 15.0, 0.0);
+    b1FreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B1_Freq", b1Freq);
+    b1QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B1_Q", b1Q);
+    b1GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B1_Gain", b1Gain);
 
     // Band 2
     setup (b2Freq, 500.0, 10000.0, 2000.0);
     setup (b2Q, 0.1, 10.0, 1.0);
     setup (b2Gain, -15.0, 15.0, 0.0);
+    b2FreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Freq", b2Freq);
+    b2QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Q", b2Q);
+    b2GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Gain", b2Gain);
 
     // High Shelf
     setup (hsFreq, 1000.0, 20000.0, 5000.0);
     setup (hsGain, -15.0, 15.0, 0.0);
+    hsFreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Freq", hsFreq);
+    hsGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Gain", hsGain);
 }
 
 EqualizerComponent::~EqualizerComponent()
@@ -81,30 +90,4 @@ void EqualizerComponent::resized()
     layoutBand (1, &b1Freq, &b1Q, &b1Gain);
     layoutBand (2, &b2Freq, &b2Q, &b2Gain);
     layoutBand (3, &hsFreq, &hsGain, nullptr);
-}
-
-void EqualizerComponent::sliderValueChanged (juce::Slider* slider)
-{
-    if (slider == &lsFreq || slider == &lsGain)
-    {
-        equalizer.setLowShelf ((float) lsFreq.getValue(), (float) lsGain.getValue());
-    }
-    else if (slider == &b1Freq || slider == &b1Q || slider == &b1Gain)
-    {
-        equalizer.setBand1 ((float) b1Freq.getValue(), (float) b1Q.getValue(), (float) b1Gain.getValue());
-    }
-    else if (slider == &b2Freq || slider == &b2Q || slider == &b2Gain)
-    {
-        equalizer.setBand2 ((float) b2Freq.getValue(), (float) b2Q.getValue(), (float) b2Gain.getValue());
-    }
-    else if (slider == &hsFreq || slider == &hsGain)
-    {
-        equalizer.setHighShelf ((float) hsFreq.getValue(), (float) hsGain.getValue());
-    }
-}
-
-void EqualizerComponent::buttonClicked (juce::Button* button)
-{
-    if (button == &onButton)
-        equalizer.setOn (onButton.getToggleState());
 }

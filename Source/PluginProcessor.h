@@ -57,11 +57,14 @@ public:
 
     Sampler& getSampler() { return sampler; }
     Mixer& getMixer() { return mixer; }
+    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
 private:
     //==============================================================================
     Sampler sampler;
     Mixer mixer;
+    juce::AudioProcessorValueTreeState apvts;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioBuffer<float> samplerOutputBuffer;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSamplerAudioProcessor)
 };

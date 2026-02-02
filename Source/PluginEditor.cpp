@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 SimpleSamplerAudioProcessorEditor::SimpleSamplerAudioProcessorEditor (SimpleSamplerAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), mixerComponent (p.getMixer())
+    : AudioProcessorEditor (&p), audioProcessor (p), mixerComponent (p.getMixer(), p.getAPVTS())
 {
     addAndMakeVisible (mixerComponent);
     setSize (600, 500);

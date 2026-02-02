@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "VuMeter.h"
+#include <atomic>
 
 class Compressor
 {
@@ -28,6 +29,9 @@ public:
     bool isOn() const;
     VuMeter& getGrMeter() { return grMeter; }
 
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
+    void checkParameters();
+
 private:
     double currentSampleRate = 44100.0;
 
@@ -45,6 +49,16 @@ private:
     float attackCoef = 0.0f;
     float releaseCoef = 0.0f;
     float makeUpGain = 1.0f;
+
+    // Parameter Pointers
+    std::atomic<float>* onParam = nullptr;
+    std::atomic<float>* attackParam = nullptr;
+    std::atomic<float>* releaseParam = nullptr;
+    std::atomic<float>* threshParam = nullptr;
+    std::atomic<float>* ratioParam = nullptr;
+    std::atomic<float>* gainParam = nullptr;
+
+    float lastOn = -1.0f, lastAttack = -1.0f, lastRelease = -1.0f, lastThresh = 1.0f, lastRatio = -1.0f, lastGain = -1.0f;
 
     void updateCoefficients();
 };

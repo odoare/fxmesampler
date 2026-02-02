@@ -14,7 +14,10 @@ SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                       )
+                       ),
+       apvts (*this, nullptr, "Parameters", createParameterLayout())
+#else
+     : apvts (*this, nullptr, "Parameters", createParameterLayout())
 #endif
 {
     // Load the mapping XML from BinaryData
@@ -24,6 +27,7 @@ SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
     if (xmlData != nullptr) {
         sampler.loadSamplesFromXml (xmlData, xmlSize);
         mixer.loadFromXml (xmlData, xmlSize);
+        mixer.assignParameters (apvts);
     }
 }
 
@@ -194,4 +198,75 @@ void SimpleSamplerAudioProcessor::setStateInformation (const void* data, int siz
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SimpleSamplerAudioProcessor();
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor::createParameterLayout()
+{
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+    int xmlSize = 0;
+    const char* xmlData = BinaryData::getNamedResource ("mapping_xml", xmlSize);
+
+    if (xmlData != nullptr && xmlSize > 0)
+    {
+        juce::XmlDocument doc (juce::String::createStringFromData (xmlData, xmlSize));
+        auto root = doc.getDocumentElement();
+
+        if (root != nullptr && root->hasTagName ("Mappings"))
+        {
+            auto* mixerNode = root->getChildByName ("Mixer");
+            if (mixerNode != nullptr)
+            {
+                for (auto* child : mixerNode->getChildIterator())
+                {
+                    if (child->hasTagName ("Group"))
+                    {
+                        juce::String type = child->getStringAttribute ("type");
+                        juce::String name = child->getStringAttribute ("name");
+
+                        if (type.equalsIgnoreCase ("ambisonic"))
+                        {
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Azimuth", 1 }, name + " Azimuth", -180.0f, 180.0f, 0.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Elevation", 1 }, name + " Elevation", -90.0f, 90.0f, 0.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Width", 1 }, name + " Width", 0.0f, 2.0f, 1.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Level", 1 }, name + " Level", 0.0f, 2.0f, 1.0f));
+                        }
+                        else if (type.equalsIgnoreCase ("stereo"))
+                        {
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Width", 1 }, name + " Width", 0.0f, 2.0f, 1.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Level", 1 }, name + " Level", 0.0f, 2.0f, 1.0f));
+                        }
+                        else if (type.equalsIgnoreCase ("mono"))
+                        {
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Level", 1 }, name + " Level", 0.0f, 2.0f, 1.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Pan", 1 }, name + " Pan", -1.0f, 1.0f, 0.0f));
+                        }
+
+                        // EQ
+                        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_EQ_On", 1 }, name + " EQ On", true));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_LS_Freq", 1 }, name + " EQ LS Freq", 20.0f, 1000.0f, 100.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_LS_Gain", 1 }, name + " EQ LS Gain", -15.0f, 15.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_B1_Freq", 1 }, name + " EQ B1 Freq", 100.0f, 5000.0f, 500.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_B1_Q", 1 }, name + " EQ B1 Q", 0.1f, 10.0f, 1.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_B1_Gain", 1 }, name + " EQ B1 Gain", -15.0f, 15.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_B2_Freq", 1 }, name + " EQ B2 Freq", 500.0f, 10000.0f, 2000.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_B2_Q", 1 }, name + " EQ B2 Q", 0.1f, 10.0f, 1.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_B2_Gain", 1 }, name + " EQ B2 Gain", -15.0f, 15.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_HS_Freq", 1 }, name + " EQ HS Freq", 1000.0f, 20000.0f, 5000.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_HS_Gain", 1 }, name + " EQ HS Gain", -15.0f, 15.0f, 0.0f));
+
+                        // Compressor
+                        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Comp_On", 1 }, name + " Comp On", true));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Attack", 1 }, name + " Comp Attack", 0.1f, 100.0f, 10.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Release", 1 }, name + " Comp Release", 10.0f, 1000.0f, 100.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Thresh", 1 }, name + " Comp Thresh", -60.0f, 0.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Ratio", 1 }, name + " Comp Ratio", 1.0f, 20.0f, 1.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Gain", 1 }, name + " Comp Gain", 0.0f, 24.0f, 0.0f));
+                    }
+                }
+            }
+        }
+    }
+
+    return { params.begin(), params.end() };
 }

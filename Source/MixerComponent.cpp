@@ -12,8 +12,8 @@
 class EffectChainComponent : public juce::Component
 {
 public:
-    EffectChainComponent (Equalizer& eq, Compressor& comp)
-        : eqComp (eq), compComp (comp)
+    EffectChainComponent (Equalizer& eq, Compressor& comp, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
+        : eqComp (eq, apvts, prefix), compComp (comp, apvts, prefix)
     {
         addAndMakeVisible (eqComp);
         addAndMakeVisible (compComp);
@@ -30,7 +30,8 @@ private:
 };
 
 //==============================================================================
-MixerComponent::LevelsComponent::LevelsComponent (Mixer& m) : mixer (m)
+MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessorValueTreeState& state)
+    : mixer (m), apvts (state)
 {
     addAndMakeVisible (vuLabel); vuLabel.setText ("Levels", juce::NotificationType::dontSendNotification);
     
@@ -42,11 +43,12 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m) : mixer (m)
         sc.label->setText (strip->getName(), juce::NotificationType::dontSendNotification);
         addAndMakeVisible (*sc.label);
 
-        auto addSlider = [&](double min, double max, double def) {
+        auto addSlider = [&](double min, double max, double def, const juce::String& paramID) {
             auto s = std::make_unique<juce::Slider>();
-            s->setRange(min, max); s->setValue(def); s->addListener(this);
+            s->setRange(min, max); s->setValue(def);
             addAndMakeVisible(*s);
             sc.sliders.push_back(std::move(s));
+            sc.attachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *sc.sliders.back()));
         };
 
         auto addMeter = [&](juce::Colour c) {
@@ -58,24 +60,24 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m) : mixer (m)
 
         if (auto* s = dynamic_cast<AmbisonicStrip*>(strip.get()))
         {
-            addSlider(-180, 180, 0); // Az
-            addSlider(-90, 90, 0);   // El
-            addSlider(0, 2, 1);      // Width
-            addSlider(0, 2, 1);      // Level
+            addSlider(-180, 180, 0, strip->getName() + "_Azimuth");
+            addSlider(-90, 90, 0, strip->getName() + "_Elevation");
+            addSlider(0, 2, 1, strip->getName() + "_Width");
+            addSlider(0, 2, 1, strip->getName() + "_Level");
             addMeter(juce::Colours::orange); // L
             addMeter(juce::Colours::orange); // R
         }
         else if (auto* s = dynamic_cast<StereoStrip*>(strip.get()))
         {
-            addSlider(0, 2, 1);      // Width
-            addSlider(0, 2, 1);      // Level
+            addSlider(0, 2, 1, strip->getName() + "_Width");
+            addSlider(0, 2, 1, strip->getName() + "_Level");
             addMeter(juce::Colours::cyan);
             addMeter(juce::Colours::cyan);
         }
         else if (auto* s = dynamic_cast<MonoStrip*>(strip.get()))
         {
-            addSlider(0, 2, 1);      // Level
-            addSlider(-1, 1, 0);     // Pan
+            addSlider(0, 2, 1, strip->getName() + "_Level");
+            addSlider(-1, 1, 0, strip->getName() + "_Pan");
             addMeter(juce::Colours::green);
         }
 
@@ -121,35 +123,6 @@ void MixerComponent::LevelsComponent::resized()
     }
 }
 
-void MixerComponent::LevelsComponent::sliderValueChanged (juce::Slider* s)
-{
-    // Map slider back to strip parameter
-    const auto& strips = mixer.getStrips();
-    for (size_t i = 0; i < strips.size() && i < stripControls.size(); ++i)
-    {
-        auto& sc = stripControls[i];
-        auto* strip = strips[i].get();
-        
-        if (auto* as = dynamic_cast<AmbisonicStrip*>(strip))
-        {
-            if (s == sc.sliders[0].get()) as->ambix.setAzimuth((float)s->getValue());
-            if (s == sc.sliders[1].get()) as->ambix.setElevation((float)s->getValue());
-            if (s == sc.sliders[2].get()) as->ambix.setWidth((float)s->getValue());
-            if (s == sc.sliders[3].get()) as->ambix.setLevel((float)s->getValue());
-        }
-        else if (auto* ss = dynamic_cast<StereoStrip*>(strip))
-        {
-            if (s == sc.sliders[0].get()) ss->width = (float)s->getValue();
-            if (s == sc.sliders[1].get()) ss->level = (float)s->getValue();
-        }
-        else if (auto* ms = dynamic_cast<MonoStrip*>(strip))
-        {
-            if (s == sc.sliders[0].get()) ms->level = (float)s->getValue();
-            if (s == sc.sliders[1].get()) ms->pan = (float)s->getValue();
-        }
-    }
-}
-
 void MixerComponent::LevelsComponent::timerCallback()
 {
     const auto& strips = mixer.getStrips();
@@ -176,8 +149,8 @@ void MixerComponent::LevelsComponent::timerCallback()
 }
 
 //==============================================================================
-MixerComponent::MixerComponent (Mixer& m)
-    : mixer (m), tabs (juce::TabbedButtonBar::TabsAtTop), levelsComp (m)
+MixerComponent::MixerComponent (Mixer& m, juce::AudioProcessorValueTreeState& state)
+    : mixer (m), apvts (state), tabs (juce::TabbedButtonBar::TabsAtTop), levelsComp (m, state)
 {
     tabs.addTab ("Levels", juce::Colours::lightgrey, &levelsComp, false);
     
@@ -187,7 +160,7 @@ MixerComponent::MixerComponent (Mixer& m)
     // However, addTab with 'true' deletes the component. We need to make sure we allocate them.
     
     auto addChain = [&](const juce::String& name, Equalizer& eq, Compressor& comp) {
-        tabs.addTab (name, juce::Colours::lightgrey, new EffectChainComponent (eq, comp), true);
+        tabs.addTab (name, juce::Colours::lightgrey, new EffectChainComponent (eq, comp, apvts, name), true);
     };
 
     for (auto& strip : mixer.getStrips())

@@ -17,7 +17,7 @@
 class MixerComponent : public juce::Component
 {
 public:
-    MixerComponent (Mixer& mixer);
+    MixerComponent (Mixer& mixer, juce::AudioProcessorValueTreeState& apvts);
     ~MixerComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -25,24 +25,26 @@ public:
 
 private:
     Mixer& mixer;
+    juce::AudioProcessorValueTreeState& apvts;
     juce::TabbedComponent tabs;
 
     // Dynamic Levels Component
-    class LevelsComponent : public juce::Component, public juce::Slider::Listener, public juce::Timer
+    class LevelsComponent : public juce::Component, public juce::Timer
     {
     public:
-        LevelsComponent (Mixer& m);
+        LevelsComponent (Mixer& m, juce::AudioProcessorValueTreeState& apvts);
         void resized() override;
-        void sliderValueChanged (juce::Slider* slider) override;
         void timerCallback() override;
         
     private:
         Mixer& mixer;
+        juce::AudioProcessorValueTreeState& apvts;
         
         struct StripControls {
             std::unique_ptr<juce::Label> label;
             std::vector<std::unique_ptr<juce::Slider>> sliders;
             std::vector<std::unique_ptr<VuMeterComponent>> meters;
+            std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> attachments;
         };
         std::vector<StripControls> stripControls;
         

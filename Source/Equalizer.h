@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include <vector>
+#include <atomic>
 
 class Equalizer
 {
@@ -30,6 +31,9 @@ public:
 
     void setOn (bool shouldBeOn);
     bool isOn() const;
+
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
+    void checkParameters();
 
 private:
     struct Biquad
@@ -58,6 +62,20 @@ private:
     struct { float f, q, g; } b1Params { 500.0f, 1.0f, 0.0f };
     struct { float f, q, g; } b2Params { 2000.0f, 1.0f, 0.0f };
     struct { float f, g; } hsParams { 5000.0f, 0.0f };
+
+    // Parameter Pointers
+    std::atomic<float>* onParam = nullptr;
+    std::atomic<float>* lsFreqParam = nullptr; std::atomic<float>* lsGainParam = nullptr;
+    std::atomic<float>* b1FreqParam = nullptr; std::atomic<float>* b1QParam = nullptr; std::atomic<float>* b1GainParam = nullptr;
+    std::atomic<float>* b2FreqParam = nullptr; std::atomic<float>* b2QParam = nullptr; std::atomic<float>* b2GainParam = nullptr;
+    std::atomic<float>* hsFreqParam = nullptr; std::atomic<float>* hsGainParam = nullptr;
+
+    // Last values for change detection
+    float lastOn = -1.0f;
+    float lastLsFreq = -1.0f, lastLsGain = -100.0f;
+    float lastB1Freq = -1.0f, lastB1Q = -1.0f, lastB1Gain = -100.0f;
+    float lastB2Freq = -1.0f, lastB2Q = -1.0f, lastB2Gain = -100.0f;
+    float lastHsFreq = -1.0f, lastHsGain = -100.0f;
 
     void updateCoefficients();
     void calcLowShelf (Biquad& bq, float f, float g);

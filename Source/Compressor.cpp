@@ -67,6 +67,33 @@ bool Compressor::isOn() const
     return on;
 }
 
+void Compressor::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
+{
+    onParam = apvts.getRawParameterValue (prefix + "_Comp_On");
+    attackParam = apvts.getRawParameterValue (prefix + "_Comp_Attack");
+    releaseParam = apvts.getRawParameterValue (prefix + "_Comp_Release");
+    threshParam = apvts.getRawParameterValue (prefix + "_Comp_Thresh");
+    ratioParam = apvts.getRawParameterValue (prefix + "_Comp_Ratio");
+    gainParam = apvts.getRawParameterValue (prefix + "_Comp_Gain");
+}
+
+void Compressor::checkParameters()
+{
+    if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }
+    
+    bool changed = false;
+    if (attackParam && *attackParam != lastAttack) { attackTimeMs = *attackParam; lastAttack = attackTimeMs; changed = true; }
+    if (releaseParam && *releaseParam != lastRelease) { releaseTimeMs = *releaseParam; lastRelease = releaseTimeMs; changed = true; }
+    if (gainParam && *gainParam != lastGain) { postGaindB = *gainParam; lastGain = postGaindB; changed = true; }
+    
+    if (changed)
+        updateCoefficients();
+
+    // These don't require coefficient update
+    if (threshParam) thresholddB = *threshParam;
+    if (ratioParam) ratio = *ratioParam;
+}
+
 void Compressor::process (juce::AudioBuffer<float>& buffer)
 {
     if (! on)

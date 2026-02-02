@@ -27,7 +27,7 @@ private:
     Mixer& mixer;
     juce::TabbedComponent tabs;
 
-    // Tab 1: Levels
+    // Dynamic Levels Component
     class LevelsComponent : public juce::Component, public juce::Slider::Listener, public juce::Timer
     {
     public:
@@ -35,12 +35,18 @@ private:
         void resized() override;
         void sliderValueChanged (juce::Slider* slider) override;
         void timerCallback() override;
+        
     private:
         Mixer& mixer;
-        juce::Label ambLabel, ambLvlLabel, kickLabel, snareLabel, hhLabel, vuLabel;
-        juce::Slider azSlider, elSlider, wSlider, ambLvlSlider, ambLvlSlider2;
-        juce::Slider kickLvl, kickPan, snareLvl, snarePan, hhLvl, hhPan;
-        VuMeterComponent ambVuL, ambVuR, ambVu, kickVu, snareVu, hhVu;
+        
+        struct StripControls {
+            std::unique_ptr<juce::Label> label;
+            std::vector<std::unique_ptr<juce::Slider>> sliders;
+            std::vector<std::unique_ptr<VuMeterComponent>> meters;
+        };
+        std::vector<StripControls> stripControls;
+        
+        juce::Label vuLabel;
     };
     
     LevelsComponent levelsComp;

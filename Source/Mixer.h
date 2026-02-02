@@ -14,6 +14,67 @@
 #include "Equalizer.h"
 #include "Compressor.h"
 
+//==============================================================================
+class MixerStrip
+{
+public:
+    MixerStrip (const juce::String& name) : name (name) {}
+    virtual ~MixerStrip() = default;
+
+    virtual void prepare (double sampleRate, int samplesPerBlock) = 0;
+    virtual void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) = 0;
+    virtual int getNumInputChannels() const = 0;
+
+    juce::String getName() const { return name; }
+    Equalizer& getEQ() { return eq; }
+    Compressor& getComp() { return comp; }
+
+protected:
+    juce::String name;
+    Equalizer eq;
+    Compressor comp;
+    juce::AudioBuffer<float> tempBuffer;
+};
+
+class AmbisonicStrip : public MixerStrip
+{
+public:
+    AmbisonicStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 4; }
+
+    AmbixToMS ambix;
+    VuMeter meterL, meterR;
+};
+
+class StereoStrip : public MixerStrip
+{
+public:
+    StereoStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 2; }
+
+    float width = 1.0f;
+    float level = 1.0f;
+    VuMeter meterL, meterR;
+};
+
+class MonoStrip : public MixerStrip
+{
+public:
+    MonoStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 1; }
+
+    float pan = 0.0f;
+    float level = 1.0f;
+    VuMeter meter;
+};
+
+//==============================================================================
 class Mixer
 {
 public:
@@ -21,53 +82,12 @@ public:
 
     void prepare (double sampleRate, int samplesPerBlock);
     void processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::AudioBuffer<float>& outputBuffer);
+    void loadFromXml (const void* xmlData, int xmlSize);
 
-    // Ambisonic Controls
-    void setAmbisonicAzimuth (float degrees);
-    void setAmbisonicElevation (float degrees);
-    void setAmbisonicWidth (float width);
-    void setAmbisonicLevel (float level);
-
-    // Levels
-    void setAmbienceLevel (float level);
-    void setKickLevel (float level);
-    void setKickPan (float pan);
-    void setSnareLevel (float level);
-    void setSnarePan (float pan);
-    void setHiHatLevel (float level);
-    void setHiHatPan (float pan);
-
-    // Effect Accessors
-    Equalizer& getAmbisonicEqualizer() { return ambisonicEQ; }
-    Compressor& getAmbisonicCompressor() { return ambisonicComp; }
-    Equalizer& getAmbienceEqualizer() { return ambienceEQ; }
-    Compressor& getAmbienceCompressor() { return ambienceComp; }
-    Equalizer& getKickEqualizer() { return kickEQ; }
-    Compressor& getKickCompressor() { return kickComp; }
-    Equalizer& getSnareEqualizer() { return snareEQ; }
-    Compressor& getSnareCompressor() { return snareComp; }
-    Equalizer& getHiHatEqualizer() { return hhEQ; }
-    Compressor& getHiHatCompressor() { return hhComp; }
-
-    // VUMeters accessors
-    VuMeter& getAmbisonicVuMeterL() { return ambisonicVuMeterL; }
-    VuMeter& getAmbisonicVuMeterR() { return ambisonicVuMeterR; }
-    VuMeter& getAmbienceVuMeter() { return ambienceVuMeter; }
-    VuMeter& getKickVuMeter() { return kickVuMeter; }
-    VuMeter& getSnareVuMeter() { return snareVuMeter; }
-    VuMeter& getHiHatVuMeter() { return hhVuMeter; }
+    const std::vector<std::unique_ptr<MixerStrip>>& getStrips() const { return strips; }
 
 private:
-    AmbixToMS ambixToMS;
-    Equalizer ambisonicEQ, ambienceEQ, kickEQ, snareEQ, hhEQ;
-    Compressor ambisonicComp, ambienceComp, kickComp, snareComp, hhComp;
-    
-    juce::AudioBuffer<float> tempStereoBuffer;
-    juce::AudioBuffer<float> tempMonoBuffer;
-
-    VuMeter ambisonicVuMeterL, ambisonicVuMeterR, ambienceVuMeter, kickVuMeter, snareVuMeter, hhVuMeter;
-    float ambienceLevel = 1.0f;
-
-    struct Track { float level = 1.0f; float pan = 0.0f; };
-    Track kickTrack, snareTrack, hhTrack;
+    std::vector<std::unique_ptr<MixerStrip>> strips;
+    double currentSampleRate = 44100.0;
+    int currentSamplesPerBlock = 512;
 };

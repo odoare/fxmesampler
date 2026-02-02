@@ -21,8 +21,10 @@ SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
     int xmlSize = 0;
     const char* xmlData = BinaryData::getNamedResource ("mapping_xml", xmlSize);
     
-    if (xmlData != nullptr)
+    if (xmlData != nullptr) {
         sampler.loadSamplesFromXml (xmlData, xmlSize);
+        mixer.loadFromXml (xmlData, xmlSize);
+    }
 }
 
 SimpleSamplerAudioProcessor::~SimpleSamplerAudioProcessor()

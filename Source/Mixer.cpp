@@ -8,96 +8,180 @@
 
 #include "Mixer.h"
 
-void Mixer::prepare (double sampleRate, int samplesPerBlock)
+//==============================================================================
+AmbisonicStrip::AmbisonicStrip (const juce::String& n) : MixerStrip (n) {}
+
+void AmbisonicStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    ambisonicEQ.prepare (sampleRate, 2);
-    ambisonicComp.prepare (sampleRate, 2);
-
-    ambisonicVuMeterL.prepare (sampleRate);
-    ambisonicVuMeterR.prepare (sampleRate);
-
-    ambienceVuMeter.prepare(sampleRate);
-    kickVuMeter.prepare(sampleRate);
-    snareVuMeter.prepare(sampleRate);
-    hhVuMeter.prepare(sampleRate);
-    
-    ambienceEQ.prepare (sampleRate, 1);
-    ambienceComp.prepare (sampleRate, 1);
-    kickEQ.prepare (sampleRate, 1);
-    kickComp.prepare (sampleRate, 1);
-    snareEQ.prepare (sampleRate, 1);
-    snareComp.prepare (sampleRate, 1);
-    hhEQ.prepare (sampleRate, 1);
-    hhComp.prepare (sampleRate, 1);
-
-    tempStereoBuffer.setSize (2, samplesPerBlock);
-    tempMonoBuffer.setSize (1, samplesPerBlock);
+    eq.prepare (sampleRate, 2);
+    comp.prepare (sampleRate, 2);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
 }
 
-void Mixer::setAmbisonicAzimuth (float degrees)   { ambixToMS.setAzimuth (degrees); }
-void Mixer::setAmbisonicElevation (float degrees) { ambixToMS.setElevation (degrees); }
-void Mixer::setAmbisonicWidth (float w)           { ambixToMS.setWidth (w); }
-void Mixer::setAmbisonicLevel (float level)       { ambixToMS.setLevel (level); }
+void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    tempBuffer.clear();
+    // AmbixToMS expects 4 channels starting at 0 in its input buffer logic, 
+    // but we pass a subset or use pointers. AmbixToMS::process takes buffers.
+    // We need to create a proxy buffer for the input channels.
+    juce::AudioBuffer<float> proxyBuffer;
+    // const_cast is ugly but AudioBuffer doesn't have a const-correct subset creation easily without copying
+    // However, AmbixToMS::process takes const input.
+    // We can create a buffer that points to the data.
+    std::vector<const float*> readPointers;
+    for (int i = 0; i < 4; ++i)
+        readPointers.push_back (input.getReadPointer (inputChannelOffset + i));
+    
+    juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers.data()), 4, input.getNumSamples());
 
-void Mixer::setAmbienceLevel (float level)        { ambienceLevel = level; }
+    ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
+    eq.process (tempBuffer);
+    comp.process (tempBuffer);
 
-void Mixer::setKickLevel (float level)            { kickTrack.level = level; }
-void Mixer::setKickPan (float pan)                { kickTrack.pan = pan; }
-void Mixer::setSnareLevel (float level)           { snareTrack.level = level; }
-void Mixer::setSnarePan (float pan)               { snareTrack.pan = pan; }
-void Mixer::setHiHatLevel (float level)           { hhTrack.level = level; }
-void Mixer::setHiHatPan (float pan)               { hhTrack.pan = pan; }
+    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+
+    for (int ch = 0; ch < 2; ++ch)
+        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+//==============================================================================
+StereoStrip::StereoStrip (const juce::String& n) : MixerStrip (n) {}
+
+void StereoStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    eq.prepare (sampleRate, 2);
+    comp.prepare (sampleRate, 2);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
+}
+
+void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    tempBuffer.clear();
+    // Copy input to temp
+    for (int i = 0; i < 2; ++i)
+        tempBuffer.copyFrom (i, 0, input, inputChannelOffset + i, 0, input.getNumSamples());
+
+    // Width processing
+    // M = (L+R)*0.5, S = (L-R)*0.5. S *= width. L=M+S, R=M-S.
+    // Simplified: L' = 0.5(L(1+w) + R(1-w)), R' = 0.5(L(1-w) + R(1+w))
+    if (std::abs(width - 1.0f) > 0.001f)
+    {
+        // In-place processing
+        auto* l = tempBuffer.getWritePointer(0);
+        auto* r = tempBuffer.getWritePointer(1);
+        for (int i = 0; i < tempBuffer.getNumSamples(); ++i)
+        {
+            float mid = (l[i] + r[i]) * 0.5f;
+            float side = (l[i] - r[i]) * 0.5f * width;
+            l[i] = mid + side;
+            r[i] = mid - side;
+        }
+    }
+
+    eq.process (tempBuffer);
+    comp.process (tempBuffer);
+    tempBuffer.applyGain (level);
+
+    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+
+    for (int ch = 0; ch < 2; ++ch)
+        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+//==============================================================================
+MonoStrip::MonoStrip (const juce::String& n) : MixerStrip (n) {}
+
+void MonoStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    eq.prepare (sampleRate, 1);
+    comp.prepare (sampleRate, 1);
+    meter.prepare (sampleRate);
+    tempBuffer.setSize (1, samplesPerBlock);
+}
+
+void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    tempBuffer.clear();
+    tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
+
+    eq.process (tempBuffer);
+    comp.process (tempBuffer);
+    tempBuffer.applyGain (level);
+
+    meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+
+    float gainL = 0.5f * (1.0f - pan);
+    float gainR = 0.5f * (1.0f + pan);
+
+    output.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+    output.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+}
+
+//==============================================================================
+void Mixer::prepare (double sampleRate, int samplesPerBlock)
+{
+    currentSampleRate = sampleRate;
+    currentSamplesPerBlock = samplesPerBlock;
+    for (auto& strip : strips)
+        strip->prepare (sampleRate, samplesPerBlock);
+}
+
+void Mixer::loadFromXml (const void* xmlData, int xmlSize)
+{
+    if (xmlData == nullptr || xmlSize <= 0)
+        return;
+
+    juce::XmlDocument doc (juce::String::createStringFromData (xmlData, xmlSize));
+    auto root = doc.getDocumentElement();
+
+    if (root == nullptr || ! root->hasTagName ("Mappings"))
+        return;
+
+    auto* mixerNode = root->getChildByName ("Mixer");
+    if (mixerNode == nullptr)
+        return;
+
+    strips.clear();
+
+    for (auto* child : mixerNode->getChildIterator())
+    {
+        if (child->hasTagName ("Group"))
+        {
+            juce::String type = child->getStringAttribute ("type");
+            juce::String name = child->getStringAttribute ("name");
+
+            if (type.equalsIgnoreCase ("ambisonic"))
+                strips.push_back (std::make_unique<AmbisonicStrip> (name));
+            else if (type.equalsIgnoreCase ("stereo"))
+                strips.push_back (std::make_unique<StereoStrip> (name));
+            else if (type.equalsIgnoreCase ("mono"))
+                strips.push_back (std::make_unique<MonoStrip> (name));
+        }
+    }
+
+    // Re-prepare if we are already running
+    if (currentSampleRate > 0)
+        prepare (currentSampleRate, currentSamplesPerBlock);
+}
 
 void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::AudioBuffer<float>& outputBuffer)
 {
-    // Ensure we have enough inputs
-    if (inputBuffer.getNumChannels() < 8)
-        return;
+    int currentInputChannel = 0;
+    int totalInputChannels = inputBuffer.getNumChannels();
 
-    int numSamples = outputBuffer.getNumSamples();
-    
-    // --- Ambisonics (Stereo) ---
-    tempStereoBuffer.clear();
-    // AmbixToMS adds to the output buffer, so we use temp buffer to capture, process, then mix
-    ambixToMS.process (inputBuffer, tempStereoBuffer);
-    ambisonicEQ.process (tempStereoBuffer);
-    ambisonicComp.process (tempStereoBuffer);
-
-    ambisonicVuMeterL.process (tempStereoBuffer.getReadPointer (0), numSamples);
-    ambisonicVuMeterR.process (tempStereoBuffer.getReadPointer (1), numSamples);
-    
-    for (int ch = 0; ch < 2; ++ch)
-        outputBuffer.addFrom (ch, 0, tempStereoBuffer, ch, 0, numSamples);
-
-    // --- Mono Tracks Helper ---
-    auto processMonoTrack = [&](int inputCh, Equalizer& eq, Compressor& comp, float level, float pan, VuMeter& meter)
+    for (auto& strip : strips)
     {
-        // Use temp buffer
-        tempMonoBuffer.clear();
-
-        tempMonoBuffer.copyFrom (0, 0, inputBuffer, inputCh, 0, numSamples);
-        
-        eq.process (tempMonoBuffer);
-        comp.process (tempMonoBuffer);
-        
-        tempMonoBuffer.applyGain (level);
-
-        float panGainL = 0.5f * (1.0f - pan);
-        float panGainR = 0.5f * (1.0f + pan);
-
-        meter.process (tempMonoBuffer.getReadPointer (0), numSamples);
-
-        
-        outputBuffer.addFrom (0, 0, tempMonoBuffer, 0, 0, numSamples, panGainL);
-        outputBuffer.addFrom (1, 0, tempMonoBuffer, 0, 0, numSamples, panGainR);
-    };
-
-    // Ambience (Ch 4)
-    processMonoTrack (4, ambienceEQ, ambienceComp, ambienceLevel, 0.0f, ambienceVuMeter);
-     // Kick (Ch 5)
-    processMonoTrack (5, kickEQ, kickComp, kickTrack.level, kickTrack.pan, kickVuMeter);
-     // Snare (Ch 6)
-    processMonoTrack (6, snareEQ, snareComp, snareTrack.level, snareTrack.pan, snareVuMeter);
-     // HH (Ch 7)
-    processMonoTrack (7, hhEQ, hhComp, hhTrack.level, hhTrack.pan, hhVuMeter);
+        int needed = strip->getNumInputChannels();
+        if (currentInputChannel + needed <= totalInputChannels)
+        {
+            strip->process (inputBuffer, outputBuffer, currentInputChannel);
+            currentInputChannel += needed;
+        }
+    }
 }

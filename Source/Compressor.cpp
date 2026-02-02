@@ -17,6 +17,7 @@ void Compressor::prepare (double sampleRate, int numChannels)
 {
     currentSampleRate = sampleRate;
     envelope = 0.0f;
+    grMeter.prepare (sampleRate);
     updateCoefficients();
     juce::ignoreUnused (numChannels);
 }
@@ -98,6 +99,9 @@ void Compressor::process (juce::AudioBuffer<float>& buffer)
 
         if (envdB > thresholddB)
             gainReductiondB = (thresholddB - envdB) * (1.0f - 1.0f / ratio);
+
+        float grLinear = juce::Decibels::decibelsToGain (gainReductiondB);
+        grMeter.process (&grLinear, 1);
 
         float gain = juce::Decibels::decibelsToGain (gainReductiondB) * makeUpGain;
 

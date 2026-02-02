@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "AmbixToMS.h"
+#include "VuMeter.h"
 #include "Equalizer.h"
 #include "Compressor.h"
 
@@ -48,6 +49,14 @@ public:
     Equalizer& getHiHatEqualizer() { return hhEQ; }
     Compressor& getHiHatCompressor() { return hhComp; }
 
+    // VUMeters accessors
+    VuMeter& getAmbisonicVuMeterL() { return ambisonicVuMeterL; }
+    VuMeter& getAmbisonicVuMeterR() { return ambisonicVuMeterR; }
+    VuMeter& getAmbienceVuMeter() { return ambienceVuMeter; }
+    VuMeter& getKickVuMeter() { return kickVuMeter; }
+    VuMeter& getSnareVuMeter() { return snareVuMeter; }
+    VuMeter& getHiHatVuMeter() { return hhVuMeter; }
+
 private:
     AmbixToMS ambixToMS;
     Equalizer ambisonicEQ, ambienceEQ, kickEQ, snareEQ, hhEQ;
@@ -56,6 +65,7 @@ private:
     juce::AudioBuffer<float> tempStereoBuffer;
     juce::AudioBuffer<float> tempMonoBuffer;
 
+    VuMeter ambisonicVuMeterL, ambisonicVuMeterR, ambienceVuMeter, kickVuMeter, snareVuMeter, hhVuMeter;
     float ambienceLevel = 1.0f;
 
     struct Track { float level = 1.0f; float pan = 0.0f; };

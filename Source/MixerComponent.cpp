@@ -50,6 +50,18 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m) : mixer (m)
 
     addAndMakeVisible (hhLabel); hhLabel.setText ("Hi-Hat", juce::NotificationType::dontSendNotification);
     setup (hhLvl, 0, 2, 1); setup (hhPan, -1, 1, 0);
+
+    addAndMakeVisible (vuLabel); vuLabel.setText ("Levels", juce::NotificationType::dontSendNotification);
+    
+    auto setupVu = [&](VuMeterComponent& vu, juce::Colour c) { addAndMakeVisible(vu); vu.setMeterColor(c); vu.setRange(-60.0f, 6.0f); vu.setZeroLevel(0.0f); };
+    setupVu(ambVuL, juce::Colours::orange);
+    setupVu(ambVuR, juce::Colours::orange);
+    setupVu(ambVu, juce::Colours::orange);
+    setupVu(kickVu, juce::Colours::red);
+    setupVu(snareVu, juce::Colours::yellow);
+    setupVu(hhVu, juce::Colours::green);
+
+    startTimerHz (24);
 }
 
 void MixerComponent::LevelsComponent::resized()
@@ -74,6 +86,16 @@ void MixerComponent::LevelsComponent::resized()
     track (kickLabel, kickLvl, kickPan);
     track (snareLabel, snareLvl, snarePan);
     track (hhLabel, hhLvl, hhPan);
+    x = 10; y += 10;
+
+    int vuW = 15; int vuH = 100; int gap = 20;
+    vuLabel.setBounds (x, y, w, h); y += h;
+    ambVuL.setBounds (x, y, vuW, vuH);
+    ambVuR.setBounds (x + vuW + 2, y, vuW, vuH);
+    ambVu.setBounds (x + 2 * vuW + 2 + gap, y, vuW, vuH);
+    kickVu.setBounds (x + 3 * vuW + 2 + 2 * gap, y, vuW, vuH);
+    snareVu.setBounds (x + 4 * vuW + 2 + 3 * gap, y, vuW, vuH);
+    hhVu.setBounds (x + 5 * vuW + 2 + 4 * gap, y, vuW, vuH);
 }
 
 void MixerComponent::LevelsComponent::sliderValueChanged (juce::Slider* s)
@@ -89,6 +111,16 @@ void MixerComponent::LevelsComponent::sliderValueChanged (juce::Slider* s)
     else if (s == &snarePan) mixer.setSnarePan ((float) s->getValue());
     else if (s == &hhLvl) mixer.setHiHatLevel ((float) s->getValue());
     else if (s == &hhPan) mixer.setHiHatPan ((float) s->getValue());
+}
+
+void MixerComponent::LevelsComponent::timerCallback()
+{
+    ambVuL.setValue (mixer.getAmbisonicVuMeterL().getRMS());
+    ambVuR.setValue (mixer.getAmbisonicVuMeterR().getRMS());
+    ambVu.setValue (mixer.getAmbienceVuMeter().getRMS());
+    kickVu.setValue (mixer.getKickVuMeter().getRMS());
+    snareVu.setValue (mixer.getSnareVuMeter().getRMS());
+    hhVu.setValue (mixer.getHiHatVuMeter().getRMS());
 }
 
 //==============================================================================

@@ -25,6 +25,12 @@ CompressorComponent::CompressorComponent (Compressor& comp) : compressor (comp)
     setupSlider (threshSlider, threshLabel, "Thresh (dB)", -60.0, 0.0, 0.0);
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
     setupSlider (gainSlider, gainLabel, "Gain (dB)", 0.0, 24.0, 0.0);
+
+    addAndMakeVisible (grMeter);
+    grMeter.setMeterColor (juce::Colours::red);
+    grMeter.setRange (-30.0f, 0.0f);
+    grMeter.setZeroLevel (0.0f);
+    startTimerHz (24);
 }
 
 CompressorComponent::~CompressorComponent()
@@ -59,6 +65,9 @@ void CompressorComponent::resized()
     onButton.setBounds (header.removeFromLeft (40));
     titleLabel.setBounds (header);
 
+    auto meterArea = area.removeFromRight (20);
+    grMeter.setBounds (meterArea);
+    
     int w = area.getWidth() / 5;
     
     auto layout = [&](juce::Slider& s, juce::Label& l, int index)
@@ -93,4 +102,9 @@ void CompressorComponent::buttonClicked (juce::Button* button)
 {
     if (button == &onButton)
         compressor.setOn (onButton.getToggleState());
+}
+
+void CompressorComponent::timerCallback()
+{
+    grMeter.setValue (compressor.getGrMeter().getPeak());
 }

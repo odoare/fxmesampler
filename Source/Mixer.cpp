@@ -12,6 +12,14 @@ void Mixer::prepare (double sampleRate, int samplesPerBlock)
 {
     ambisonicEQ.prepare (sampleRate, 2);
     ambisonicComp.prepare (sampleRate, 2);
+
+    ambisonicVuMeterL.prepare (sampleRate);
+    ambisonicVuMeterR.prepare (sampleRate);
+
+    ambienceVuMeter.prepare(sampleRate);
+    kickVuMeter.prepare(sampleRate);
+    snareVuMeter.prepare(sampleRate);
+    hhVuMeter.prepare(sampleRate);
     
     ambienceEQ.prepare (sampleRate, 1);
     ambienceComp.prepare (sampleRate, 1);
@@ -54,31 +62,42 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
     ambixToMS.process (inputBuffer, tempStereoBuffer);
     ambisonicEQ.process (tempStereoBuffer);
     ambisonicComp.process (tempStereoBuffer);
+
+    ambisonicVuMeterL.process (tempStereoBuffer.getReadPointer (0), numSamples);
+    ambisonicVuMeterR.process (tempStereoBuffer.getReadPointer (1), numSamples);
     
     for (int ch = 0; ch < 2; ++ch)
         outputBuffer.addFrom (ch, 0, tempStereoBuffer, ch, 0, numSamples);
 
     // --- Mono Tracks Helper ---
-    auto processMonoTrack = [&](int inputCh, Equalizer& eq, Compressor& comp, float level, float pan)
+    auto processMonoTrack = [&](int inputCh, Equalizer& eq, Compressor& comp, float level, float pan, VuMeter& meter)
     {
+        // Use temp buffer
+        tempMonoBuffer.clear();
+
         tempMonoBuffer.copyFrom (0, 0, inputBuffer, inputCh, 0, numSamples);
         
         eq.process (tempMonoBuffer);
         comp.process (tempMonoBuffer);
         
-        float gainL = level * 0.5f * (1.0f - pan);
-        float gainR = level * 0.5f * (1.0f + pan);
+        tempMonoBuffer.applyGain (level);
+
+        float panGainL = 0.5f * (1.0f - pan);
+        float panGainR = 0.5f * (1.0f + pan);
+
+        meter.process (tempMonoBuffer.getReadPointer (0), numSamples);
+
         
-        outputBuffer.addFrom (0, 0, tempMonoBuffer, 0, 0, numSamples, gainL);
-        outputBuffer.addFrom (1, 0, tempMonoBuffer, 0, 0, numSamples, gainR);
+        outputBuffer.addFrom (0, 0, tempMonoBuffer, 0, 0, numSamples, panGainL);
+        outputBuffer.addFrom (1, 0, tempMonoBuffer, 0, 0, numSamples, panGainR);
     };
 
     // Ambience (Ch 4)
-    processMonoTrack (4, ambienceEQ, ambienceComp, ambienceLevel, 0.0f);
-    // Kick (Ch 5)
-    processMonoTrack (5, kickEQ, kickComp, kickTrack.level, kickTrack.pan);
-    // Snare (Ch 6)
-    processMonoTrack (6, snareEQ, snareComp, snareTrack.level, snareTrack.pan);
-    // HH (Ch 7)
-    processMonoTrack (7, hhEQ, hhComp, hhTrack.level, hhTrack.pan);
+    processMonoTrack (4, ambienceEQ, ambienceComp, ambienceLevel, 0.0f, ambienceVuMeter);
+     // Kick (Ch 5)
+    processMonoTrack (5, kickEQ, kickComp, kickTrack.level, kickTrack.pan, kickVuMeter);
+     // Snare (Ch 6)
+    processMonoTrack (6, snareEQ, snareComp, snareTrack.level, snareTrack.pan, snareVuMeter);
+     // HH (Ch 7)
+    processMonoTrack (7, hhEQ, hhComp, hhTrack.level, hhTrack.pan, hhVuMeter);
 }

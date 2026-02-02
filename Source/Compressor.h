@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "VuMeter.h"
 
 class Compressor
 {
@@ -25,6 +26,7 @@ public:
     void setPostGain (float gaindB);
     void setOn (bool shouldBeOn);
     bool isOn() const;
+    VuMeter& getGrMeter() { return grMeter; }
 
 private:
     double currentSampleRate = 44100.0;
@@ -37,6 +39,7 @@ private:
     bool on = true;
 
     float envelope = 0.0f;
+    VuMeter grMeter;
 
     // Coefficients
     float attackCoef = 0.0f;

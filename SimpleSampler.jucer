@@ -46,6 +46,11 @@
             file="wav/reaper_testproject/Media/Snare Snare 04 0 38 38.wav"/>
     </GROUP>
     <GROUP id="{81A13946-40E6-2C1D-D0EA-A6C5479467E3}" name="Source">
+      <FILE id="KdyhEF" name="TubeComponent.cpp" compile="1" resource="0"
+            file="Source/TubeComponent.cpp"/>
+      <FILE id="Ox6SD0" name="TubeComponent.h" compile="0" resource="0" file="Source/TubeComponent.h"/>
+      <FILE id="oKFkLw" name="Tube.cpp" compile="1" resource="0" file="Source/Tube.cpp"/>
+      <FILE id="aQu6OY" name="Tube.h" compile="0" resource="0" file="Source/Tube.h"/>
       <FILE id="IgWHhf" name="VuMeterComponent.cpp" compile="1" resource="0"
             file="Source/VuMeterComponent.cpp"/>
       <FILE id="AnrDWZ" name="VuMeterComponent.h" compile="0" resource="0"

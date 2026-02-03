@@ -15,6 +15,7 @@ void AmbisonicStrip::prepare (double sampleRate, int samplesPerBlock)
 {
     eq.prepare (sampleRate, 2);
     comp.prepare (sampleRate, 2);
+    tube.prepare (sampleRate);
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -30,6 +31,7 @@ void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts
     soloParam = apvts.getRawParameterValue (name + "_Solo");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
 }
 
 void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -58,6 +60,8 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     eq.process (tempBuffer);
     comp.checkParameters();
     comp.process (tempBuffer);
+    tube.checkParameters();
+    tube.process (tempBuffer);
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
@@ -73,6 +77,7 @@ void StereoStrip::prepare (double sampleRate, int samplesPerBlock)
 {
     eq.prepare (sampleRate, 2);
     comp.prepare (sampleRate, 2);
+    tube.prepare (sampleRate);
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -86,6 +91,7 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     soloParam = apvts.getRawParameterValue (name + "_Solo");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
 }
 
 void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -119,6 +125,8 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     eq.process (tempBuffer);
     comp.checkParameters();
     comp.process (tempBuffer);
+    tube.checkParameters();
+    tube.process (tempBuffer);
     tempBuffer.applyGain (level);
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
@@ -135,6 +143,7 @@ void MonoStrip::prepare (double sampleRate, int samplesPerBlock)
 {
     eq.prepare (sampleRate, 1);
     comp.prepare (sampleRate, 1);
+    tube.prepare (sampleRate);
     meter.prepare (sampleRate);
     tempBuffer.setSize (1, samplesPerBlock);
 }
@@ -147,6 +156,7 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     soloParam = apvts.getRawParameterValue (name + "_Solo");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
 }
 
 void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -161,6 +171,8 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     eq.process (tempBuffer);
     comp.checkParameters();
     comp.process (tempBuffer);
+    tube.checkParameters();
+    tube.process (tempBuffer);
     tempBuffer.applyGain (level);
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());

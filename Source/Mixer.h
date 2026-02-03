@@ -13,6 +13,7 @@
 #include "VuMeter.h"
 #include "Equalizer.h"
 #include "Compressor.h"
+#include "Tube.h"
 #include <atomic>
 
 //==============================================================================
@@ -30,6 +31,7 @@ public:
     juce::String getName() const { return name; }
     Equalizer& getEQ() { return eq; }
     Compressor& getComp() { return comp; }
+    Tube& getTube() { return tube; }
 
     bool isMute() const { return muteParam && *muteParam > 0.5f; }
     bool isSolo() const { return soloParam && *soloParam > 0.5f; }
@@ -41,6 +43,7 @@ protected:
     juce::String name;
     Equalizer eq;
     Compressor comp;
+    Tube tube;
     juce::AudioBuffer<float> tempBuffer;
     std::atomic<float>* muteParam = nullptr;
     std::atomic<float>* soloParam = nullptr;

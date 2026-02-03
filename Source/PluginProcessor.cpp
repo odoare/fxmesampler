@@ -265,6 +265,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Thresh", 1 }, name + " Comp Thresh", -60.0f, 0.0f, 0.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Ratio", 1 }, name + " Comp Ratio", 1.0f, 20.0f, 1.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Gain", 1 }, name + " Comp Gain", 0.0f, 24.0f, 0.0f));
+
+                        // Tube
+                        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Tube_On", 1 }, name + " Tube On", true));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Drive", 1 }, name + " Tube Drive", 0.0f, 40.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Bias", 1 }, name + " Tube Bias", 0.0f, 0.5f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Out", 1 }, name + " Tube Out", -20.0f, 20.0f, 0.0f));
                     }
                 }
             }

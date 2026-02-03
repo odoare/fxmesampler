@@ -12,21 +12,24 @@
 class EffectChainComponent : public juce::Component
 {
 public:
-    EffectChainComponent (Equalizer& eq, Compressor& comp, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
-        : eqComp (eq, apvts, prefix), compComp (comp, apvts, prefix)
+    EffectChainComponent (Equalizer& eq, Compressor& comp, Tube& tube, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
+        : eqComp (eq, apvts, prefix), compComp (comp, apvts, prefix), tubeComp (tube, apvts, prefix)
     {
         addAndMakeVisible (eqComp);
         addAndMakeVisible (compComp);
+        addAndMakeVisible (tubeComp);
     }
     void resized() override
     {
         auto area = getLocalBounds();
         eqComp.setBounds (area.removeFromTop (area.getHeight() / 2));
-        compComp.setBounds (area);
+        compComp.setBounds (area.removeFromTop (area.getHeight() * 0.6f));
+        tubeComp.setBounds (area);
     }
 private:
     EqualizerComponent eqComp;
     CompressorComponent compComp;
+    TubeComponent tubeComp;
 };
 
 //==============================================================================
@@ -63,8 +66,15 @@ StripComponent::~StripComponent() { stopTimer(); }
 
 void StripComponent::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colours::grey);
-    g.drawRect (getLocalBounds(), 1);
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void StripComponent::resized()
@@ -266,17 +276,18 @@ MixerComponent::MixerComponent (Mixer& m, juce::AudioProcessorValueTreeState& st
     // but addTab takes ownership if we pass true (which we will for these new components).
     // However, addTab with 'true' deletes the component. We need to make sure we allocate them.
     
-    auto addChain = [&](const juce::String& name, Equalizer& eq, Compressor& comp) {
-        tabs.addTab (name, juce::Colours::lightgrey, new EffectChainComponent (eq, comp, apvts, name), true);
+    auto addChain = [&](const juce::String& name, Equalizer& eq, Compressor& comp, Tube& tube) {
+        tabs.addTab (name, juce::Colours::lightgrey, new EffectChainComponent (eq, comp, tube, apvts, name), true);
     };
 
     for (auto& strip : mixer.getStrips())
     {
-        addChain (strip->getName(), strip->getEQ(), strip->getComp());
+        addChain (strip->getName(), strip->getEQ(), strip->getComp(), strip->getTube());
     }
 
     addAndMakeVisible (tabs);
-    setSize (600, 500);
+    int n = mixer.getStrips().size();
+    setSize (n*150, 500);
 }
 
 MixerComponent::~MixerComponent()
@@ -285,7 +296,15 @@ MixerComponent::~MixerComponent()
 
 void MixerComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void MixerComponent::resized()

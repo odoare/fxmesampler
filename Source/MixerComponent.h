@@ -13,6 +13,7 @@
 #include "CompressorComponent.h"
 #include "VuMeterComponent.h"
 #include "EqualizerComponent.h"
+#include "TubeComponent.h"
 
 //==============================================================================
 class StripComponent : public juce::Component, public juce::Timer

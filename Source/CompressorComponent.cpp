@@ -58,9 +58,15 @@ void CompressorComponent::setupSlider (juce::Slider& slider, juce::Label& label,
 
 void CompressorComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::darkgrey.darker (0.2f));
-    g.setColour (juce::Colours::white);
-    g.drawRect (getLocalBounds(), 1);
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void CompressorComponent::resized()

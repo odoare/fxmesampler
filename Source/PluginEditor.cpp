@@ -13,7 +13,8 @@ SimpleSamplerAudioProcessorEditor::SimpleSamplerAudioProcessorEditor (SimpleSamp
     : AudioProcessorEditor (&p), audioProcessor (p), mixerComponent (p.getMixer(), p.getAPVTS())
 {
     addAndMakeVisible (mixerComponent);
-    setSize (600, 500);
+    int n = p.getMixer().getStrips().size();
+    setSize (n*150, 500);
 }
 
 SimpleSamplerAudioProcessorEditor::~SimpleSamplerAudioProcessorEditor()
@@ -22,7 +23,15 @@ SimpleSamplerAudioProcessorEditor::~SimpleSamplerAudioProcessorEditor()
 
 void SimpleSamplerAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void SimpleSamplerAudioProcessorEditor::resized()

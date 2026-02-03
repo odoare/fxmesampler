@@ -26,6 +26,8 @@ void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts
     elParam = apvts.getRawParameterValue (name + "_Elevation");
     wParam = apvts.getRawParameterValue (name + "_Width");
     lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
 }
@@ -80,6 +82,8 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 {
     wParam = apvts.getRawParameterValue (name + "_Width");
     lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
 }
@@ -139,6 +143,8 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 {
     panParam = apvts.getRawParameterValue (name + "_Pan");
     lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
 }
@@ -198,13 +204,37 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
         {
             juce::String type = child->getStringAttribute ("type");
             juce::String name = child->getStringAttribute ("name");
+            juce::String imgName = child->getStringAttribute ("img");
+
+            std::unique_ptr<MixerStrip> newStrip;
 
             if (type.equalsIgnoreCase ("ambisonic"))
-                strips.push_back (std::make_unique<AmbisonicStrip> (name));
+                newStrip = std::make_unique<AmbisonicStrip> (name);
             else if (type.equalsIgnoreCase ("stereo"))
-                strips.push_back (std::make_unique<StereoStrip> (name));
+                newStrip = std::make_unique<StereoStrip> (name);
             else if (type.equalsIgnoreCase ("mono"))
-                strips.push_back (std::make_unique<MonoStrip> (name));
+                newStrip = std::make_unique<MonoStrip> (name);
+
+            if (newStrip != nullptr)
+            {
+                if (imgName.isNotEmpty())
+                {
+                    juce::String resourceName = imgName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+                    int dataSize = 0;
+                    const char* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), dataSize);
+
+                    if (data == nullptr)
+                    {
+                        for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+                            if (resourceName.equalsIgnoreCase (BinaryData::namedResourceList[i]))
+                                { data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], dataSize); break; }
+                    }
+
+                    if (data != nullptr)
+                        newStrip->setImage (juce::ImageCache::getFromMemory (data, dataSize));
+                }
+                strips.push_back (std::move (newStrip));
+            }
         }
     }
 
@@ -224,12 +254,21 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
     int currentInputChannel = 0;
     int totalInputChannels = inputBuffer.getNumChannels();
 
+    bool anySolo = false;
+    for (auto& strip : strips)
+        if (strip->isSolo()) { anySolo = true; break; }
+
     for (auto& strip : strips)
     {
         int needed = strip->getNumInputChannels();
         if (currentInputChannel + needed <= totalInputChannels)
         {
-            strip->process (inputBuffer, outputBuffer, currentInputChannel);
+            bool shouldProcess = true;
+            if (anySolo) shouldProcess = strip->isSolo();
+            else         shouldProcess = ! strip->isMute();
+
+            if (shouldProcess)
+                strip->process (inputBuffer, outputBuffer, currentInputChannel);
             currentInputChannel += needed;
         }
     }

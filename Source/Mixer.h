@@ -31,11 +31,20 @@ public:
     Equalizer& getEQ() { return eq; }
     Compressor& getComp() { return comp; }
 
+    bool isMute() const { return muteParam && *muteParam > 0.5f; }
+    bool isSolo() const { return soloParam && *soloParam > 0.5f; }
+
+    void setImage (const juce::Image& img) { image = img; }
+    juce::Image getImage() const { return image; }
+
 protected:
     juce::String name;
     Equalizer eq;
     Compressor comp;
     juce::AudioBuffer<float> tempBuffer;
+    std::atomic<float>* muteParam = nullptr;
+    std::atomic<float>* soloParam = nullptr;
+    juce::Image image;
 };
 
 class AmbisonicStrip : public MixerStrip

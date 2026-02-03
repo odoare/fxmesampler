@@ -3,6 +3,13 @@
 <JUCERPROJECT id="VTY3rl" name="SimpleSampler" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
   <MAINGROUP id="zBzLwc" name="SimpleSampler">
+    <GROUP id="{E2914C61-1288-C5F6-6256-9DDC03E6D731}" name="Img">
+      <FILE id="kOmrQ4" name="drums.jpg" compile="0" resource="1" file="img/drums.jpg"/>
+      <FILE id="sLOgTZ" name="hh.jpg" compile="0" resource="1" file="img/hh.jpg"/>
+      <FILE id="rdNA2E" name="kick.jpg" compile="0" resource="1" file="img/kick.jpg"/>
+      <FILE id="aJXRQ9" name="room.jpg" compile="0" resource="1" file="img/room.jpg"/>
+      <FILE id="Ugc9J5" name="snare.jpg" compile="0" resource="1" file="img/snare.jpg"/>
+    </GROUP>
     <GROUP id="{AC82C2F8-19E7-6905-EBEF-3BA5D7E86B11}" name="Sounds">
       <FILE id="Vo1v9P" name="HH closed 01 1 42 42.wav" compile="0" resource="1"
             file="wav/reaper_testproject/Media/HH closed 01 1 42 42.wav"/>
@@ -77,6 +84,7 @@
     </GROUP>
   </MAINGROUP>
   <MODULES>
+    <MODULE id="fxme_juce_tools" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -113,6 +121,7 @@
         <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="fxme_juce_tools" path="../JUCE/usermodules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
   </EXPORTFORMATS>

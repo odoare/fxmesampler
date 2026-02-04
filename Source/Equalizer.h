@@ -56,6 +56,8 @@ private:
     std::vector<ChannelStrip> channels;
     double currentSampleRate = 44100.0;
     bool on = true;
+    float preGain = 1.0f;
+    float postGain = 1.0f;
 
     // Parameter cache
     struct { float f, g; } lsParams { 100.0f, 0.0f };
@@ -65,6 +67,8 @@ private:
 
     // Parameter Pointers
     std::atomic<float>* onParam = nullptr;
+    std::atomic<float>* preGainParam = nullptr;
+    std::atomic<float>* postGainParam = nullptr;
     std::atomic<float>* lsFreqParam = nullptr; std::atomic<float>* lsGainParam = nullptr;
     std::atomic<float>* b1FreqParam = nullptr; std::atomic<float>* b1QParam = nullptr; std::atomic<float>* b1GainParam = nullptr;
     std::atomic<float>* b2FreqParam = nullptr; std::atomic<float>* b2QParam = nullptr; std::atomic<float>* b2GainParam = nullptr;
@@ -72,6 +76,8 @@ private:
 
     // Last values for change detection
     float lastOn = -1.0f;
+    float lastPreGain = -100.0f;
+    float lastPostGain = -100.0f;
     float lastLsFreq = -1.0f, lastLsGain = -100.0f;
     float lastB1Freq = -1.0f, lastB1Q = -1.0f, lastB1Gain = -100.0f;
     float lastB2Freq = -1.0f, lastB2Q = -1.0f, lastB2Gain = -100.0f;

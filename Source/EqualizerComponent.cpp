@@ -55,6 +55,20 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     setup (hsGain, -15.0, 15.0, 0.0);
     hsFreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Freq", hsFreq);
     hsGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Gain", hsGain);
+
+    addAndMakeVisible (preGainSlider);
+    preGainSlider.setSliderStyle (juce::Slider::LinearVertical);
+    preGainSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 40, 15);
+    preGainSlider.setRange (-24.0, 24.0, 0.1);
+    preGainSlider.setValue (0.0);
+    preGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_PreGain", preGainSlider);
+
+    addAndMakeVisible (postGainSlider);
+    postGainSlider.setSliderStyle (juce::Slider::LinearVertical);
+    postGainSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 40, 15);
+    postGainSlider.setRange (-24.0, 24.0, 0.1);
+    postGainSlider.setValue (0.0);
+    postGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_PostGain", postGainSlider);
 }
 
 EqualizerComponent::~EqualizerComponent()
@@ -80,6 +94,11 @@ void EqualizerComponent::resized()
     auto header = area.removeFromTop (25);
     onButton.setBounds (header.removeFromLeft (40));
     titleLabel.setBounds (header);
+
+    int gainSliderWidth = 50;
+    preGainSlider.setBounds (area.removeFromLeft (gainSliderWidth));
+    postGainSlider.setBounds (area.removeFromRight (gainSliderWidth));
+    area.reduce (5, 0);
 
     int w = area.getWidth() / 4;
     

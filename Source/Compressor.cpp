@@ -70,6 +70,7 @@ bool Compressor::isOn() const
 void Compressor::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
 {
     onParam = apvts.getRawParameterValue (prefix + "_Comp_On");
+    preGainParam = apvts.getRawParameterValue (prefix + "_Comp_PreGain");
     attackParam = apvts.getRawParameterValue (prefix + "_Comp_Attack");
     releaseParam = apvts.getRawParameterValue (prefix + "_Comp_Release");
     threshParam = apvts.getRawParameterValue (prefix + "_Comp_Thresh");
@@ -80,6 +81,8 @@ void Compressor::assignParameters (juce::AudioProcessorValueTreeState& apvts, co
 void Compressor::checkParameters()
 {
     if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }
+
+    if (preGainParam && *preGainParam != lastPreGain) { preGain = juce::Decibels::decibelsToGain (preGainParam->load()); lastPreGain = *preGainParam; }
     
     bool changed = false;
     if (attackParam && *attackParam != lastAttack) { attackTimeMs = *attackParam; lastAttack = attackTimeMs; changed = true; }
@@ -98,6 +101,8 @@ void Compressor::process (juce::AudioBuffer<float>& buffer)
 {
     if (! on)
         return;
+
+    buffer.applyGain (preGain);
 
     int numChannels = buffer.getNumChannels();
     int numSamples = buffer.getNumSamples();

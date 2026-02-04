@@ -33,11 +33,14 @@ private:
     juce::Slider b1Freq, b1Q, b1Gain;
     juce::Slider b2Freq, b2Q, b2Gain;
     juce::Slider hsFreq, hsGain;
+    juce::Slider preGainSlider, postGainSlider;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
     std::unique_ptr<ButtonAttachment> onAtt;
+    std::unique_ptr<SliderAttachment> preGainAtt;
+    std::unique_ptr<SliderAttachment> postGainAtt;
     std::unique_ptr<SliderAttachment> lsFreqAtt, lsGainAtt;
     std::unique_ptr<SliderAttachment> b1FreqAtt, b1QAtt, b1GainAtt;
     std::unique_ptr<SliderAttachment> b2FreqAtt, b2QAtt, b2GainAtt;

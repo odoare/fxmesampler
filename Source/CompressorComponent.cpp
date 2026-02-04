@@ -20,12 +20,14 @@ CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessor
     titleLabel.setJustificationType (juce::Justification::centred);
     titleLabel.setFont (juce::Font (16.0f, juce::Font::bold));
 
+    setupSlider (preGainSlider, preGainLabel, "Pre Gain", -24.0, 24.0, 0.0);
     setupSlider (attackSlider, attackLabel, "Attack (ms)", 0.1, 100.0, 10.0);
     setupSlider (releaseSlider, releaseLabel, "Release (ms)", 10.0, 1000.0, 100.0);
     setupSlider (threshSlider, threshLabel, "Thresh (dB)", -60.0, 0.0, 0.0);
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
     setupSlider (gainSlider, gainLabel, "Gain (dB)", 0.0, 24.0, 0.0);
 
+    preGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_PreGain", preGainSlider);
     attackAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Attack", attackSlider);
     releaseAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Release", releaseSlider);
     threshAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Thresh", threshSlider);
@@ -79,7 +81,7 @@ void CompressorComponent::resized()
     auto meterArea = area.removeFromRight (20);
     grMeter.setBounds (meterArea);
     
-    int w = area.getWidth() / 5;
+    int w = area.getWidth() / 6;
     
     auto layout = [&](juce::Slider& s, juce::Label& l, int index)
     {
@@ -88,11 +90,12 @@ void CompressorComponent::resized()
         s.setBounds (r);
     };
 
-    layout (attackSlider, attackLabel, 0);
-    layout (releaseSlider, releaseLabel, 1);
-    layout (threshSlider, threshLabel, 2);
-    layout (ratioSlider, ratioLabel, 3);
-    layout (gainSlider, gainLabel, 4);
+    layout (preGainSlider, preGainLabel, 0);
+    layout (attackSlider, attackLabel, 1);
+    layout (releaseSlider, releaseLabel, 2);
+    layout (threshSlider, threshLabel, 3);
+    layout (ratioSlider, ratioLabel, 4);
+    layout (gainSlider, gainLabel, 5);
 }
 
 void CompressorComponent::timerCallback()

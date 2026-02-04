@@ -30,14 +30,14 @@ private:
     juce::ToggleButton onButton;
     juce::Label titleLabel;
     VuMeterComponent grMeter;
-    juce::Label attackLabel, releaseLabel, threshLabel, ratioLabel, gainLabel;
-    juce::Slider attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
+    juce::Label preGainLabel, attackLabel, releaseLabel, threshLabel, ratioLabel, gainLabel;
+    juce::Slider preGainSlider, attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
     std::unique_ptr<ButtonAttachment> onAtt;
-    std::unique_ptr<SliderAttachment> attackAtt, releaseAtt, threshAtt, ratioAtt, gainAtt;
+    std::unique_ptr<SliderAttachment> preGainAtt, attackAtt, releaseAtt, threshAtt, ratioAtt, gainAtt;
 
     void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
 

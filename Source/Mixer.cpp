@@ -9,6 +9,35 @@
 #include "Mixer.h"
 
 //==============================================================================
+void MixerStrip::processEffects (juce::AudioBuffer<float>& buffer)
+{
+    eq.checkParameters();
+    comp.checkParameters();
+    tube.checkParameters();
+
+    int order = 0;
+    if (orderParam) order = (int) *orderParam;
+
+    // 0: EQ -> Comp -> Tube
+    // 1: EQ -> Tube -> Comp
+    // 2: Comp -> EQ -> Tube
+    // 3: Comp -> Tube -> EQ
+    // 4: Tube -> EQ -> Comp
+    // 5: Tube -> Comp -> EQ
+
+    switch (order)
+    {
+        case 0: eq.process (buffer); comp.process (buffer); tube.process (buffer); break;
+        case 1: eq.process (buffer); tube.process (buffer); comp.process (buffer); break;
+        case 2: comp.process (buffer); eq.process (buffer); tube.process (buffer); break;
+        case 3: comp.process (buffer); tube.process (buffer); eq.process (buffer); break;
+        case 4: tube.process (buffer); eq.process (buffer); comp.process (buffer); break;
+        case 5: tube.process (buffer); comp.process (buffer); eq.process (buffer); break;
+        default: eq.process (buffer); comp.process (buffer); tube.process (buffer); break;
+    }
+}
+
+//==============================================================================
 AmbisonicStrip::AmbisonicStrip (const juce::String& n) : MixerStrip (n) {}
 
 void AmbisonicStrip::prepare (double sampleRate, int samplesPerBlock)
@@ -29,6 +58,7 @@ void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
+    orderParam = apvts.getRawParameterValue (name + "_Order");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
     tube.assignParameters (apvts, name);
@@ -56,12 +86,7 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers.data()), 4, input.getNumSamples());
 
     ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
-    eq.checkParameters();
-    eq.process (tempBuffer);
-    comp.checkParameters();
-    comp.process (tempBuffer);
-    tube.checkParameters();
-    tube.process (tempBuffer);
+    processEffects (tempBuffer);
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
@@ -90,6 +115,7 @@ void MSStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
+    orderParam = apvts.getRawParameterValue (name + "_Order");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
     tube.assignParameters (apvts, name);
@@ -117,12 +143,7 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
         r[i] = mid - side;
     }
 
-    eq.checkParameters();
-    eq.process (tempBuffer);
-    comp.checkParameters();
-    comp.process (tempBuffer);
-    tube.checkParameters();
-    tube.process (tempBuffer);
+    processEffects (tempBuffer);
     tempBuffer.applyGain (level);
 
     // Balance using constant-power law
@@ -159,6 +180,7 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
+    orderParam = apvts.getRawParameterValue (name + "_Order");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
     tube.assignParameters (apvts, name);
@@ -189,12 +211,7 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
         }
     }
 
-    eq.checkParameters();
-    eq.process (tempBuffer);
-    comp.checkParameters();
-    comp.process (tempBuffer);
-    tube.checkParameters();
-    tube.process (tempBuffer);
+    processEffects (tempBuffer);
     tempBuffer.applyGain (level);
 
     // Balance using Linear law (Classical Stereo)
@@ -229,6 +246,7 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
+    orderParam = apvts.getRawParameterValue (name + "_Order");
     eq.assignParameters (apvts, name);
     comp.assignParameters (apvts, name);
     tube.assignParameters (apvts, name);
@@ -242,12 +260,7 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
-    eq.checkParameters();
-    eq.process (tempBuffer);
-    comp.checkParameters();
-    comp.process (tempBuffer);
-    tube.checkParameters();
-    tube.process (tempBuffer);
+    processEffects (tempBuffer);
     tempBuffer.applyGain (level);
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());

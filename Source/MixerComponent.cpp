@@ -15,6 +15,15 @@ public:
     EffectChainComponent (Equalizer& eq, Compressor& comp, Tube& tube, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
         : eqComp (eq, apvts, prefix), compComp (comp, apvts, prefix), tubeComp (tube, apvts, prefix)
     {
+        addAndMakeVisible (orderBox);
+        orderBox.addItem ("EQ -> Comp -> Tube", 1);
+        orderBox.addItem ("EQ -> Tube -> Comp", 2);
+        orderBox.addItem ("Comp -> EQ -> Tube", 3);
+        orderBox.addItem ("Comp -> Tube -> EQ", 4);
+        orderBox.addItem ("Tube -> EQ -> Comp", 5);
+        orderBox.addItem ("Tube -> Comp -> EQ", 6);
+        orderAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Order", orderBox);
+
         addAndMakeVisible (eqComp);
         addAndMakeVisible (compComp);
         addAndMakeVisible (tubeComp);
@@ -22,11 +31,14 @@ public:
     void resized() override
     {
         auto area = getLocalBounds();
+        orderBox.setBounds (area.removeFromTop (25));
         eqComp.setBounds (area.removeFromTop (area.getHeight() / 2));
         compComp.setBounds (area.removeFromTop (area.getHeight() * 0.6f));
         tubeComp.setBounds (area);
     }
 private:
+    juce::ComboBox orderBox;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> orderAtt;
     EqualizerComponent eqComp;
     CompressorComponent compComp;
     TubeComponent tubeComp;

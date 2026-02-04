@@ -39,6 +39,8 @@ public:
     void setImage (const juce::Image& img) { image = img; }
     juce::Image getImage() const { return image; }
 
+    void processEffects (juce::AudioBuffer<float>& buffer);
+
 protected:
     juce::String name;
     Equalizer eq;
@@ -47,6 +49,7 @@ protected:
     juce::AudioBuffer<float> tempBuffer;
     std::atomic<float>* muteParam = nullptr;
     std::atomic<float>* soloParam = nullptr;
+    std::atomic<float>* orderParam = nullptr;
     juce::Image image;
 };
 

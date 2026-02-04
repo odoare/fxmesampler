@@ -252,6 +252,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
                         params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Mute", 1 }, name + " Mute", false));
                         params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Solo", 1 }, name + " Solo", false));
 
+                        // Effect Order
+                        juce::StringArray orderOptions;
+                        orderOptions.add ("EQ -> Comp -> Tube");
+                        orderOptions.add ("EQ -> Tube -> Comp");
+                        orderOptions.add ("Comp -> EQ -> Tube");
+                        orderOptions.add ("Comp -> Tube -> EQ");
+                        orderOptions.add ("Tube -> EQ -> Comp");
+                        orderOptions.add ("Tube -> Comp -> EQ");
+                        params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { name + "_Order", 1 }, name + " Order", orderOptions, 0));
+
                         // EQ
                         params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_EQ_On", 1 }, name + " EQ On", true));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_PreGain", 1 }, name + " EQ Pre Gain", -24.0f, 24.0f, 0.0f));

@@ -159,9 +159,60 @@ void AmbisonicStripComponent::updateMeters()
 }
 
 //==============================================================================
+MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeState& apvts)
+    : StripComponent (s, apvts), msStrip (s)
+{
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
+
+    setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
+
+    addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::cyan);
+    addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::cyan);
+    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+}
+
+void MSStripComponent::resized()
+{
+    auto area = getLocalBounds().reduced (2);
+    nameLabel.setBounds (area.removeFromTop (20));
+    
+    auto knobsArea = area.removeFromTop(50);
+    auto panArea = knobsArea.removeFromLeft(knobsArea.getWidth() / 2);
+    auto widthArea = knobsArea;
+    panSlider.setBounds(panArea.withSizeKeepingCentre(40, 40));
+    wSlider.setBounds(widthArea.withSizeKeepingCentre(40, 40));
+
+    // Mute and Solo
+    auto buttonArea = area.removeFromTop (20);
+    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
+    soloButton.setBounds (buttonArea);
+
+    int iconHeight = area.getWidth();
+    icon.setBounds (area.removeFromBottom (iconHeight));
+    area.removeFromBottom (5);
+
+    int meterW = 10;
+    meterL.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
+    meterR.setBounds (area.getRight() - meterW, area.getY(), meterW, area.getHeight());
+    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - 2 * meterW, area.getHeight());
+}
+
+void MSStripComponent::updateMeters()
+{
+    meterL.setValue (msStrip.meterL.getRMS());
+    meterR.setValue (msStrip.meterR.getRMS());
+}
+
+//==============================================================================
 StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessorValueTreeState& apvts)
     : StripComponent (s, apvts), stereoStrip (s)
 {
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
+
     setupKnob (wSlider, s.getName() + "_Width", apvts);
     wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
@@ -176,7 +227,11 @@ void StereoStripComponent::resized()
     auto area = getLocalBounds().reduced (2);
     nameLabel.setBounds (area.removeFromTop (20));
     
-    wSlider.setBounds (area.removeFromTop (50).withSizeKeepingCentre (50, 50));
+    auto knobsArea = area.removeFromTop(50);
+    auto panArea = knobsArea.removeFromLeft(knobsArea.getWidth() / 2);
+    auto widthArea = knobsArea;
+    panSlider.setBounds(panArea.withSizeKeepingCentre(40, 40));
+    wSlider.setBounds(widthArea.withSizeKeepingCentre(40, 40));
 
     // Mute and Solo
     auto buttonArea = area.removeFromTop (20);
@@ -247,6 +302,8 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessor
             this->strips.push_back (std::make_unique<AmbisonicStripComponent> (*s, state));
         else if (auto* s = dynamic_cast<StereoStrip*>(strip.get()))
             this->strips.push_back (std::make_unique<StereoStripComponent> (*s, state));
+        else if (auto* s = dynamic_cast<MSStrip*>(strip.get()))
+            this->strips.push_back (std::make_unique<MSStripComponent> (*s, state));
         else if (auto* s = dynamic_cast<MonoStrip*>(strip.get()))
             this->strips.push_back (std::make_unique<MonoStripComponent> (*s, state));
             

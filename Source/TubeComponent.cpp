@@ -15,6 +15,11 @@ TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state
     onButton.setButtonText ("On");
     onAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, prefix + "_Tube_On", onButton);
 
+    addAndMakeVisible (modelBox);
+    modelBox.addItem ("Standard", 1);
+    modelBox.addItem ("Dynamic", 2);
+    modelAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Tube_Model", modelBox);
+
     addAndMakeVisible (titleLabel);
     titleLabel.setText ("Tube Saturation", juce::NotificationType::dontSendNotification);
     titleLabel.setJustificationType (juce::Justification::centred);
@@ -39,16 +44,24 @@ void TubeComponent::setupSlider (juce::Slider& slider, juce::Label& label, const
 
     addAndMakeVisible (slider);
     slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 20);
+    slider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
     slider.setRange (min, max);
     slider.setValue (def);
+
+    slider.setLookAndFeel (&fxmeLookAndFeel);
 }
 
 void TubeComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::black.withAlpha (0.3f));
-    g.setColour (juce::Colours::white);
-    g.drawRect (getLocalBounds(), 1);
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void TubeComponent::resized()
@@ -56,6 +69,7 @@ void TubeComponent::resized()
     auto area = getLocalBounds().reduced (5);
     auto header = area.removeFromTop (25);
     onButton.setBounds (header.removeFromLeft (40));
+    modelBox.setBounds (header.removeFromRight (80));
     titleLabel.setBounds (header);
 
     int w = area.getWidth() / 3;

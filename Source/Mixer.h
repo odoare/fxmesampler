@@ -68,6 +68,25 @@ public:
     std::atomic<float>* lvlParam = nullptr;
 };
 
+class MSStrip : public MixerStrip
+{
+public:
+    MSStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 2; }
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+
+    float pan = 0.0f;
+    float width = 1.0f;
+    float level = 1.0f;
+    VuMeter meterL, meterR;
+
+    std::atomic<float>* panParam = nullptr;
+    std::atomic<float>* wParam = nullptr;
+    std::atomic<float>* lvlParam = nullptr;
+};
+
 class StereoStrip : public MixerStrip
 {
 public:
@@ -77,10 +96,12 @@ public:
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
 
+    float pan = 0.0f;
     float width = 1.0f;
     float level = 1.0f;
     VuMeter meterL, meterR;
 
+    std::atomic<float>* panParam = nullptr;
     std::atomic<float>* wParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
 };

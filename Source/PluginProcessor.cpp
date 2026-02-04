@@ -233,6 +233,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
                         }
                         else if (type.equalsIgnoreCase ("stereo"))
                         {
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Pan", 1 }, name + " Pan", -1.0f, 1.0f, 0.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Width", 1 }, name + " Width", 0.0f, 2.0f, 1.0f));
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Level", 1 }, name + " Level", 0.0f, 2.0f, 1.0f));
+                        }
+                        else if (type.equalsIgnoreCase ("ms"))
+                        {
+                            params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Pan", 1 }, name + " Pan", -1.0f, 1.0f, 0.0f));
                             params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Width", 1 }, name + " Width", 0.0f, 2.0f, 1.0f));
                             params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Level", 1 }, name + " Level", 0.0f, 2.0f, 1.0f));
                         }
@@ -271,6 +278,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Drive", 1 }, name + " Tube Drive", 0.0f, 40.0f, 0.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Bias", 1 }, name + " Tube Bias", 0.0f, 0.5f, 0.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Out", 1 }, name + " Tube Out", -20.0f, 20.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { name + "_Tube_Model", 1 }, name + " Tube Model", juce::StringArray { "Standard", "Dynamic" }, 0));
                     }
                 }
             }

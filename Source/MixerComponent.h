@@ -55,6 +55,22 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+class MSStripComponent : public StripComponent
+{
+public:
+    MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeState& apvts);
+    void resized() override;
+protected:
+    void updateMeters() override;
+private:
+    MSStrip& msStrip;
+    juce::Slider panSlider;
+    juce::Slider wSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wAtt;
+    VuMeterComponent meterL, meterR;
+};
+
 class StereoStripComponent : public StripComponent
 {
 public:
@@ -64,7 +80,9 @@ protected:
     void updateMeters() override;
 private:
     StereoStrip& stereoStrip;
+    juce::Slider panSlider;
     juce::Slider wSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wAtt;
     VuMeterComponent meterL, meterR;
 };

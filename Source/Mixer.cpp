@@ -71,6 +71,75 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
 }
 
 //==============================================================================
+MSStrip::MSStrip (const juce::String& n) : MixerStrip (n) {}
+
+void MSStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    eq.prepare (sampleRate, 2);
+    comp.prepare (sampleRate, 2);
+    tube.prepare (sampleRate);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
+}
+
+void MSStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    wParam = apvts.getRawParameterValue (name + "_Width");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
+}
+
+void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    if (panParam) pan = *panParam;
+    if (wParam) width = *wParam;
+    if (lvlParam) level = *lvlParam;
+
+    tempBuffer.clear();
+    // Copy input to temp
+    for (int i = 0; i < 2; ++i)
+        tempBuffer.copyFrom (i, 0, input, inputChannelOffset + i, 0, input.getNumSamples());
+
+    // Width processing and MS Decoding
+    auto* l = tempBuffer.getWritePointer(0);
+    auto* r = tempBuffer.getWritePointer(1);
+    for (int i = 0; i < tempBuffer.getNumSamples(); ++i)
+    {
+        float mid = l[i];
+        float side = r[i] * width;
+        l[i] = mid + side;
+        r[i] = mid - side;
+    }
+
+    eq.checkParameters();
+    eq.process (tempBuffer);
+    comp.checkParameters();
+    comp.process (tempBuffer);
+    tube.checkParameters();
+    tube.process (tempBuffer);
+    tempBuffer.applyGain (level);
+
+    // Balance using constant-power law
+    float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
+    float gainL = juce::dsp::FastMathApproximations::cos (panRad);
+    float gainR = juce::dsp::FastMathApproximations::sin (panRad);
+    tempBuffer.applyGain (0, 0, tempBuffer.getNumSamples(), gainL);
+    tempBuffer.applyGain (1, 0, tempBuffer.getNumSamples(), gainR);
+
+    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+
+    for (int ch = 0; ch < 2; ++ch)
+        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+//==============================================================================
 StereoStrip::StereoStrip (const juce::String& n) : MixerStrip (n) {}
 
 void StereoStrip::prepare (double sampleRate, int samplesPerBlock)
@@ -85,6 +154,7 @@ void StereoStrip::prepare (double sampleRate, int samplesPerBlock)
 
 void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 {
+    panParam = apvts.getRawParameterValue (name + "_Pan");
     wParam = apvts.getRawParameterValue (name + "_Width");
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
@@ -96,6 +166,7 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 
 void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
 {
+    if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
     if (lvlParam) level = *lvlParam;
 
@@ -104,12 +175,9 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     for (int i = 0; i < 2; ++i)
         tempBuffer.copyFrom (i, 0, input, inputChannelOffset + i, 0, input.getNumSamples());
 
-    // Width processing
-    // M = (L+R)*0.5, S = (L-R)*0.5. S *= width. L=M+S, R=M-S.
-    // Simplified: L' = 0.5(L(1+w) + R(1-w)), R' = 0.5(L(1-w) + R(1+w))
+    // Width processing (Standard M/S width control for stereo sources)
     if (std::abs(width - 1.0f) > 0.001f)
     {
-        // In-place processing
         auto* l = tempBuffer.getWritePointer(0);
         auto* r = tempBuffer.getWritePointer(1);
         for (int i = 0; i < tempBuffer.getNumSamples(); ++i)
@@ -128,6 +196,13 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     tube.checkParameters();
     tube.process (tempBuffer);
     tempBuffer.applyGain (level);
+
+    // Balance using Linear law (Classical Stereo)
+    float gainL = 0.5f * (1.0f - pan);
+    float gainR = 0.5f * (1.0f + pan);
+    
+    tempBuffer.applyGain (0, 0, tempBuffer.getNumSamples(), gainL);
+    tempBuffer.applyGain (1, 0, tempBuffer.getNumSamples(), gainR);
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
@@ -177,8 +252,11 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
 
-    float gainL = 0.5f * (1.0f - pan);
-    float gainR = 0.5f * (1.0f + pan);
+    // float gainL = 0.5f * (1.0f - pan);
+    // float gainR = 0.5f * (1.0f + pan);
+    float panRad = (1+pan) * juce::MathConstants<float>::halfPi * 0.5f;
+    float gainL = juce::dsp::FastMathApproximations::cos (panRad);
+    float gainR = juce::dsp::FastMathApproximations::sin (panRad);
 
     output.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
     output.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
@@ -224,6 +302,8 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
                 newStrip = std::make_unique<AmbisonicStrip> (name);
             else if (type.equalsIgnoreCase ("stereo"))
                 newStrip = std::make_unique<StereoStrip> (name);
+            else if (type.equalsIgnoreCase ("ms"))
+                newStrip = std::make_unique<MSStrip> (name);
             else if (type.equalsIgnoreCase ("mono"))
                 newStrip = std::make_unique<MonoStrip> (name);
 

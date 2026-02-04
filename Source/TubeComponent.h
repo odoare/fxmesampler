@@ -25,14 +25,18 @@ private:
     juce::AudioProcessorValueTreeState& apvts;
 
     juce::ToggleButton onButton;
+    juce::ComboBox modelBox;
     juce::Label titleLabel;
     juce::Label driveLabel, biasLabel, outLabel;
     juce::Slider driveSlider, biasSlider, outSlider;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modelAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> driveAtt, biasAtt, outAtt;
 
     void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+
+    fxme::FxmeLookAndFeel fxmeLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TubeComponent)
 };

@@ -40,6 +40,7 @@ public:
     juce::Image getImage() const { return image; }
 
     void processEffects (juce::AudioBuffer<float>& buffer);
+    virtual void clearMeters() {}
 
 protected:
     juce::String name;
@@ -61,6 +62,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 4; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
 
     AmbixToMS ambix;
     VuMeter meterL, meterR;
@@ -79,6 +81,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
 
     float pan = 0.0f;
     float width = 1.0f;
@@ -98,6 +101,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
 
     float pan = 0.0f;
     float width = 1.0f;
@@ -117,6 +121,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
 
     float pan = 0.0f;
     float level = 1.0f;

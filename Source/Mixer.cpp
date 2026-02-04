@@ -95,6 +95,12 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
         output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
+void AmbisonicStrip::clearMeters()
+{
+    meterL.clear();
+    meterR.clear();
+}
+
 //==============================================================================
 MSStrip::MSStrip (const juce::String& n) : MixerStrip (n) {}
 
@@ -158,6 +164,12 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
 
     for (int ch = 0; ch < 2; ++ch)
         output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+void MSStrip::clearMeters()
+{
+    meterL.clear();
+    meterR.clear();
 }
 
 //==============================================================================
@@ -228,6 +240,12 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
         output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
+void StereoStrip::clearMeters()
+{
+    meterL.clear();
+    meterR.clear();
+}
+
 //==============================================================================
 MonoStrip::MonoStrip (const juce::String& n) : MixerStrip (n) {}
 
@@ -273,6 +291,11 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
 
     output.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
     output.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+}
+
+void MonoStrip::clearMeters()
+{
+    meter.clear();
 }
 
 //==============================================================================
@@ -374,6 +397,8 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
 
             if (shouldProcess)
                 strip->process (inputBuffer, outputBuffer, currentInputChannel);
+            else
+                strip->clearMeters();
             currentInputChannel += needed;
         }
     }

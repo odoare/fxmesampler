@@ -38,6 +38,7 @@ public:
     float getPeak() const { return juce::Decibels::gainToDecibels (peak.load()); }
     float getMax() const { return juce::Decibels::gainToDecibels (maxLevel.load()); }
     void resetMax() { maxLevel = 0.0f; }
+    void clear();
 
     void setWindowDuration (double duration);
 

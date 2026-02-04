@@ -27,6 +27,14 @@ void VuMeter::setWindowDuration (double duration)
     peak = 0.0f;
 }
 
+void VuMeter::clear()
+{
+    rms = 0.0f;
+    peak = 0.0f;
+    currentSum = 0.0;
+    std::fill (window.begin(), window.end(), 0.0f);
+}
+
 void VuMeter::process (const float* input, int numSamples)
 {
     float localMax = 0.0f;

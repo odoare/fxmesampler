@@ -101,6 +101,20 @@ private:
     VuMeterComponent meter;
 };
 
+class MasterStripComponent : public StripComponent
+{
+public:
+    MasterStripComponent (MasterStrip& s, juce::AudioProcessorValueTreeState& apvts);
+    void resized() override;
+protected:
+    void updateMeters() override;
+private:
+    MasterStrip& masterStrip;
+    juce::Slider panSlider, wSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt, wAtt;
+    VuMeterComponent meterL, meterR;
+};
+
 class MixerComponent : public juce::Component
 {
 public:

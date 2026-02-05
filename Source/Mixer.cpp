@@ -299,12 +299,97 @@ void MonoStrip::clearMeters()
 }
 
 //==============================================================================
+MasterStrip::MasterStrip (const juce::String& n) : MixerStrip (n) {}
+
+void MasterStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    eq.prepare (sampleRate, 2);
+    comp.prepare (sampleRate, 2);
+    tube.prepare (sampleRate);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
+}
+
+void MasterStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    wParam = apvts.getRawParameterValue (name + "_Width");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    // Master doesn't really need solo, but we keep the pointer null or unused if not needed.
+    // We'll bind it just in case to avoid null checks failing if we added it to params.
+    soloParam = apvts.getRawParameterValue (name + "_Solo"); 
+    orderParam = apvts.getRawParameterValue (name + "_Order");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
+}
+
+void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    // MasterStrip process takes the mixBuffer (input) and writes to outputBuffer (output)
+    // It behaves like StereoStrip: copies input to temp, processes, adds to output.
+    // Since output is cleared before Mixer::processBlock finishes, this works as "set".
+
+    // We can reuse StereoStrip logic if we cast or just copy the code. 
+    // Since I cannot easily call StereoStrip::process on *this without inheritance tricks or code duplication,
+    // I will duplicate the logic here for clarity and safety.
+    
+    if (panParam) pan = *panParam;
+    if (wParam) width = *wParam;
+    if (lvlParam) level = *lvlParam;
+
+    tempBuffer.clear();
+    for (int i = 0; i < 2; ++i)
+        tempBuffer.copyFrom (i, 0, input, inputChannelOffset + i, 0, input.getNumSamples());
+
+    // Width processing
+    if (std::abs(width - 1.0f) > 0.001f)
+    {
+        auto* l = tempBuffer.getWritePointer(0);
+        auto* r = tempBuffer.getWritePointer(1);
+        for (int i = 0; i < tempBuffer.getNumSamples(); ++i)
+        {
+            float mid = (l[i] + r[i]) * 0.5f;
+            float side = (l[i] - r[i]) * 0.5f * width;
+            l[i] = mid + side;
+            r[i] = mid - side;
+        }
+    }
+
+    processEffects (tempBuffer);
+    tempBuffer.applyGain (level);
+
+    // Balance
+    float gainL = 0.5f * (1.0f - pan);
+    float gainR = 0.5f * (1.0f + pan);
+    
+    tempBuffer.applyGain (0, 0, tempBuffer.getNumSamples(), gainL);
+    tempBuffer.applyGain (1, 0, tempBuffer.getNumSamples(), gainR);
+
+    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+
+    for (int ch = 0; ch < 2; ++ch)
+        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+void MasterStrip::clearMeters()
+{
+    meterL.clear();
+    meterR.clear();
+}
+
+//==============================================================================
 void Mixer::prepare (double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
     currentSamplesPerBlock = samplesPerBlock;
+    mixBuffer.setSize (2, samplesPerBlock); // Stereo mix bus
     for (auto& strip : strips)
         strip->prepare (sampleRate, samplesPerBlock);
+    masterStrip.prepare (sampleRate, samplesPerBlock);
 }
 
 void Mixer::loadFromXml (const void* xmlData, int xmlSize)
@@ -375,12 +460,18 @@ void Mixer::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 {
     for (auto& strip : strips)
         strip->assignParameters (apvts);
+    masterStrip.assignParameters (apvts);
 }
 
 void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::AudioBuffer<float>& outputBuffer)
 {
     int currentInputChannel = 0;
     int totalInputChannels = inputBuffer.getNumChannels();
+
+    // Ensure mixBuffer is ready
+    if (mixBuffer.getNumChannels() != 2 || mixBuffer.getNumSamples() != outputBuffer.getNumSamples())
+        mixBuffer.setSize (2, outputBuffer.getNumSamples());
+    mixBuffer.clear();
 
     bool anySolo = false;
     for (auto& strip : strips)
@@ -396,10 +487,17 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
             else         shouldProcess = ! strip->isMute();
 
             if (shouldProcess)
-                strip->process (inputBuffer, outputBuffer, currentInputChannel);
+                strip->process (inputBuffer, mixBuffer, currentInputChannel); // Sum to mixBuffer
             else
                 strip->clearMeters();
             currentInputChannel += needed;
         }
     }
+
+    // Process Master Chain
+    // Master takes mixBuffer (stereo) and adds to outputBuffer (which is cleared by processor)
+    if (! masterStrip.isMute())
+        masterStrip.process (mixBuffer, outputBuffer, 0);
+    else
+        masterStrip.clearMeters();
 }

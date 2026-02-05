@@ -304,6 +304,53 @@ void MonoStripComponent::updateMeters()
 }
 
 //==============================================================================
+MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessorValueTreeState& apvts)
+    : StripComponent (s, apvts), masterStrip (s)
+{
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
+
+    setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
+
+    addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::red);
+    addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::red);
+    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+}
+
+void MasterStripComponent::resized()
+{
+    auto area = getLocalBounds().reduced (2);
+    nameLabel.setBounds (area.removeFromTop (20));
+    
+    auto knobsArea = area.removeFromTop(50);
+    auto panArea = knobsArea.removeFromLeft(knobsArea.getWidth() / 2);
+    auto widthArea = knobsArea;
+    panSlider.setBounds(panArea.withSizeKeepingCentre(40, 40));
+    wSlider.setBounds(widthArea.withSizeKeepingCentre(40, 40));
+
+    auto buttonArea = area.removeFromTop (20);
+    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
+    // No solo for master
+
+    int iconHeight = area.getWidth();
+    icon.setBounds (area.removeFromBottom (iconHeight));
+    area.removeFromBottom (5);
+
+    int meterW = 10;
+    meterL.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
+    meterR.setBounds (area.getRight() - meterW, area.getY(), meterW, area.getHeight());
+    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - 2 * meterW, area.getHeight());
+}
+
+void MasterStripComponent::updateMeters()
+{
+    meterL.setValue (masterStrip.meterL.getRMS());
+    meterR.setValue (masterStrip.meterR.getRMS());
+}
+
+//==============================================================================
 MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessorValueTreeState& state)
     : mixer (m)
 {
@@ -321,6 +368,9 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessor
             
         addAndMakeVisible (*this->strips.back());
     }
+
+    this->strips.push_back (std::make_unique<MasterStripComponent> (mixer.getMasterStrip(), state));
+    addAndMakeVisible (*this->strips.back());
 }
 
 void MixerComponent::LevelsComponent::resized()
@@ -353,9 +403,12 @@ MixerComponent::MixerComponent (Mixer& m, juce::AudioProcessorValueTreeState& st
     {
         addChain (strip->getName(), strip->getEQ(), strip->getComp(), strip->getTube());
     }
+    
+    auto& master = mixer.getMasterStrip();
+    addChain (master.getName(), master.getEQ(), master.getComp(), master.getTube());
 
     addAndMakeVisible (tabs);
-    int n = mixer.getStrips().size();
+    int n = mixer.getStrips().size() + 1; // +1 for Master
     setSize (n*150, 500);
 }
 

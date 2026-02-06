@@ -40,6 +40,9 @@ public:
     void setImage (const juce::Image& img) { image = img; }
     juce::Image getImage() const { return image; }
 
+    void setColor (juce::Colour c) { color = c; }
+    juce::Colour getColor() const { return color; }
+
     void processEffects (juce::AudioBuffer<float>& buffer);
     virtual void clearMeters() {}
 
@@ -53,6 +56,7 @@ protected:
     std::atomic<float>* soloParam = nullptr;
     std::atomic<float>* orderParam = nullptr;
     juce::Image image;
+    juce::Colour color { 0 };
 };
 
 class AmbisonicStrip : public MixerStrip

@@ -157,6 +157,7 @@ private:
     Mixer& mixer;
     juce::AudioProcessorValueTreeState& apvts;
     juce::TabbedComponent tabs;
+    juce::TooltipWindow tooltipWindow {nullptr, 50};
 
     // Dynamic Levels Component
     class LevelsComponent : public juce::Component

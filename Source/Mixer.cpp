@@ -527,6 +527,47 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
     if (root == nullptr || ! root->hasTagName ("Mappings"))
         return;
 
+    auto* masterNode = root->getChildByName ("Master");
+    if (masterNode != nullptr)
+    {
+        juce::String imgName = masterNode->getStringAttribute ("img");
+        juce::String colorStr = masterNode->getStringAttribute ("color");
+
+        if (colorStr.isNotEmpty())
+        {
+            juce::StringArray tokens;
+            tokens.addTokens (colorStr, ",", "");
+            if (tokens.size() == 3)
+            {
+                masterStrip.setColor (juce::Colour::fromRGB (
+                    (juce::uint8) tokens[0].getIntValue(),
+                    (juce::uint8) tokens[1].getIntValue(),
+                    (juce::uint8) tokens[2].getIntValue()));
+            }
+            else
+            {
+                masterStrip.setColor (juce::Colour::fromString (colorStr));
+            }
+        }
+
+        if (imgName.isNotEmpty())
+        {
+            juce::String resourceName = imgName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+            int dataSize = 0;
+            const char* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), dataSize);
+
+            if (data == nullptr)
+            {
+                for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+                    if (resourceName.equalsIgnoreCase (BinaryData::namedResourceList[i]))
+                        { data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], dataSize); break; }
+            }
+
+            if (data != nullptr)
+                masterStrip.setImage (juce::ImageCache::getFromMemory (data, dataSize));
+        }
+    }
+
     auto* mixerNode = root->getChildByName ("Mixer");
     if (mixerNode == nullptr)
         return;
@@ -541,6 +582,7 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
             juce::String name = child->getStringAttribute ("name");
             juce::String imgName = child->getStringAttribute ("img");
             juce::String irName = child->getStringAttribute ("resource");
+            juce::String colorStr = child->getStringAttribute ("color");
 
             std::unique_ptr<MixerStrip> newStrip;
 
@@ -559,6 +601,23 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
 
             if (newStrip != nullptr)
             {
+                if (colorStr.isNotEmpty())
+                {
+                    juce::StringArray tokens;
+                    tokens.addTokens (colorStr, ",", "");
+                    if (tokens.size() == 3)
+                    {
+                        newStrip->setColor (juce::Colour::fromRGB (
+                            (juce::uint8) tokens[0].getIntValue(),
+                            (juce::uint8) tokens[1].getIntValue(),
+                            (juce::uint8) tokens[2].getIntValue()));
+                    }
+                    else
+                    {
+                        newStrip->setColor (juce::Colour::fromString (colorStr));
+                    }
+                }
+
                 if (imgName.isNotEmpty())
                 {
                     juce::String resourceName = imgName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');

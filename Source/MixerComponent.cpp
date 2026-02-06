@@ -54,18 +54,21 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
     nameLabel.setJustificationType (juce::Justification::centred);
 
     addAndMakeVisible (levelSlider);
-    levelSlider.setSliderStyle (juce::Slider::LinearVertical);
+    levelSlider.setSliderStyle (juce::Slider::LinearBarVertical);
     levelSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    levelSlider.setRange (0.0, 2.0);
-    levelSlider.setValue (1.0);
+    levelSlider.setRange (-60.0, 6.0);
+    levelSlider.setValue (0.0);
+    levelSlider.setLookAndFeel(&fxmeLookAndFeel);
     levelAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, strip.getName() + "_Level", levelSlider);
 
     addAndMakeVisible (muteButton);
     muteButton.setButtonText ("M");
+    muteButton.setLookAndFeel(&fxmeLookAndFeel);
     muteAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, strip.getName() + "_Mute", muteButton);
 
     addAndMakeVisible (soloButton);
     soloButton.setButtonText ("S");
+    soloButton.setLookAndFeel(&fxmeLookAndFeel);
     soloAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, strip.getName() + "_Solo", soloButton);
 
     addAndMakeVisible (icon);
@@ -111,6 +114,13 @@ void StripComponent::setupKnob (juce::Slider& s, const juce::String& paramID, ju
     s.setLookAndFeel (&fxmeLookAndFeel);
 }
 
+void StripComponent::setSliderColours (juce::Slider& s, juce::Colour c)
+{
+    s.setColour (juce::Slider::trackColourId, c.darker());
+    s.setColour (juce::Slider::thumbColourId, c);
+    s.setColour (juce::Slider::rotarySliderOutlineColourId, c.darker (2.0f));
+}
+
 //==============================================================================
 AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::AudioProcessorValueTreeState& apvts)
     : StripComponent (s, apvts), ambStrip (s)
@@ -124,6 +134,11 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
     setupKnob (wSlider, s.getName() + "_Width", apvts);
     wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
+    setSliderColours (azSlider, juce::Colours::orange);
+    setSliderColours (elSlider, juce::Colours::orange);
+    setSliderColours (wSlider, juce::Colours::orange);
+    setSliderColours (levelSlider, juce::Colours::orange);
+
     addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::orange);
     addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::orange);
     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
@@ -132,36 +147,40 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
 
 void AmbisonicStripComponent::resized()
 {
-    auto area = getLocalBounds().reduced (2);
-    nameLabel.setBounds (area.removeFromTop (20));
-    
-    auto knobs = area.removeFromTop (60);
-    int kw = knobs.getWidth() / 2;
-    azSlider.setBounds (knobs.removeFromLeft (kw).removeFromTop (30));
-    elSlider.setBounds (knobs.removeFromLeft (kw).removeFromTop (30)); // Actually this logic is flawed for 2x2.
-    
-    // Let's do fixed layout for knobs
-    int w = getWidth();
-    azSlider.setBounds (0, 20, w/2, 40);
-    elSlider.setBounds (w/2, 20, w/2, 40);
-    wSlider.setBounds (w/4, 60, w/2, 40);
-    
-    area.removeFromTop (80); // Space used by knobs
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters, fbKnobs;
 
-    // Mute and Solo
-    auto buttonArea = area.removeFromTop (20);
-    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
-    soloButton.setBounds (buttonArea);
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobs.flexDirection = juce::FlexBox::Direction::column;
 
-    int iconHeight = area.getWidth();
-    icon.setBounds (area.removeFromBottom (iconHeight));
-    area.removeFromBottom (5);
+    juce::FlexBox fbKnobsRow1;
+    fbKnobsRow1.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobsRow1.items.add(fi(azSlider).withFlex(1.f));
+    fbKnobsRow1.items.add(fi(elSlider).withFlex(1.f));
 
-    // Fader and Meters
-    int meterW = 10;
-    meterL.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
-    meterR.setBounds (area.getRight() - meterW, area.getY(), meterW, area.getHeight());
-    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - 2 * meterW, area.getHeight());
+    fbKnobs.items.add(fi(fbKnobsRow1).withFlex(1.f));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 20.f, 10.f, 20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
 }
 
 void AmbisonicStripComponent::updateMeters()
@@ -180,6 +199,10 @@ MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeSta
     setupKnob (wSlider, s.getName() + "_Width", apvts);
     wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
+    setSliderColours (panSlider, juce::Colours::cyan);
+    setSliderColours (wSlider, juce::Colours::cyan);
+    setSliderColours (levelSlider, juce::Colours::cyan);
+
     addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::cyan);
     addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::cyan);
     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
@@ -188,28 +211,35 @@ MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeSta
 
 void MSStripComponent::resized()
 {
-    auto area = getLocalBounds().reduced (2);
-    nameLabel.setBounds (area.removeFromTop (20));
-    
-    auto knobsArea = area.removeFromTop(50);
-    auto panArea = knobsArea.removeFromLeft(knobsArea.getWidth() / 2);
-    auto widthArea = knobsArea;
-    panSlider.setBounds(panArea.withSizeKeepingCentre(40, 40));
-    wSlider.setBounds(widthArea.withSizeKeepingCentre(40, 40));
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters, fbKnobs;
 
-    // Mute and Solo
-    auto buttonArea = area.removeFromTop (20);
-    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
-    soloButton.setBounds (buttonArea);
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    int iconHeight = area.getWidth();
-    icon.setBounds (area.removeFromBottom (iconHeight));
-    area.removeFromBottom (5);
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    int meterW = 10;
-    meterL.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
-    meterR.setBounds (area.getRight() - meterW, area.getY(), meterW, area.getHeight());
-    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - 2 * meterW, area.getHeight());
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 20.f, 10.f, 20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
 }
 
 void MSStripComponent::updateMeters()
@@ -228,6 +258,10 @@ StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessor
     setupKnob (wSlider, s.getName() + "_Width", apvts);
     wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
+    setSliderColours (panSlider, juce::Colours::cyan);
+    setSliderColours (wSlider, juce::Colours::cyan);
+    setSliderColours (levelSlider, juce::Colours::cyan);
+
     addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::cyan);
     addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::cyan);
     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
@@ -236,28 +270,35 @@ StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessor
 
 void StereoStripComponent::resized()
 {
-    auto area = getLocalBounds().reduced (2);
-    nameLabel.setBounds (area.removeFromTop (20));
-    
-    auto knobsArea = area.removeFromTop(50);
-    auto panArea = knobsArea.removeFromLeft(knobsArea.getWidth() / 2);
-    auto widthArea = knobsArea;
-    panSlider.setBounds(panArea.withSizeKeepingCentre(40, 40));
-    wSlider.setBounds(widthArea.withSizeKeepingCentre(40, 40));
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters, fbKnobs;
 
-    // Mute and Solo
-    auto buttonArea = area.removeFromTop (20);
-    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
-    soloButton.setBounds (buttonArea);
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    int iconHeight = area.getWidth();
-    icon.setBounds (area.removeFromBottom (iconHeight));
-    area.removeFromBottom (5);
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    int meterW = 10;
-    meterL.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
-    meterR.setBounds (area.getRight() - meterW, area.getY(), meterW, area.getHeight());
-    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - 2 * meterW, area.getHeight());
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 20.f, 10.f, 20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
 }
 
 void StereoStripComponent::updateMeters()
@@ -273,34 +314,137 @@ MonoStripComponent::MonoStripComponent (MonoStrip& s, juce::AudioProcessorValueT
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
     panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
+    setSliderColours (panSlider, juce::Colours::green);
+    setSliderColours (levelSlider, juce::Colours::green);
+
     addAndMakeVisible (meter); meter.setMeterColor (juce::Colours::green);
     meter.setRange (-60.0f, 6.0f); meter.setZeroLevel (0.0f);
 }
 
 void MonoStripComponent::resized()
 {
-    auto area = getLocalBounds().reduced (2);
-    nameLabel.setBounds (area.removeFromTop (20));
-    
-    panSlider.setBounds (area.removeFromTop (50).withSizeKeepingCentre (50, 50));
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters;
 
-    // Mute and Solo
-    auto buttonArea = area.removeFromTop (20);
-    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
-    soloButton.setBounds (buttonArea);
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
 
-    int iconHeight = area.getWidth();
-    icon.setBounds (area.removeFromBottom (iconHeight));
-    area.removeFromBottom (5);
+    fbMeters.items.add(fi(meter).withFlex(1.f).withMargin(10.f));
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f,20.f,10.f,20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(panSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f,0.f,0.f,0.f)));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
-    int meterW = 10;
-    meter.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
-    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - meterW, area.getHeight());
+    fbMain.performLayout (bounds);
+
 }
 
 void MonoStripComponent::updateMeters()
 {
     meter.setValue (monoStrip.meter.getRMS());
+}
+
+//==============================================================================
+StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, juce::AudioProcessorValueTreeState& apvts)
+    : StripComponent (s, apvts), reverbStrip (s)
+{
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
+
+    setSliderColours (panSlider, juce::Colours::cyan);
+    setSliderColours (levelSlider, juce::Colours::cyan);
+
+    addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::cyan);
+    addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::cyan);
+    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+}
+
+void StereoReverbStripComponent::resized()
+{
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters;
+
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 20.f, 10.f, 20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(panSlider).withFlex(0.2f));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
+}
+
+void StereoReverbStripComponent::updateMeters()
+{
+    meterL.setValue (reverbStrip.meterL.getRMS());
+    meterR.setValue (reverbStrip.meterR.getRMS());
+}
+
+//==============================================================================
+MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::AudioProcessorValueTreeState& apvts)
+    : StripComponent (s, apvts), reverbStrip (s)
+{
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
+
+    setSliderColours (panSlider, juce::Colours::cyan);
+    setSliderColours (levelSlider, juce::Colours::cyan);
+
+    addAndMakeVisible (meter); meter.setMeterColor (juce::Colours::cyan);
+    meter.setRange (-60.0f, 6.0f); meter.setZeroLevel (0.0f);
+}
+
+void MonoReverbStripComponent::resized()
+{
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters;
+
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+
+    fbMeters.items.add(fi(meter).withFlex(1.f).withMargin(10.f));
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 20.f, 10.f, 20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(panSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
+}
+
+void MonoReverbStripComponent::updateMeters()
+{
+    meter.setValue (reverbStrip.meter.getRMS());
 }
 
 //==============================================================================
@@ -313,6 +457,10 @@ MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessor
     setupKnob (wSlider, s.getName() + "_Width", apvts);
     wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
+    setSliderColours (panSlider, juce::Colours::red);
+    setSliderColours (wSlider, juce::Colours::red);
+    setSliderColours (levelSlider, juce::Colours::red);
+
     addAndMakeVisible (meterL); meterL.setMeterColor (juce::Colours::red);
     addAndMakeVisible (meterR); meterR.setMeterColor (juce::Colours::red);
     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
@@ -321,27 +469,35 @@ MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessor
 
 void MasterStripComponent::resized()
 {
-    auto area = getLocalBounds().reduced (2);
-    nameLabel.setBounds (area.removeFromTop (20));
-    
-    auto knobsArea = area.removeFromTop(50);
-    auto panArea = knobsArea.removeFromLeft(knobsArea.getWidth() / 2);
-    auto widthArea = knobsArea;
-    panSlider.setBounds(panArea.withSizeKeepingCentre(40, 40));
-    wSlider.setBounds(widthArea.withSizeKeepingCentre(40, 40));
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters, fbKnobs;
 
-    auto buttonArea = area.removeFromTop (20);
-    muteButton.setBounds (buttonArea.removeFromLeft (buttonArea.getWidth() / 2));
-    // No solo for master
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    int iconHeight = area.getWidth();
-    icon.setBounds (area.removeFromBottom (iconHeight));
-    area.removeFromBottom (5);
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    int meterW = 10;
-    meterL.setBounds (area.getX(), area.getY(), meterW, area.getHeight());
-    meterR.setBounds (area.getRight() - meterW, area.getY(), meterW, area.getHeight());
-    levelSlider.setBounds (area.getX() + meterW, area.getY(), area.getWidth() - 2 * meterW, area.getHeight());
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi().withFlex(0.2f)); // Spacer for solo button
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 20.f, 10.f, 20.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
 }
 
 void MasterStripComponent::updateMeters()
@@ -365,6 +521,10 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessor
             this->strips.push_back (std::make_unique<MSStripComponent> (*s, state));
         else if (auto* s = dynamic_cast<MonoStrip*>(strip.get()))
             this->strips.push_back (std::make_unique<MonoStripComponent> (*s, state));
+        else if (auto* s = dynamic_cast<StereoReverbStrip*>(strip.get()))
+            this->strips.push_back (std::make_unique<StereoReverbStripComponent> (*s, state));
+        else if (auto* s = dynamic_cast<MonoReverbStrip*>(strip.get()))
+            this->strips.push_back (std::make_unique<MonoReverbStripComponent> (*s, state));
             
         addAndMakeVisible (*this->strips.back());
     }

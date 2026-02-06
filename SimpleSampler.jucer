@@ -3,6 +3,12 @@
 <JUCERPROJECT id="VTY3rl" name="SimpleSampler" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
   <MAINGROUP id="zBzLwc" name="SimpleSampler">
+    <GROUP id="{F522994C-CC30-8876-8F29-3721025CCD03}" name="WDL">
+      <FILE id="XVKOH1" name="convoengine.cpp" compile="1" resource="0" file="WDL/WDL/convoengine.cpp"/>
+      <FILE id="VyD1Es" name="convoengine.h" compile="0" resource="0" file="WDL/WDL/convoengine.h"/>
+      <FILE id="xl3GkP" name="fft.c" compile="1" resource="0" file="WDL/WDL/fft.c"/>
+      <FILE id="Gqc0rR" name="fft.h" compile="0" resource="0" file="WDL/WDL/fft.h"/>
+    </GROUP>
     <GROUP id="{E2914C61-1288-C5F6-6256-9DDC03E6D731}" name="Img">
       <FILE id="kOmrQ4" name="drums.jpg" compile="0" resource="1" file="img/drums.jpg"/>
       <FILE id="sLOgTZ" name="hh.jpg" compile="0" resource="1" file="img/hh.jpg"/>
@@ -27,6 +33,7 @@
             file="wav/reaper_testproject/Media/HH open 03 1 44 44.wav"/>
       <FILE id="QcWBf7" name="HH open 04 1 44 44.wav" compile="0" resource="1"
             file="wav/reaper_testproject/Media/HH open 04 1 44 44.wav"/>
+      <FILE id="BktSva" name="ImpRoom 1.wav" compile="0" resource="1" file="wav/ImpRoom 1.wav"/>
       <FILE id="ON3GqU" name="Kick Kick 01 0 36 36.wav" compile="0" resource="1"
             file="wav/reaper_testproject/Media/Kick Kick 01 0 36 36.wav"/>
       <FILE id="HtOedO" name="Kick Kick 02 0 36 36.wav" compile="0" resource="1"
@@ -46,6 +53,9 @@
             file="wav/reaper_testproject/Media/Snare Snare 04 0 38 38.wav"/>
     </GROUP>
     <GROUP id="{81A13946-40E6-2C1D-D0EA-A6C5479467E3}" name="Source">
+      <FILE id="KWtnTS" name="ConvolReverb.cpp" compile="1" resource="0"
+            file="Source/ConvolReverb.cpp"/>
+      <FILE id="jI4DVQ" name="ConvolReverb.h" compile="0" resource="0" file="Source/ConvolReverb.h"/>
       <FILE id="KdyhEF" name="TubeComponent.cpp" compile="1" resource="0"
             file="Source/TubeComponent.cpp"/>
       <FILE id="Ox6SD0" name="TubeComponent.h" compile="0" resource="0" file="Source/TubeComponent.h"/>

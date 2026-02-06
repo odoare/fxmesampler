@@ -148,18 +148,13 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
             return;
         }
 
-        for (size_t i = 0; i < targetChannels.size(); ++i)
+        for (size_t i = 0; i < targetChannels.size(); i += 2)
         {
-            int outCh = targetChannels[i];
-            if (outCh < numOutputChannels)
+            int srcCh = targetChannels[i];
+            int outCh = targetChannels[i + 1];
+
+            if (outCh < numOutputChannels && srcCh < numSourceChannels)
             {
-                // If source is mono, map channel 0 to all targets.
-                // If source is multichannel, map source channel i to target i.
-                int srcCh = (numSourceChannels > 1) ? (int)i : 0;
-
-                if (srcCh >= numSourceChannels)
-                    continue;
-
                 float sample = sourceBuffer.getSample (srcCh, pos);
                 float nextSample = sourceBuffer.getSample (srcCh, pos + 1);
                 float interpolated = sample + alpha * (nextSample - sample);
@@ -238,9 +233,24 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             juce::String channelList = child->getStringAttribute ("channels", "0,1");
             auto tokens = juce::StringArray::fromTokens (channelList, ", ", "");
             for (auto& t : tokens)
-                group.outputChannels.push_back (t.getIntValue());
+            {
+                if (t.contains (":"))
+                {
+                    auto parts = juce::StringArray::fromTokens (t, ":", "");
+                    if (parts.size() == 2)
+                    {
+                        group.outputChannels.push_back (parts[0].getIntValue()); // Source
+                        group.outputChannels.push_back (parts[1].getIntValue()); // Dest
+                    }
+                }
+                else
+                {
+                    group.outputChannels.push_back (-1); // Auto Source
+                    group.outputChannels.push_back (t.getIntValue()); // Dest
+                }
+            }
 
-            if (group.outputChannels.empty()) { group.outputChannels.push_back(0); group.outputChannels.push_back(1); }
+            if (group.outputChannels.empty()) { group.outputChannels = { -1, 0, -1, 1 }; }
             groups[group.name] = group;
         }
     }
@@ -287,20 +297,19 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             else
             {
                 // Fallback defaults if no group specified
-                sound.outputChannels = { 0, 1 };
+                sound.outputChannels = { -1, 0, -1, 1 };
             }
 
             sound.load (formatManager);
 
-            // Validation: For multichannel samples, output count must match source count
-            if (sound.audioBuffer.getNumChannels() > 1)
+            // Resolve auto-source channels (-1)
+            int numSourceChannels = sound.audioBuffer.getNumChannels();
+            for (size_t i = 0; i < sound.outputChannels.size(); i += 2)
             {
-                // If the user specified fewer or more channels than the source has, we can't map 1:1 perfectly.
-                // The requirement is "number of outputs channels specified should be exactly the number of channels in the wave file".
-                // We will enforce this by resizing if necessary or just warning (here we just resize to be safe for the renderer loop).
-                if ((int)sound.outputChannels.size() != sound.audioBuffer.getNumChannels())
+                if (sound.outputChannels[i] == -1)
                 {
-                    // In a real app we might log an error. For now, we proceed, but the renderer loop handles bounds checks.
+                    int pairIndex = (int)(i / 2);
+                    sound.outputChannels[i] = (numSourceChannels > 1) ? pairIndex : 0;
                 }
             }
 

@@ -14,6 +14,7 @@
 #include "Equalizer.h"
 #include "Compressor.h"
 #include "Tube.h"
+#include "ConvolReverb.h"
 #include <atomic>
 
 //==============================================================================
@@ -123,6 +124,46 @@ public:
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void clearMeters() override;
 
+    float pan = 0.0f;
+    float level = 1.0f;
+    VuMeter meter;
+
+    std::atomic<float>* panParam = nullptr;
+    std::atomic<float>* lvlParam = nullptr;
+};
+
+class StereoReverbStrip : public MixerStrip
+{
+public:
+    StereoReverbStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 1; }
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
+    void loadImpulse (const void* data, size_t size);
+
+    ConvolReverb reverb;
+    float pan = 0.0f;
+    float level = 1.0f;
+    VuMeter meterL, meterR;
+
+    std::atomic<float>* panParam = nullptr;
+    std::atomic<float>* lvlParam = nullptr;
+};
+
+class MonoReverbStrip : public MixerStrip
+{
+public:
+    MonoReverbStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 1; }
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
+    void loadImpulse (const void* data, size_t size);
+
+    ConvolReverb reverb;
     float pan = 0.0f;
     float level = 1.0f;
     VuMeter meter;

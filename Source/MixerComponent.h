@@ -37,6 +37,7 @@ protected:
 
     virtual void updateMeters() = 0;
     void setupKnob (juce::Slider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts);
+    void setSliderColours (juce::Slider& s, juce::Colour c);
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
 };
@@ -96,6 +97,34 @@ protected:
     void updateMeters() override;
 private:
     MonoStrip& monoStrip;
+    juce::Slider panSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    VuMeterComponent meter;
+};
+
+class StereoReverbStripComponent : public StripComponent
+{
+public:
+    StereoReverbStripComponent (StereoReverbStrip& s, juce::AudioProcessorValueTreeState& apvts);
+    void resized() override;
+protected:
+    void updateMeters() override;
+private:
+    StereoReverbStrip& reverbStrip;
+    juce::Slider panSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    VuMeterComponent meterL, meterR;
+};
+
+class MonoReverbStripComponent : public StripComponent
+{
+public:
+    MonoReverbStripComponent (MonoReverbStrip& s, juce::AudioProcessorValueTreeState& apvts);
+    void resized() override;
+protected:
+    void updateMeters() override;
+private:
+    MonoReverbStrip& reverbStrip;
     juce::Slider panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     VuMeterComponent meter;

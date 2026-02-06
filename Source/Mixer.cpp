@@ -69,7 +69,7 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     if (azParam) ambix.setAzimuth (*azParam);
     if (elParam) ambix.setElevation (*elParam);
     if (wParam) ambix.setWidth (*wParam);
-    if (lvlParam) ambix.setLevel (*lvlParam);
+    if (lvlParam) ambix.setLevel (juce::Decibels::decibelsToGain (lvlParam->load()));
 
     tempBuffer.clear();
     // AmbixToMS expects 4 channels starting at 0 in its input buffer logic, 
@@ -131,7 +131,7 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
 {
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
-    if (lvlParam) level = *lvlParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
     tempBuffer.clear();
     // Copy input to temp
@@ -202,7 +202,7 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
 {
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
-    if (lvlParam) level = *lvlParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
     tempBuffer.clear();
     // Copy input to temp
@@ -273,7 +273,7 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
 {
     if (panParam) pan = *panParam;
-    if (lvlParam) level = *lvlParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
     tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
@@ -294,6 +294,130 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
 }
 
 void MonoStrip::clearMeters()
+{
+    meter.clear();
+}
+
+//==============================================================================
+StereoReverbStrip::StereoReverbStrip (const juce::String& n) : MixerStrip (n) {}
+
+void StereoReverbStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    eq.prepare (sampleRate, 2);
+    comp.prepare (sampleRate, 2);
+    tube.prepare (sampleRate);
+    reverb.prepare (sampleRate, samplesPerBlock);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
+}
+
+void StereoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
+    orderParam = apvts.getRawParameterValue (name + "_Order");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
+}
+
+void StereoReverbStrip::loadImpulse (const void* data, size_t size)
+{
+    reverb.loadImpulse (data, size);
+}
+
+void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    if (panParam) pan = *panParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    tempBuffer.clear();
+    // Copy mono input to both channels for stereo processing
+    tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
+    tempBuffer.copyFrom (1, 0, input, inputChannelOffset, 0, input.getNumSamples());
+
+    reverb.process (tempBuffer);
+    processEffects (tempBuffer);
+    tempBuffer.applyGain (level);
+
+    // Balance using constant-power law
+    float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
+    float gainL = juce::dsp::FastMathApproximations::cos (panRad);
+    float gainR = juce::dsp::FastMathApproximations::sin (panRad);
+    
+    tempBuffer.applyGain (0, 0, tempBuffer.getNumSamples(), gainL);
+    tempBuffer.applyGain (1, 0, tempBuffer.getNumSamples(), gainR);
+
+    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+
+    for (int ch = 0; ch < 2; ++ch)
+        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+void StereoReverbStrip::clearMeters()
+{
+    meterL.clear();
+    meterR.clear();
+}
+
+//==============================================================================
+MonoReverbStrip::MonoReverbStrip (const juce::String& n) : MixerStrip (n) {}
+
+void MonoReverbStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    eq.prepare (sampleRate, 1);
+    comp.prepare (sampleRate, 1);
+    tube.prepare (sampleRate);
+    reverb.prepare (sampleRate, samplesPerBlock);
+    meter.prepare (sampleRate);
+    tempBuffer.setSize (1, samplesPerBlock);
+}
+
+void MonoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
+    orderParam = apvts.getRawParameterValue (name + "_Order");
+    eq.assignParameters (apvts, name);
+    comp.assignParameters (apvts, name);
+    tube.assignParameters (apvts, name);
+}
+
+void MonoReverbStrip::loadImpulse (const void* data, size_t size)
+{
+    reverb.loadImpulse (data, size);
+}
+
+void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    if (panParam) pan = *panParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    tempBuffer.clear();
+    tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
+
+    reverb.process (tempBuffer);
+    processEffects (tempBuffer);
+    tempBuffer.applyGain (level);
+
+    meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+
+    // Balance using constant-power law
+    float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
+    float gainL = juce::dsp::FastMathApproximations::cos (panRad);
+    float gainR = juce::dsp::FastMathApproximations::sin (panRad);
+    
+    output.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+    output.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+}
+
+void MonoReverbStrip::clearMeters()
 {
     meter.clear();
 }
@@ -338,7 +462,7 @@ void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
-    if (lvlParam) level = *lvlParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
     tempBuffer.clear();
     for (int i = 0; i < 2; ++i)
@@ -416,6 +540,7 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
             juce::String type = child->getStringAttribute ("type");
             juce::String name = child->getStringAttribute ("name");
             juce::String imgName = child->getStringAttribute ("img");
+            juce::String irName = child->getStringAttribute ("resource");
 
             std::unique_ptr<MixerStrip> newStrip;
 
@@ -427,6 +552,10 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
                 newStrip = std::make_unique<MSStrip> (name);
             else if (type.equalsIgnoreCase ("mono"))
                 newStrip = std::make_unique<MonoStrip> (name);
+            else if (type.equalsIgnoreCase ("stereoreverb"))
+                newStrip = std::make_unique<StereoReverbStrip> (name);
+            else if (type.equalsIgnoreCase ("reverb"))
+                newStrip = std::make_unique<MonoReverbStrip> (name);
 
             if (newStrip != nullptr)
             {
@@ -445,6 +574,38 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
 
                     if (data != nullptr)
                         newStrip->setImage (juce::ImageCache::getFromMemory (data, dataSize));
+                }
+
+                if (irName.isNotEmpty())
+                {
+                    if (auto* rs = dynamic_cast<StereoReverbStrip*>(newStrip.get()))
+                    {
+                        juce::String resourceName = irName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+                        int dataSize = 0;
+                        const char* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), dataSize);
+
+                        if (data == nullptr)
+                        {
+                            for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+                                if (resourceName.equalsIgnoreCase (BinaryData::namedResourceList[i]))
+                                    { data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], dataSize); break; }
+                        }
+                        if (data != nullptr) rs->loadImpulse (data, dataSize);
+                    }
+                    else if (auto* rs = dynamic_cast<MonoReverbStrip*>(newStrip.get()))
+                    {
+                        juce::String resourceName = irName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+                        int dataSize = 0;
+                        const char* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), dataSize);
+
+                        if (data == nullptr)
+                        {
+                            for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+                                if (resourceName.equalsIgnoreCase (BinaryData::namedResourceList[i]))
+                                    { data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], dataSize); break; }
+                        }
+                        if (data != nullptr) rs->loadImpulse (data, dataSize);
+                    }
                 }
                 strips.push_back (std::move (newStrip));
             }

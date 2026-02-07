@@ -154,10 +154,9 @@ void FrequencyResponseGraph::paint (juce::Graphics& g)
     g.setColour (juce::Colours::darkgrey.darker());
     for (float amp : { -12.f, 0.f, 12.f })
     {
-        float x = (float) getWidth() * (std::log (freq / 20.0f) / std::log (20000.0f / 20.0f));
-        g.drawVerticalLine ((int) x, 0.0f, (float) getHeight());
+        float y = juce::jmap (amp, -24.0f, 24.0f, (float) getHeight(), 0.0f);
+        g.drawHorizontalLine ((int) y, 0.0f, (float) getWidth());
     }
-
 
     g.setColour (juce::Colours::cyan);
     g.strokePath (curvePath, juce::PathStrokeType (2.0f));

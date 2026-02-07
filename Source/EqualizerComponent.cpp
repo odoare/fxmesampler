@@ -135,12 +135,29 @@ void FrequencyResponseGraph::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colours::black.withAlpha (0.3f));
 
-    g.setColour (juce::Colours::darkgrey);
-    for (float freq : { 100.0f, 500.0f, 1000.0f, 5000.0f, 10000.0f })
+    g.setColour (juce::Colours::grey);
+    for (float freq : { 100.0f, 1000.0f, 10000.0f })
     {
         float x = (float) getWidth() * (std::log (freq / 20.0f) / std::log (20000.0f / 20.0f));
         g.drawVerticalLine ((int) x, 0.0f, (float) getHeight());
     }
+
+    g.setColour (juce::Colours::darkgrey.darker());
+    for (float freq : { 20.0f, 30.f, 40.f, 50.f, 60.f, 70.f, 80.f, 90.f,
+                        200.0f, 300.f, 400.f, 500.f, 600.f, 700.f, 800.f, 900.f,
+                        2000.0f, 3000.f, 4000.f, 5000.f, 6000.f, 7000.f, 8000.f, 9000.f, })
+    {
+        float x = (float) getWidth() * (std::log (freq / 20.0f) / std::log (20000.0f / 20.0f));
+        g.drawVerticalLine ((int) x, 0.0f, (float) getHeight());
+    }
+
+    g.setColour (juce::Colours::darkgrey.darker());
+    for (float amp : { -12.f, 0.f, 12.f })
+    {
+        float x = (float) getWidth() * (std::log (freq / 20.0f) / std::log (20000.0f / 20.0f));
+        g.drawVerticalLine ((int) x, 0.0f, (float) getHeight());
+    }
+
 
     g.setColour (juce::Colours::cyan);
     g.strokePath (curvePath, juce::PathStrokeType (2.0f));

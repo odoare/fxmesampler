@@ -590,7 +590,6 @@ void MixerComponent::LevelsComponent::resized()
 MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueTreeState& state)
     : mixer (m), apvts (state), tabs (juce::TabbedButtonBar::TabsAtTop), levelsComp (m, state), samplerComp (s, state)
 {
-    tabs.addTab ("Sampler", juce::Colours::black, &samplerComp, false);
     tabs.addTab ("Levels", juce::Colours::black, &levelsComp, false);
     
     // We create EffectChainComponents dynamically and pass ownership to the tabs
@@ -609,6 +608,8 @@ MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueT
     
     auto& master = mixer.getMasterStrip();
     addChain (master.getName(), master.getEQ(), master.getComp(), master.getTube());
+
+    tabs.addTab ("Sampler", juce::Colours::black, &samplerComp, false);
 
     addAndMakeVisible (tabs);
     int n = mixer.getStrips().size() + 1; // +1 for Master

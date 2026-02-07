@@ -66,5 +66,13 @@ private:
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioBuffer<float> samplerOutputBuffer;
+
+    struct Preset {
+        juce::String name;
+        const char* resourceName;
+    };
+    std::vector<Preset> presets;
+    int currentProgram = 0;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSamplerAudioProcessor)
 };

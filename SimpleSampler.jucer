@@ -3,6 +3,10 @@
 <JUCERPROJECT id="VTY3rl" name="SimpleSampler" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
   <MAINGROUP id="zBzLwc" name="SimpleSampler">
+    <GROUP id="{FF688968-8994-8F17-EA35-A592FD880C2A}" name="Presets">
+      <FILE id="pagDfj" name="Chamber.xml" compile="0" resource="1" file="Presets/Chamber.xml"/>
+      <FILE id="EcUTeB" name="Hall.xml" compile="0" resource="1" file="Presets/Hall.xml"/>
+    </GROUP>
     <GROUP id="{F522994C-CC30-8876-8F29-3721025CCD03}" name="WDL">
       <FILE id="XVKOH1" name="convoengine.cpp" compile="1" resource="0" file="WDL/WDL/convoengine.cpp"/>
       <FILE id="VyD1Es" name="convoengine.h" compile="0" resource="0" file="WDL/WDL/convoengine.h"/>

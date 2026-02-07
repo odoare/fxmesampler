@@ -30,6 +30,16 @@ SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
         mixer.loadFromXml (xmlData, xmlSize);
         mixer.assignParameters (apvts);
     }
+
+    for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+    {
+        juce::String resourceName = BinaryData::namedResourceList[i];
+        if (resourceName.endsWithIgnoreCase ("_xml") && resourceName != "mapping_xml")
+        {
+            juce::String displayName = resourceName.dropLastCharacters(4).replaceCharacter('_', ' ');
+            presets.push_back({ displayName, BinaryData::namedResourceList[i] });
+        }
+    }
 }
 
 SimpleSamplerAudioProcessor::~SimpleSamplerAudioProcessor()
@@ -76,26 +86,39 @@ double SimpleSamplerAudioProcessor::getTailLengthSeconds() const
 
 int SimpleSamplerAudioProcessor::getNumPrograms()
 {
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    return juce::jmax(1, (int)presets.size());
 }
 
 int SimpleSamplerAudioProcessor::getCurrentProgram()
 {
-    return 0;
+    return currentProgram;
 }
 
 void SimpleSamplerAudioProcessor::setCurrentProgram (int index)
 {
+    if (index >= 0 && index < (int)presets.size())
+    {
+        currentProgram = index;
+        int size = 0;
+        const char* data = BinaryData::getNamedResource(presets[index].resourceName, size);
+        if (data != nullptr && size > 0)
+        {
+            setStateInformation(data, size);
+        }
+    }
 }
 
 const juce::String SimpleSamplerAudioProcessor::getProgramName (int index)
 {
-    return {};
+    if (index >= 0 && index < (int)presets.size())
+        return presets[index].name;
+    return "Default";
 }
 
 void SimpleSamplerAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
+    if (index >= 0 && index < (int)presets.size())
+        presets[index].name = newName;
 }
 
 //==============================================================================
@@ -184,16 +207,37 @@ juce::AudioProcessorEditor* SimpleSamplerAudioProcessor::createEditor()
 //==============================================================================
 void SimpleSamplerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    
+    if (xml != nullptr)
+    {
+        destData.setSize (0);
+        juce::MemoryOutputStream stream (destData, false);
+        xml->writeTo (stream);
+
+        auto xmlFile = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile ("samplerdata.xml");
+
+        if (!xmlFile.getParentDirectory().exists())
+            xmlFile.getParentDirectory().createDirectory();
+
+        // if (xml->writeTo (xmlFile))
+        //     // DBG ("Saved samplerdata.xml to: " + xmlFile.getFullPathName());
+        //     std::cout << "Saved to:" << xmlFile.getFullPathName() << std::endl;
+        // else
+        //     // DBG ("Failed to save samplerdata.xml to: " + xmlFile.getFullPathName());
+        //     std::cout << "Failed to save to:" << xmlFile.getFullPathName() << std::endl;
+    }
 }
 
 void SimpleSamplerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState (juce::XmlDocument::parse (juce::String::createStringFromData (data, sizeInBytes)));
+
+    if (xmlState != nullptr && xmlState->hasTagName (apvts.state.getType()))
+        apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
 }
+
 
 //==============================================================================
 // This creates new instances of the plugin..

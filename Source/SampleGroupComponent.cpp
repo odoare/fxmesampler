@@ -74,9 +74,15 @@ void SampleGroupComponent::setupSlider (juce::Slider& slider, juce::Label& label
 
 void SampleGroupComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::black.withAlpha (0.2f));
-    g.setColour (juce::Colours::grey);
-    g.drawRoundedRectangle (getLocalBounds().toFloat(), 5.0f, 1.0f);
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void SampleGroupComponent::resized()

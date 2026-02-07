@@ -30,11 +30,25 @@ public:
     }
     void resized() override
     {
-        auto area = getLocalBounds();
-        orderBox.setBounds (area.removeFromTop (25));
-        eqComp.setBounds (area.removeFromTop (area.getHeight() / 2));
-        compComp.setBounds (area.removeFromTop (area.getHeight() * 0.6f));
-        tubeComp.setBounds (area);
+        auto bounds = getLocalBounds();
+        using fi = juce::FlexItem;
+        juce::FlexBox fbMain, fb1, fb2;
+        fbMain.flexDirection = juce::FlexBox::Direction::column;
+        fb1.flexDirection = juce::FlexBox::Direction::column;
+        fb2.flexDirection = juce::FlexBox::Direction::row;       
+        fb1.items.add(fi(compComp).withFlex(1.2f).withMargin(juce::FlexItem::Margin(3.f, 3.f, 6.f, 6.f)));
+        fb1.items.add(fi(tubeComp).withFlex(0.8f).withMargin(juce::FlexItem::Margin(3.f, 6.f, 6.f, 3.f)));
+        fb2.items.add(fi(eqComp).withFlex(1.0f).withMargin(juce::FlexItem::Margin(6.f, 6.f, 3.f, 6.f)));
+        fb2.items.add(fi(fb1).withFlex(1.0f));        
+        fbMain.items.add(fi(orderBox).withFlex(0.1).withMargin(juce::FlexItem::Margin(6.f, 6.f, 3.f, 6.f)));
+        fbMain.items.add(fi(fb2).withFlex(2.));
+        fbMain.performLayout(bounds);
+
+        // auto area = getLocalBounds();
+        // orderBox.setBounds (area.removeFromTop (25));
+        // eqComp.setBounds (area.removeFromTop (area.getHeight() / 2));
+        // compComp.setBounds (area.removeFromTop (area.getHeight() * 0.6f));
+        // tubeComp.setBounds (area);
     }
 private:
     juce::ComboBox orderBox;

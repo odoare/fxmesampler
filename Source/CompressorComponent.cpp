@@ -8,11 +8,20 @@
 
 #include "CompressorComponent.h"
 
+void CompressorComponent::setSliderColours (juce::Slider& s, juce::Colour c)
+{
+    s.setColour (juce::Slider::trackColourId, c.darker());
+    s.setColour (juce::Slider::thumbColourId, c);
+    s.setColour (juce::Slider::rotarySliderOutlineColourId, c.darker (2.0f));
+}
+
 CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
     : compressor (comp), apvts (state)
 {
     addAndMakeVisible (onButton);
     onButton.setButtonText ("On");
+    onButton.setLookAndFeel(&fxmeLookAndFeel);
+    onButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::red);
     onAtt = std::make_unique<ButtonAttachment> (apvts, prefix + "_Comp_On", onButton);
 
     addAndMakeVisible (titleLabel);
@@ -20,12 +29,12 @@ CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessor
     titleLabel.setJustificationType (juce::Justification::centred);
     titleLabel.setFont (juce::Font (16.0f, juce::Font::bold));
 
-    setupSlider (preGainSlider, preGainLabel, "Pre Gain", -24.0, 24.0, 0.0);
+    setupBarSlider (preGainSlider, preGainLabel, "Pre Gain", -24.0, 24.0, 0.0);
     setupSlider (attackSlider, attackLabel, "Attack (ms)", 0.1, 100.0, 10.0);
     setupSlider (releaseSlider, releaseLabel, "Release (ms)", 10.0, 1000.0, 100.0);
     setupSlider (threshSlider, threshLabel, "Thresh (dB)", -60.0, 0.0, 0.0);
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
-    setupSlider (gainSlider, gainLabel, "Gain (dB)", 0.0, 24.0, 0.0);
+    setupBarSlider (gainSlider, gainLabel, "Gain (dB)", 0.0, 24.0, 0.0);
 
     preGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_PreGain", preGainSlider);
     attackAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Attack", attackSlider);
@@ -47,15 +56,35 @@ CompressorComponent::~CompressorComponent()
 
 void CompressorComponent::setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
+    juce::Colour color = juce::Colours::red;
+
     addAndMakeVisible (label);
     label.setText (text, juce::NotificationType::dontSendNotification);
     label.setJustificationType (juce::Justification::centred);
 
     addAndMakeVisible (slider);
     slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 20);
+    slider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
     slider.setRange (min, max);
     slider.setValue (def);
+    slider.setTooltip (text);
+    slider.setLookAndFeel(&fxmeLookAndFeel);
+    setSliderColours(slider, color);
+}
+
+void CompressorComponent::setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+{
+    juce::Colour color = juce::Colours::red;
+
+    addAndMakeVisible (slider);
+    slider.setSliderStyle (juce::Slider::LinearBarVertical);
+    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    slider.setRange (min, max);
+    slider.setValue (def);
+    slider.setTextValueSuffix ("dB");
+    slider.setTooltip (text);
+    slider.setLookAndFeel(&fxmeLookAndFeel);
+    setSliderColours(slider, color);
 }
 
 void CompressorComponent::paint (juce::Graphics& g)
@@ -73,29 +102,58 @@ void CompressorComponent::paint (juce::Graphics& g)
 
 void CompressorComponent::resized()
 {
-    auto area = getLocalBounds().reduced (5);
-    auto header = area.removeFromTop (25);
-    onButton.setBounds (header.removeFromLeft (40));
-    titleLabel.setBounds (header);
+    auto area = getLocalBounds().reduced (5.f);
+    using fi = juce::FlexItem;    
+    juce::FlexBox f1, f2, f3, f4, f5, fMain;
+    f1.flexDirection =  juce::FlexBox::Direction::row;
+    f2.flexDirection = juce::FlexBox::Direction::row;
+    f3.flexDirection =  juce::FlexBox::Direction::row;
+    f4.flexDirection = juce::FlexBox::Direction::column;
+    f5.flexDirection = juce::FlexBox::Direction::row;
+    fMain.flexDirection = juce::FlexBox::Direction::column;
 
-    auto meterArea = area.removeFromRight (20);
-    grMeter.setBounds (meterArea);
-    
-    int w = area.getWidth() / 6;
-    
-    auto layout = [&](juce::Slider& s, juce::Label& l, int index)
-    {
-        auto r = area.withX (area.getX() + index * w).withWidth (w);
-        l.setBounds (r.removeFromTop (20));
-        s.setBounds (r);
-    };
+    f1.items.add(fi(onButton).withFlex(0.2f));
+    f1.items.add(fi(titleLabel).withFlex(1.5f));
+    f2.items.add(fi(attackSlider).withFlex(1.f));
+    f2.items.add(fi(releaseSlider).withFlex(1.f));
+    f3.items.add(fi(threshSlider).withFlex(1.f));
+    f3.items.add(fi(ratioSlider).withFlex(1.f));
+    f4.items.add(fi(f2).withFlex(1.f));
+    f4.items.add(fi(f3).withFlex(1.f));
+    f5.items.add(fi(preGainSlider).withFlex(0.15f));
+    f5.items.add(fi(f4).withFlex(1.f));
+    f5.items.add(fi(gainSlider).withFlex(0.15f));
 
-    layout (preGainSlider, preGainLabel, 0);
-    layout (attackSlider, attackLabel, 1);
-    layout (releaseSlider, releaseLabel, 2);
-    layout (threshSlider, threshLabel, 3);
-    layout (ratioSlider, ratioLabel, 4);
-    layout (gainSlider, gainLabel, 5);
+    fMain.items.add(fi(f1).withFlex(0.13f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
+    fMain.items.add(fi(f5).withFlex(1.f));
+
+    fMain.performLayout(area);
+
+
+
+
+    // auto header = area.removeFromTop (25);
+    // onButton.setBounds (header.removeFromLeft (40));
+    // titleLabel.setBounds (header);
+
+    // auto meterArea = area.removeFromRight (20);
+    // grMeter.setBounds (meterArea);
+    
+    // int w = area.getWidth() / 6;
+    
+    // auto layout = [&](juce::Slider& s, juce::Label& l, int index)
+    // {
+    //     auto r = area.withX (area.getX() + index * w).withWidth (w);
+    //     l.setBounds (r.removeFromTop (20));
+    //     s.setBounds (r);
+    // };
+
+    // layout (preGainSlider, preGainLabel, 0);
+    // layout (attackSlider, attackLabel, 1);
+    // layout (releaseSlider, releaseLabel, 2);
+    // layout (threshSlider, threshLabel, 3);
+    // layout (ratioSlider, ratioLabel, 4);
+    // layout (gainSlider, gainLabel, 5);
 }
 
 void CompressorComponent::timerCallback()

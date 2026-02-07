@@ -16,6 +16,7 @@
       <FILE id="hl2NQQ" name="logo686.png" compile="0" resource="1" file="img/logo686.png"/>
       <FILE id="aJXRQ9" name="room.jpg" compile="0" resource="1" file="img/room.jpg"/>
       <FILE id="Ugc9J5" name="snare.jpg" compile="0" resource="1" file="img/snare.jpg"/>
+      <FILE id="QqzcfL" name="tube.png" compile="0" resource="1" file="img/tube.png"/>
     </GROUP>
     <GROUP id="{AC82C2F8-19E7-6905-EBEF-3BA5D7E86B11}" name="Sounds">
       <FILE id="Vo1v9P" name="HH closed 01 1 42 42.wav" compile="0" resource="1"

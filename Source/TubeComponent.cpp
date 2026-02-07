@@ -8,12 +8,28 @@
 
 #include "TubeComponent.h"
 
+void TubeComponent::setSliderColours (juce::Slider& s, juce::Colour c)
+{
+    s.setColour (juce::Slider::trackColourId, c.darker());
+    s.setColour (juce::Slider::thumbColourId, c);
+    s.setColour (juce::Slider::rotarySliderOutlineColourId, c.darker (2.0f));
+}
+
 TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
     : tube (t), apvts (state)
 {
     addAndMakeVisible (onButton);
     onButton.setButtonText ("On");
+    onButton.setLookAndFeel(&fxmeLookAndFeel);
+    onButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::orange);
     onAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, prefix + "_Tube_On", onButton);
+
+    int size = 0;
+    const char* data = BinaryData::getNamedResource("tube_png", size);
+    if (data)
+        tubeImage.setImage(juce::ImageCache::getFromMemory(data, size));
+    addAndMakeVisible(tubeImage);
+    tubeImage.toBack();
 
     addAndMakeVisible (modelBox);
     modelBox.addItem ("Standard", 1);
@@ -27,7 +43,7 @@ TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state
 
     setupSlider (driveSlider, driveLabel, "Drive (dB)", 0.0, 40.0, 0.0);
     setupSlider (biasSlider, biasLabel, "Bias", 0.0, 0.5, 0.0);
-    setupSlider (outSlider, outLabel, "Output (dB)", -20.0, 20.0, 0.0);
+    setupBarSlider (outSlider, outLabel, "Output (dB)", -20.0, 20.0, 0.0);
 
     driveAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Tube_Drive", driveSlider);
     biasAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Tube_Bias", biasSlider);
@@ -38,17 +54,36 @@ TubeComponent::~TubeComponent() {}
 
 void TubeComponent::setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
+    juce::Colour color = juce::Colours::orange;
+
     addAndMakeVisible (label);
     label.setText (text, juce::NotificationType::dontSendNotification);
     label.setJustificationType (juce::Justification::centred);
 
     addAndMakeVisible (slider);
     slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    slider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    slider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
     slider.setRange (min, max);
     slider.setValue (def);
+    slider.setTooltip (text);
 
     slider.setLookAndFeel (&fxmeLookAndFeel);
+    setSliderColours(slider, color);
+}
+
+void TubeComponent::setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+{
+    juce::Colour color = juce::Colours::orange;
+
+    addAndMakeVisible (slider);
+    slider.setSliderStyle (juce::Slider::LinearBarVertical);
+    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    slider.setRange (min, max);
+    slider.setValue (def);
+    slider.setTextValueSuffix ("dB");
+    slider.setTooltip (text);
+    slider.setLookAndFeel (&fxmeLookAndFeel);
+    setSliderColours(slider, color);
 }
 
 void TubeComponent::paint (juce::Graphics& g)
@@ -66,15 +101,46 @@ void TubeComponent::paint (juce::Graphics& g)
 
 void TubeComponent::resized()
 {
-    auto area = getLocalBounds().reduced (5);
-    auto header = area.removeFromTop (25);
-    onButton.setBounds (header.removeFromLeft (40));
-    modelBox.setBounds (header.removeFromRight (80));
-    titleLabel.setBounds (header);
+    auto area = getLocalBounds().reduced (5.f);
+    using fi = juce::FlexItem;    
+    juce::FlexBox f1, f2, fMain;
+    f1.flexDirection =  juce::FlexBox::Direction::row;
+    f2.flexDirection = juce::FlexBox::Direction::row;
+    fMain.flexDirection = juce::FlexBox::Direction::column;
 
-    int w = area.getWidth() / 3;
-    auto layout = [&](juce::Slider& s, juce::Label& l, int idx) { auto r = area.withX(area.getX() + idx*w).withWidth(w); l.setBounds(r.removeFromTop(20)); s.setBounds(r); };
-    layout (driveSlider, driveLabel, 0);
-    layout (biasSlider, biasLabel, 1);
-    layout (outSlider, outLabel, 2);
+    f1.items.add(fi(onButton).withFlex(0.2f));
+    f1.items.add(fi(titleLabel).withFlex(1.f));
+    f1.items.add(fi(modelBox).withFlex(0.5f));
+    f2.items.add(fi(tubeImage).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 0.f)));
+    f2.items.add(fi(driveSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
+    f2.items.add(fi(biasSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
+    f2.items.add(fi(outSlider).withFlex(0.3f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 5.f, 5.f)));
+
+    fMain.items.add(fi(f1).withFlex(0.18f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
+    fMain.items.add(fi(f2).withFlex(0.9f));
+
+    fMain.performLayout(area);
+
+    // auto header = area.removeFromTop (25);
+    // onButton.setBounds (header.removeFromLeft (40));
+    // modelBox.setBounds (header.removeFromRight (80));
+    // titleLabel.setBounds (header);
+
+    // tubeImage.setBounds(area.reduced(10));
+
+    // int w = area.getWidth() / 3;
+    // auto layout = [&](juce::Slider& s, juce::Label& l, int idx) { 
+    //     auto r = area.withX(area.getX() + idx*w).withWidth(w).reduced(5); 
+    //     if (s.getSliderStyle() == juce::Slider::LinearBarVertical)
+    //     {
+    //         s.setBounds(r);
+    //     }
+    //     else
+    //     {
+    //         l.setBounds(r.removeFromTop(20)); s.setBounds(r); 
+    //     }
+    // };
+    // layout (driveSlider, driveLabel, 0);
+    // layout (biasSlider, biasLabel, 1);
+    // layout (outSlider, outLabel, 2);
 }

@@ -27,6 +27,7 @@ private:
     juce::ToggleButton onButton;
     juce::ComboBox modelBox;
     juce::Label titleLabel;
+    juce::ImageComponent tubeImage;
     juce::Label driveLabel, biasLabel, outLabel;
     juce::Slider driveSlider, biasSlider, outSlider;
 
@@ -35,6 +36,8 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> driveAtt, biasAtt, outAtt;
 
     void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setSliderColours (juce::Slider& s, juce::Colour c);
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
 

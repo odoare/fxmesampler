@@ -55,6 +55,14 @@
             file="wav/reaper_testproject/Media/Snare Snare 04 0 38 38.wav"/>
     </GROUP>
     <GROUP id="{81A13946-40E6-2C1D-D0EA-A6C5479467E3}" name="Source">
+      <FILE id="Vojgmn" name="SamplerComponent.cpp" compile="1" resource="0"
+            file="Source/SamplerComponent.cpp"/>
+      <FILE id="NDEgjI" name="SamplerComponent.h" compile="0" resource="0"
+            file="Source/SamplerComponent.h"/>
+      <FILE id="CL8L92" name="SampleGroupComponent.cpp" compile="1" resource="0"
+            file="Source/SampleGroupComponent.cpp"/>
+      <FILE id="ZgkyxQ" name="SampleGroupComponent.h" compile="0" resource="0"
+            file="Source/SampleGroupComponent.h"/>
       <FILE id="KWtnTS" name="ConvolReverb.cpp" compile="1" resource="0"
             file="Source/ConvolReverb.cpp"/>
       <FILE id="jI4DVQ" name="ConvolReverb.h" compile="0" resource="0" file="Source/ConvolReverb.h"/>

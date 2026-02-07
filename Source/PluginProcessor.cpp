@@ -26,6 +26,7 @@ SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
     
     if (xmlData != nullptr) {
         sampler.loadSamplesFromXml (xmlData, xmlSize);
+        sampler.assignParameters (apvts);
         mixer.loadFromXml (xmlData, xmlSize);
         mixer.assignParameters (apvts);
     }
@@ -164,6 +165,7 @@ void SimpleSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
     samplerOutputBuffer.clear();
     
+    sampler.updateParams();
     sampler.processBlock(samplerOutputBuffer, midiMessages);
     mixer.processBlock(samplerOutputBuffer, buffer);
 }
@@ -214,6 +216,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
 
         if (root != nullptr && root->hasTagName ("Mappings"))
         {
+            // Parse SampleGroups for parameters
+            for (auto* child : root->getChildIterator())
+            {
+                if (child->hasTagName ("SampleGroup"))
+                {
+                    juce::String name = child->getStringAttribute ("name");
+                    bool oneShot = child->getBoolAttribute ("oneShot", true);
+                    float attack = (float) child->getDoubleAttribute ("attack", 0.001);
+                    float decay = (float) child->getDoubleAttribute ("decay", 0.0);
+                    float sustain = (float) child->getDoubleAttribute ("sustain", 1.0);
+                    float release = (float) child->getDoubleAttribute ("release", 0.1);
+                    float detune = (float) child->getDoubleAttribute ("detune", 0.0);
+
+                    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_OneShot", 1 }, name + " One Shot", oneShot));
+                    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Attack", 1 }, name + " Attack", 0.0f, 5.0f, attack));
+                    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Decay", 1 }, name + " Decay", 0.0f, 5.0f, decay));
+                    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Sustain", 1 }, name + " Sustain", 0.0f, 1.0f, sustain));
+                    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Release", 1 }, name + " Release", 0.0f, 5.0f, release));
+                    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Detune", 1 }, name + " Detune", -12.0f, 12.0f, detune));
+                }
+            }
+
             auto* mixerNode = root->getChildByName ("Mixer");
             if (mixerNode != nullptr)
             {

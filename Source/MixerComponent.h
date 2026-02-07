@@ -14,6 +14,7 @@
 #include "VuMeterComponent.h"
 #include "EqualizerComponent.h"
 #include "TubeComponent.h"
+#include "SamplerComponent.h"
 
 //==============================================================================
 class StripComponent : public juce::Component, public juce::Timer
@@ -147,7 +148,7 @@ private:
 class MixerComponent : public juce::Component
 {
 public:
-    MixerComponent (Mixer& mixer, juce::AudioProcessorValueTreeState& apvts);
+    MixerComponent (Mixer& mixer, Sampler& sampler, juce::AudioProcessorValueTreeState& apvts);
     ~MixerComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -172,6 +173,7 @@ private:
     };
     
     LevelsComponent levelsComp;
+    SamplerComponent samplerComp;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MixerComponent)
 };

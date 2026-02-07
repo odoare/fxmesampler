@@ -15,6 +15,29 @@
 #include <memory>
 
 //==============================================================================
+struct SampleGroup
+{
+    juce::String name;
+    int muteGroup = 0;
+    bool isOneShot = true;
+    double attack = 0.001;
+    double decay = 0.0;
+    double sustain = 1.0;
+    double release = 0.1;
+    double detune = 0.0;
+    std::vector<int> outputChannels;
+
+    // Parameter pointers
+    std::atomic<float>* oneShotParam = nullptr;
+    std::atomic<float>* attackParam = nullptr;
+    std::atomic<float>* decayParam = nullptr;
+    std::atomic<float>* sustainParam = nullptr;
+    std::atomic<float>* releaseParam = nullptr;
+    std::atomic<float>* detuneParam = nullptr;
+
+    juce::String getName() const { return name; }
+};
+
 struct Sound
 {
     juce::String name;
@@ -30,6 +53,8 @@ struct Sound
     double decay = 0.0;     // Seconds
     double sustain = 1.0;   // 0.0 to 1.0
     double release = 0.1;   // Seconds
+    
+    SampleGroup* group = nullptr;
 
     // Internal audio data
     juce::AudioBuffer<float> audioBuffer;
@@ -81,8 +106,11 @@ public:
     void addSound (const Sound& sound);
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages);
     void loadSamplesFromXml (const void* xmlData, int xmlSize);
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts);
+    void updateParams();
     
     int getNumOutputChannels() const { return numOutputChannels; }
+    const std::vector<std::unique_ptr<SampleGroup>>& getSampleGroups() const { return sampleGroups; }
 
 private:
     std::vector<Sound> sounds;
@@ -92,6 +120,7 @@ private:
     juce::AudioFormatManager formatManager;
     
     int numOutputChannels = 2;
+    std::vector<std::unique_ptr<SampleGroup>> sampleGroups;
 
     Voice* findFreeVoice();
 };

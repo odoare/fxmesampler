@@ -43,14 +43,30 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
 
     if (activeSound)
     {
-        double pitchRatio = std::pow (2.0, (note - activeSound->basePitch) / 12.0);
+        double detune = 0.0;
+        double attack = activeSound->attack;
+        double decay = activeSound->decay;
+        double sustain = activeSound->sustain;
+        double release = activeSound->release;
+
+        if (activeSound->group)
+        {
+            auto* g = activeSound->group;
+            detune = g->detune;
+            attack = g->attack;
+            decay = g->decay;
+            sustain = g->sustain;
+            release = g->release;
+        }
+
+        double pitchRatio = std::pow (2.0, (note - activeSound->basePitch + detune) / 12.0);
         increment = (activeSound->sourceSampleRate / currentSampleRate) * pitchRatio;
         
-        double attackSamples = activeSound->attack * currentSampleRate;
-        double decaySamples = activeSound->decay * currentSampleRate;
-        double releaseSamples = activeSound->release * currentSampleRate;
+        double attackSamples = attack * currentSampleRate;
+        double decaySamples = decay * currentSampleRate;
+        double releaseSamples = release * currentSampleRate;
 
-        sustainLevel = activeSound->sustain;
+        sustainLevel = sustain;
 
         attackRate = (attackSamples > 0.0) ? (1.0 / attackSamples) : 1.0;
         decayRate = (decaySamples > 0.0) ? ((1.0 - sustainLevel) / decaySamples) : 1.0;
@@ -205,6 +221,7 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
         return;
 
     sounds.clear();
+    sampleGroups.clear();
 
     // Parse Master settings
     auto* master = root->getChildByName ("Master");
@@ -214,22 +231,23 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
     }
 
     // Parse SampleGroups
-    std::map<juce::String, Sound> groups;
+    std::map<juce::String, SampleGroup*> groups;
     for (auto* child : root->getChildIterator())
     {
         if (child->hasTagName ("SampleGroup"))
         {
-            Sound group;
-            group.name = child->getStringAttribute ("name");
-            group.muteGroup = child->getIntAttribute ("muteGroup");
-            group.isOneShot = child->getBoolAttribute ("oneShot", true);
-            group.attack = child->getDoubleAttribute ("attack", 0.001);
-            group.decay = child->getDoubleAttribute ("decay", 0.0);
-            group.sustain = child->getDoubleAttribute ("sustain", 1.0);
-            group.release = child->getDoubleAttribute ("release", 0.1);
+            auto group = std::make_unique<SampleGroup>();
+            group->name = child->getStringAttribute ("name");
+            group->muteGroup = child->getIntAttribute ("muteGroup");
+            group->isOneShot = child->getBoolAttribute ("oneShot", true);
+            group->attack = child->getDoubleAttribute ("attack", 0.001);
+            group->decay = child->getDoubleAttribute ("decay", 0.0);
+            group->sustain = child->getDoubleAttribute ("sustain", 1.0);
+            group->release = child->getDoubleAttribute ("release", 0.1);
+            group->detune = child->getDoubleAttribute ("detune", 0.0);
 
             // Parse output channels for the group
-            group.outputChannels.clear();
+            group->outputChannels.clear();
             juce::String channelList = child->getStringAttribute ("channels", "0,1");
             auto tokens = juce::StringArray::fromTokens (channelList, ", ", "");
             for (auto& t : tokens)
@@ -239,19 +257,20 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
                     auto parts = juce::StringArray::fromTokens (t, ":", "");
                     if (parts.size() == 2)
                     {
-                        group.outputChannels.push_back (parts[0].getIntValue()); // Source
-                        group.outputChannels.push_back (parts[1].getIntValue()); // Dest
+                        group->outputChannels.push_back (parts[0].getIntValue()); // Source
+                        group->outputChannels.push_back (parts[1].getIntValue()); // Dest
                     }
                 }
                 else
                 {
-                    group.outputChannels.push_back (-1); // Auto Source
-                    group.outputChannels.push_back (t.getIntValue()); // Dest
+                    group->outputChannels.push_back (-1); // Auto Source
+                    group->outputChannels.push_back (t.getIntValue()); // Dest
                 }
             }
 
-            if (group.outputChannels.empty()) { group.outputChannels = { -1, 0, -1, 1 }; }
-            groups[group.name] = group;
+            if (group->outputChannels.empty()) { group->outputChannels = { -1, 0, -1, 1 }; }
+            groups[group->name] = group.get();
+            sampleGroups.push_back(std::move(group));
         }
     }
 
@@ -285,14 +304,15 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             juce::String groupName = child->getStringAttribute ("group");
             if (groups.count (groupName))
             {
-                const auto& g = groups[groupName];
-                sound.muteGroup = g.muteGroup;
-                sound.isOneShot = g.isOneShot;
-                sound.attack = g.attack;
-                sound.decay = g.decay;
-                sound.sustain = g.sustain;
-                sound.release = g.release;
-                sound.outputChannels = g.outputChannels;
+                const auto* g = groups[groupName];
+                sound.muteGroup = g->muteGroup;
+                sound.isOneShot = g->isOneShot;
+                sound.attack = g->attack;
+                sound.decay = g->decay;
+                sound.sustain = g->sustain;
+                sound.release = g->release;
+                sound.outputChannels = g->outputChannels;
+                sound.group = groups[groupName];
             }
             else
             {
@@ -315,6 +335,33 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
 
             sounds.push_back (sound);
         }
+    }
+}
+
+void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    for (auto& group : sampleGroups)
+    {
+        juce::String prefix = group->getName() + "_";
+        group->oneShotParam = apvts.getRawParameterValue (prefix + "OneShot");
+        group->attackParam = apvts.getRawParameterValue (prefix + "Attack");
+        group->decayParam = apvts.getRawParameterValue (prefix + "Decay");
+        group->sustainParam = apvts.getRawParameterValue (prefix + "Sustain");
+        group->releaseParam = apvts.getRawParameterValue (prefix + "Release");
+        group->detuneParam = apvts.getRawParameterValue (prefix + "Detune");
+    }
+}
+
+void Sampler::updateParams()
+{
+    for (auto& group : sampleGroups)
+    {
+        if (group->oneShotParam) group->isOneShot = *group->oneShotParam > 0.5f;
+        if (group->attackParam) group->attack = *group->attackParam;
+        if (group->decayParam) group->decay = *group->decayParam;
+        if (group->sustainParam) group->sustain = *group->sustainParam;
+        if (group->releaseParam) group->release = *group->releaseParam;
+        if (group->detuneParam) group->detune = *group->detuneParam;
     }
 }
 
@@ -367,9 +414,15 @@ void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& 
             int note = message.getNoteNumber();
             for (auto& voice : voices)
             {
-                if (voice->isActive() && voice->getSound() && !voice->getSound()->isOneShot && voice->getNote() == note)
+                if (voice->isActive() && voice->getSound())
                 {
-                    voice->noteOff();
+                    bool isOneShot = voice->getSound()->isOneShot;
+                    if (voice->getSound()->group) isOneShot = voice->getSound()->group->isOneShot;
+                    
+                    if (!isOneShot && voice->getNote() == note)
+                    {
+                        voice->noteOff();
+                    }
                 }
             }
         }

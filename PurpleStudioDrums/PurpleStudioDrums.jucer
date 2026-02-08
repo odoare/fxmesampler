@@ -6,6 +6,7 @@
               companyName="Fx-Mechanics" pluginFormats="buildStandalone,buildVST3"
               pluginManufacturerCode="FXME" pluginCode="PSDR">
   <MAINGROUP id="zBzLwc" name="Purple Studio Drums">
+    <FILE id="AWTMyG" name="Kick.jpg" compile="0" resource="1" file="Data/img/Kick.jpg"/>
     <GROUP id="{FF688968-8994-8F17-EA35-A592FD880C2A}" name="Presets"/>
     <GROUP id="{F522994C-CC30-8876-8F29-3721025CCD03}" name="WDL">
       <FILE id="LHIuof" name="convoengine.cpp" compile="1" resource="0" file="../WDL/WDL/convoengine.cpp"/>
@@ -16,7 +17,6 @@
     <GROUP id="{E2914C61-1288-C5F6-6256-9DDC03E6D731}" name="Img">
       <FILE id="wJgQpp" name="Cymb.jpg" compile="0" resource="1" file="Data/img/Cymb.jpg"/>
       <FILE id="FXYPuW" name="HH.jpg" compile="0" resource="1" file="Data/img/HH.jpg"/>
-      <FILE id="kP5Kuq" name="Kck.jpg" compile="0" resource="1" file="Data/img/Kck.jpg"/>
       <FILE id="Ckmijo" name="logo686.png" compile="0" resource="1" file="../img/logo686.png"/>
       <FILE id="VfHnjk" name="Snare.jpg" compile="0" resource="1" file="Data/img/Snare.jpg"/>
       <FILE id="etMJW0" name="TomH.jpg" compile="0" resource="1" file="Data/img/TomH.jpg"/>

@@ -123,4 +123,5 @@ private:
     std::vector<std::unique_ptr<SampleGroup>> sampleGroups;
 
     Voice* findFreeVoice();
+    juce::CriticalSection lock;
 };

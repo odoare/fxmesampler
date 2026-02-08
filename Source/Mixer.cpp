@@ -71,6 +71,9 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     if (wParam) ambix.setWidth (*wParam);
     if (lvlParam) ambix.setLevel (juce::Decibels::decibelsToGain (lvlParam->load()));
 
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (2, input.getNumSamples(), false, false, true);
+
     tempBuffer.clear();
     // AmbixToMS expects 4 channels starting at 0 in its input buffer logic, 
     // but we pass a subset or use pointers. AmbixToMS::process takes buffers.
@@ -132,6 +135,9 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (2, input.getNumSamples(), false, false, true);
 
     tempBuffer.clear();
     // Copy input to temp
@@ -204,6 +210,9 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     if (wParam) width = *wParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (2, input.getNumSamples(), false, false, true);
+
     tempBuffer.clear();
     // Copy input to temp
     for (int i = 0; i < 2; ++i)
@@ -275,6 +284,9 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (1, input.getNumSamples(), false, false, true);
+
     tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
@@ -333,6 +345,9 @@ void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Au
 {
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (2, input.getNumSamples(), false, false, true);
 
     tempBuffer.clear();
     // Copy mono input to both channels for stereo processing
@@ -399,6 +414,9 @@ void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Audi
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (1, input.getNumSamples(), false, false, true);
+
     tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
@@ -463,6 +481,9 @@ void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    if (tempBuffer.getNumSamples() != input.getNumSamples())
+        tempBuffer.setSize (2, input.getNumSamples(), false, false, true);
 
     tempBuffer.clear();
     for (int i = 0; i < 2; ++i)

@@ -31,7 +31,7 @@ void Sound::load (juce::AudioFormatManager& formatManager)
 //==============================================================================
 void Voice::start (const Sound* sound, int note, float velocity, double sampleRate)
 {
-    std::cout << "Start a sound on note " << note << std::endl;
+    //std::cout << "Start a sound on note " << note << std::endl;
     activeSound = sound;
     currentNote = note;
     currentPosition = 0.0;
@@ -204,6 +204,7 @@ void Sampler::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 void Sampler::addSound (const Sound& sound)
 {
+    juce::ScopedLock sl (lock);
     sounds.push_back (sound);
     // Load the audio data into the buffer for the newly added sound
     sounds.back().load (formatManager);
@@ -220,14 +221,15 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
     if (root == nullptr || ! root->hasTagName ("Mappings"))
         return;
 
-    sounds.clear();
-    sampleGroups.clear();
+    std::vector<Sound> newSounds;
+    std::vector<std::unique_ptr<SampleGroup>> newSampleGroups;
+    int newNumOutputChannels = 2;
 
     // Parse Master settings
     auto* master = root->getChildByName ("Master");
     if (master != nullptr)
     {
-        numOutputChannels = master->getStringAttribute ("channels", "2").getIntValue();
+        newNumOutputChannels = master->getStringAttribute ("channels", "2").getIntValue();
     }
 
     // Parse SampleGroups
@@ -252,6 +254,9 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             auto tokens = juce::StringArray::fromTokens (channelList, ", ", "");
             for (auto& t : tokens)
             {
+                if (t.trim().isEmpty())
+                    continue;
+
                 if (t.contains (":"))
                 {
                     auto parts = juce::StringArray::fromTokens (t, ":", "");
@@ -270,7 +275,7 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
 
             if (group->outputChannels.empty()) { group->outputChannels = { -1, 0, -1, 1 }; }
             groups[group->name] = group.get();
-            sampleGroups.push_back(std::move(group));
+            newSampleGroups.push_back(std::move(group));
         }
     }
 
@@ -333,13 +338,23 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
                 }
             }
 
-            sounds.push_back (sound);
+            newSounds.push_back (sound);
         }
+    }
+
+    {
+        juce::ScopedLock sl (lock);
+        for (auto& v : voices) v->stop();
+        
+        sounds = std::move(newSounds);
+        sampleGroups = std::move(newSampleGroups);
+        numOutputChannels = newNumOutputChannels;
     }
 }
 
 void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 {
+    juce::ScopedLock sl (lock);
     for (auto& group : sampleGroups)
     {
         juce::String prefix = group->getName() + "_";
@@ -354,6 +369,7 @@ void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
 
 void Sampler::updateParams()
 {
+    juce::ScopedLock sl (lock);
     for (auto& group : sampleGroups)
     {
         if (group->oneShotParam) group->isOneShot = *group->oneShotParam > 0.5f;
@@ -378,6 +394,7 @@ Voice* Sampler::findFreeVoice()
 
 void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    juce::ScopedLock sl (lock);
     // Process MIDI events to trigger sounds
     for (const auto metadata : midiMessages)
     {

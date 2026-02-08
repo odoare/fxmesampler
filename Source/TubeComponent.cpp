@@ -24,10 +24,19 @@ TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state
     onButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::orange);
     onAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, prefix + "_Tube_On", onButton);
 
-    int size = 0;
-    const char* data = BinaryData::getNamedResource("tube_png", size);
-    if (data)
-        tubeImage.setImage(juce::ImageCache::getFromMemory(data, size));
+    onButton.onClick = [this] {
+        int size = 0;
+        const char* data = nullptr;
+        if (onButton.getToggleState())
+            data = BinaryData::getNamedResource("tube_png", size);
+        else
+            data = BinaryData::getNamedResource("tube_bw_png", size);
+
+        if (data)
+            tubeImage.setImage(juce::ImageCache::getFromMemory(data, size));
+    };
+    onButton.onClick();
+
     addAndMakeVisible(tubeImage);
     tubeImage.toBack();
 

@@ -21,6 +21,7 @@
       <FILE id="VfHnjk" name="Snare.jpg" compile="0" resource="1" file="Data/img/Snare.jpg"/>
       <FILE id="etMJW0" name="TomH.jpg" compile="0" resource="1" file="Data/img/TomH.jpg"/>
       <FILE id="Cspf2q" name="tube.png" compile="0" resource="1" file="../img/tube.png"/>
+      <FILE id="rOqgNH" name="tube_bw.png" compile="0" resource="1" file="../img/tube_bw.png"/>
     </GROUP>
     <GROUP id="{AC82C2F8-19E7-6905-EBEF-3BA5D7E86B11}" name="Sounds">
       <FILE id="UgkK3o" name="Cymb Cymb1 01 0 48 48 48.wav" compile="0" resource="1"

@@ -48,6 +48,8 @@ protected:
     juce::ImageComponent icon;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> levelAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> muteAtt, soloAtt;
+    std::vector<std::unique_ptr<juce::Slider>> sendSliders;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sendAtts;
 
     virtual void updateMeters() = 0;
     void setupKnob (juce::Slider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts);
@@ -196,6 +198,24 @@ private:
     juce::Slider panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     VuMeterComponent meter;
+};
+
+/**
+ * @class BusStripComponent
+ * @brief GUI component for a Bus mixer strip.
+ */
+class BusStripComponent : public StripComponent
+{
+public:
+    BusStripComponent (BusStrip& s, juce::AudioProcessorValueTreeState& apvts);
+    void resized() override;
+protected:
+    void updateMeters() override;
+private:
+    BusStrip& busStrip;
+    juce::Slider panSlider, wSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt, wAtt;
+    VuMeterComponent meterL, meterR;
 };
 
 /**

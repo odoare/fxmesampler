@@ -7,56 +7,7 @@
 */
 
 #include "MixerComponent.h"
-
-// Helper component to hold EQ and Compressor
-class EffectChainComponent : public juce::Component
-{
-public:
-    EffectChainComponent (Equalizer& eq, Compressor& comp, Tube& tube, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
-        : eqComp (eq, apvts, prefix), compComp (comp, apvts, prefix), tubeComp (tube, apvts, prefix)
-    {
-        addAndMakeVisible (orderBox);
-        orderBox.addItem ("EQ -> Comp -> Tube", 1);
-        orderBox.addItem ("EQ -> Tube -> Comp", 2);
-        orderBox.addItem ("Comp -> EQ -> Tube", 3);
-        orderBox.addItem ("Comp -> Tube -> EQ", 4);
-        orderBox.addItem ("Tube -> EQ -> Comp", 5);
-        orderBox.addItem ("Tube -> Comp -> EQ", 6);
-        orderAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Order", orderBox);
-
-        addAndMakeVisible (eqComp);
-        addAndMakeVisible (compComp);
-        addAndMakeVisible (tubeComp);
-    }
-    void resized() override
-    {
-        auto bounds = getLocalBounds();
-        using fi = juce::FlexItem;
-        juce::FlexBox fbMain, fb1, fb2;
-        fbMain.flexDirection = juce::FlexBox::Direction::column;
-        fb1.flexDirection = juce::FlexBox::Direction::column;
-        fb2.flexDirection = juce::FlexBox::Direction::row;       
-        fb1.items.add(fi(compComp).withFlex(1.2f).withMargin(juce::FlexItem::Margin(3.f, 3.f, 6.f, 6.f)));
-        fb1.items.add(fi(tubeComp).withFlex(0.8f).withMargin(juce::FlexItem::Margin(3.f, 6.f, 6.f, 3.f)));
-        fb2.items.add(fi(eqComp).withFlex(1.0f).withMargin(juce::FlexItem::Margin(6.f, 6.f, 3.f, 6.f)));
-        fb2.items.add(fi(fb1).withFlex(1.0f));        
-        fbMain.items.add(fi(orderBox).withFlex(0.1).withMargin(juce::FlexItem::Margin(6.f, 6.f, 3.f, 6.f)));
-        fbMain.items.add(fi(fb2).withFlex(2.));
-        fbMain.performLayout(bounds);
-
-        // auto area = getLocalBounds();
-        // orderBox.setBounds (area.removeFromTop (25));
-        // eqComp.setBounds (area.removeFromTop (area.getHeight() / 2));
-        // compComp.setBounds (area.removeFromTop (area.getHeight() * 0.6f));
-        // tubeComp.setBounds (area);
-    }
-private:
-    juce::ComboBox orderBox;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> orderAtt;
-    EqualizerComponent eqComp;
-    CompressorComponent compComp;
-    TubeComponent tubeComp;
-};
+#include "EffectChainDynamicsComponent.h"
 
 //==============================================================================
 // StripComponent Base
@@ -90,6 +41,21 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
 
     addAndMakeVisible (icon);
     icon.setImage (strip.getImage());
+
+    // Create Send Sliders
+    for (const auto& send : strip.getSends())
+    {
+        auto slider = std::make_unique<juce::Slider>();
+        slider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+        slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+        slider->setRange (-60.0, 6.0);
+        slider->setTooltip ("Send to " + send.busName);
+        slider->setLookAndFeel(&fxmeLookAndFeel);
+        setSliderColours (*slider, juce::Colours::cyan); // Use a distinct color for sends
+        addAndMakeVisible (*slider);
+        sendAtts.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, strip.getName() + "_Send_" + send.busName, *slider));
+        sendSliders.push_back (std::move (slider));
+    }
 
     startTimerHz (24);
 }
@@ -189,6 +155,16 @@ void AmbisonicStripComponent::resized()
     fbKnobs.items.add(fi(fbKnobsRow1).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
+    // Add sends to knobs area
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    
+    if (!sendSliders.empty())
+        fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 0, 0, 5.f)));
 
@@ -250,6 +226,15 @@ void MSStripComponent::resized()
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
@@ -313,6 +298,15 @@ void StereoStripComponent::resized()
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
 
@@ -373,6 +367,16 @@ void MonoStripComponent::resized()
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbMain.items.add(fi(fbSends).withFlex(0.2f));
+
     fbMain.items.add(fi(panSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f,0.f,0.f,0.f)));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
@@ -427,6 +431,16 @@ void StereoReverbStripComponent::resized()
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbMain.items.add(fi(fbSends).withFlex(0.2f));
+
     fbMain.items.add(fi(panSlider).withFlex(0.2f));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
@@ -475,6 +489,16 @@ void MonoReverbStripComponent::resized()
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbMain.items.add(fi(fbSends).withFlex(0.2f));
+
     fbMain.items.add(fi(panSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
@@ -484,6 +508,77 @@ void MonoReverbStripComponent::resized()
 void MonoReverbStripComponent::updateMeters()
 {
     meter.setValue (reverbStrip.meter.getRMS());
+}
+
+//==============================================================================
+BusStripComponent::BusStripComponent (BusStrip& s, juce::AudioProcessorValueTreeState& apvts)
+    : StripComponent (s, apvts), busStrip (s)
+{
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
+
+    setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
+
+    juce::Colour c = s.getColor();
+    if (c.isTransparent()) c = juce::Colours::purple;
+
+    setSliderColours (panSlider, c);
+    setSliderColours (wSlider, c);
+    setSliderColours (levelSlider, c);
+
+    addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+}
+
+void BusStripComponent::resized()
+{
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters, fbKnobs;
+
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobs.flexDirection = juce::FlexBox::Direction::row;
+
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+
+    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 25.f, 10.f, 25.f)));
+    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
+    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+
+    fbMain.performLayout (bounds);
+}
+
+void BusStripComponent::updateMeters()
+{
+    meterL.setValue (busStrip.meterL.getRMS());
+    meterR.setValue (busStrip.meterR.getRMS());
 }
 
 //==============================================================================
@@ -536,6 +631,16 @@ void MasterStripComponent::resized()
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    // Add sends
+    juce::FlexBox fbSends;
+    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& s : sendSliders)
+        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    if (!sendSliders.empty())
+        fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
@@ -567,8 +672,11 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessor
             this->strips.push_back (std::make_unique<StereoReverbStripComponent> (*s, state));
         else if (auto* s = dynamic_cast<MonoReverbStrip*>(strip.get()))
             this->strips.push_back (std::make_unique<MonoReverbStripComponent> (*s, state));
+        else if (auto* s = dynamic_cast<BusStrip*>(strip.get()))
+            this->strips.push_back (std::make_unique<BusStripComponent> (*s, state));
             
-        addAndMakeVisible (*this->strips.back());
+        if (!this->strips.empty() && this->strips.back()->getParentComponent() == nullptr)
+            addAndMakeVisible (*this->strips.back());
     }
 
     this->strips.push_back (std::make_unique<MasterStripComponent> (mixer.getMasterStrip(), state));
@@ -597,17 +705,20 @@ MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueT
     // but addTab takes ownership if we pass true (which we will for these new components).
     // However, addTab with 'true' deletes the component. We need to make sure we allocate them.
     
-    auto addChain = [&](const juce::String& name, Equalizer& eq, Compressor& comp, Tube& tube) {
-        tabs.addTab (name, juce::Colours::black, new EffectChainComponent (eq, comp, tube, apvts, name), true);
+    auto addChain = [&](const juce::String& name, EffectChain* chain) {
+        if (auto* dynChain = dynamic_cast<EffectChainDynamics*>(chain))
+        {
+            tabs.addTab (name, juce::Colours::black, new EffectChainDynamicsComponent (*dynChain, apvts, name), true);
+        }
     };
 
     for (auto& strip : mixer.getStrips())
     {
-        addChain (strip->getName(), strip->getEQ(), strip->getComp(), strip->getTube());
+        addChain (strip->getName(), strip->getEffectChain());
     }
     
     auto& master = mixer.getMasterStrip();
-    addChain (master.getName(), master.getEQ(), master.getComp(), master.getTube());
+    addChain (master.getName(), master.getEffectChain());
 
     tabs.addTab ("Sampler", juce::Colours::black, &samplerComp, false);
 

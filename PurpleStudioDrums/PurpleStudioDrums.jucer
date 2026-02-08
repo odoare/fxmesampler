@@ -6,6 +6,8 @@
               companyName="Fx-Mechanics" pluginFormats="buildStandalone,buildVST3"
               pluginManufacturerCode="FXME" pluginCode="PSDR">
   <MAINGROUP id="zBzLwc" name="Purple Studio Drums">
+    <FILE id="ruBRn1" name="birr_L.wav" compile="0" resource="1" file="Data/wav/birr_L.wav"/>
+    <FILE id="pIUmVt" name="birr_R.wav" compile="0" resource="1" file="Data/wav/birr_R.wav"/>
     <FILE id="AWTMyG" name="Kick.jpg" compile="0" resource="1" file="Data/img/Kick.jpg"/>
     <GROUP id="{FF688968-8994-8F17-EA35-A592FD880C2A}" name="Presets"/>
     <GROUP id="{F522994C-CC30-8876-8F29-3721025CCD03}" name="WDL">
@@ -96,6 +98,20 @@
       <FILE id="OFNXJ4" name="ConvolReverb.cpp" compile="1" resource="0"
             file="../Source/ConvolReverb.cpp"/>
       <FILE id="iRMQeQ" name="ConvolReverb.h" compile="0" resource="0" file="../Source/ConvolReverb.h"/>
+      <FILE id="cI3Ef3" name="EffectChain.cpp" compile="1" resource="0" file="../Source/EffectChain.cpp"/>
+      <FILE id="x96mJm" name="EffectChain.h" compile="0" resource="0" file="../Source/EffectChain.h"/>
+      <FILE id="U7pECQ" name="EffectChainComponent.cpp" compile="1" resource="0"
+            file="../Source/EffectChainComponent.cpp"/>
+      <FILE id="aJjmjs" name="EffectChainComponent.h" compile="0" resource="0"
+            file="../Source/EffectChainComponent.h"/>
+      <FILE id="Z13cnH" name="EffectChainDynamics.cpp" compile="1" resource="0"
+            file="../Source/EffectChainDynamics.cpp"/>
+      <FILE id="nqQUTw" name="EffectChainDynamics.h" compile="0" resource="0"
+            file="../Source/EffectChainDynamics.h"/>
+      <FILE id="ePJd4L" name="EffectChainDynamicsComponent.cpp" compile="1"
+            resource="0" file="../Source/EffectChainDynamicsComponent.cpp"/>
+      <FILE id="PR87XE" name="EffectChainDynamicsComponent.h" compile="0"
+            resource="0" file="../Source/EffectChainDynamicsComponent.h"/>
       <FILE id="wsd8Ud" name="Equalizer.cpp" compile="1" resource="0" file="../Source/Equalizer.cpp"/>
       <FILE id="xZsC2I" name="Equalizer.h" compile="0" resource="0" file="../Source/Equalizer.h"/>
       <FILE id="AtJ84V" name="EqualizerComponent.cpp" compile="1" resource="0"

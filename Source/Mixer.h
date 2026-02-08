@@ -11,11 +11,21 @@
 #include <JuceHeader.h>
 #include "AmbixToMS.h"
 #include "VuMeter.h"
-#include "Equalizer.h"
-#include "Compressor.h"
-#include "Tube.h"
+#include "EffectChainDynamics.h"
 #include "ConvolReverb.h"
 #include <atomic>
+
+// Forward declaration
+class BusStrip;
+
+//==============================================================================
+struct Send
+{
+    juce::String busName;
+    BusStrip* bus = nullptr;
+    std::atomic<float>* gainParam = nullptr;
+    float currentGain = 0.0f;
+};
 
 //==============================================================================
 class MixerStrip
@@ -30,9 +40,7 @@ public:
 
     virtual void assignParameters (juce::AudioProcessorValueTreeState& apvts) = 0;
     juce::String getName() const { return name; }
-    Equalizer& getEQ() { return eq; }
-    Compressor& getComp() { return comp; }
-    Tube& getTube() { return tube; }
+    EffectChain* getEffectChain() const { return effectChain.get(); }
 
     bool isMute() const { return muteParam && *muteParam > 0.5f; }
     bool isSolo() const { return soloParam && *soloParam > 0.5f; }
@@ -43,20 +51,22 @@ public:
     void setColor (juce::Colour c) { color = c; }
     juce::Colour getColor() const { return color; }
 
+    void addSend (const juce::String& busName, BusStrip* bus);
+    void processSends (juce::AudioBuffer<float>& buffer);
+    const std::vector<Send>& getSends() const { return sends; }
+
     void processEffects (juce::AudioBuffer<float>& buffer);
     virtual void clearMeters() {}
 
 protected:
     juce::String name;
-    Equalizer eq;
-    Compressor comp;
-    Tube tube;
+    std::unique_ptr<EffectChain> effectChain;
     juce::AudioBuffer<float> tempBuffer;
     std::atomic<float>* muteParam = nullptr;
     std::atomic<float>* soloParam = nullptr;
-    std::atomic<float>* orderParam = nullptr;
     juce::Image image;
     juce::Colour color { 0 };
+    std::vector<Send> sends;
 };
 
 class AmbisonicStrip : public MixerStrip
@@ -194,6 +204,36 @@ public:
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* wParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
+};
+
+class BusStrip : public MixerStrip
+{
+public:
+    BusStrip (const juce::String& name);
+    void prepare (double sampleRate, int samplesPerBlock) override;
+    void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
+    int getNumInputChannels() const override { return 0; }
+    void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void clearMeters() override;
+
+    void addInput (const juce::AudioBuffer<float>& source, float gain);
+    void clearBusBuffer();
+
+    void setReverbMode (bool enabled) { isReverb = enabled; }
+    void loadImpulse (const void* data, size_t size);
+
+    VuMeter meterL, meterR;
+
+private:
+    juce::AudioBuffer<float> busBuffer;
+    std::atomic<float>* panParam = nullptr;
+    std::atomic<float>* wParam = nullptr;
+    std::atomic<float>* lvlParam = nullptr;
+    float pan = 0.0f;
+    float width = 1.0f;
+    float level = 1.0f;
+    bool isReverb = false;
+    ConvolReverb reverb;
 };
 
 //==============================================================================

@@ -11,29 +11,25 @@
 //==============================================================================
 void MixerStrip::processEffects (juce::AudioBuffer<float>& buffer)
 {
-    eq.checkParameters();
-    comp.checkParameters();
-    tube.checkParameters();
+    if (effectChain)
+        effectChain->process (buffer);
+}
 
-    int order = 0;
-    if (orderParam) order = (int) *orderParam;
+void MixerStrip::addSend (const juce::String& busName, BusStrip* bus)
+{
+    Send s;
+    s.busName = busName;
+    s.bus = bus;
+    sends.push_back (s);
+}
 
-    // 0: EQ -> Comp -> Tube
-    // 1: EQ -> Tube -> Comp
-    // 2: Comp -> EQ -> Tube
-    // 3: Comp -> Tube -> EQ
-    // 4: Tube -> EQ -> Comp
-    // 5: Tube -> Comp -> EQ
-
-    switch (order)
+void MixerStrip::processSends (juce::AudioBuffer<float>& buffer)
+{
+    for (auto& send : sends)
     {
-        case 0: eq.process (buffer); comp.process (buffer); tube.process (buffer); break;
-        case 1: eq.process (buffer); tube.process (buffer); comp.process (buffer); break;
-        case 2: comp.process (buffer); eq.process (buffer); tube.process (buffer); break;
-        case 3: comp.process (buffer); tube.process (buffer); eq.process (buffer); break;
-        case 4: tube.process (buffer); eq.process (buffer); comp.process (buffer); break;
-        case 5: tube.process (buffer); comp.process (buffer); eq.process (buffer); break;
-        default: eq.process (buffer); comp.process (buffer); tube.process (buffer); break;
+        if (send.gainParam) send.currentGain = juce::Decibels::decibelsToGain (send.gainParam->load());
+        if (send.bus && send.currentGain > 0.0001f)
+            send.bus->addInput (buffer, send.currentGain);
     }
 }
 
@@ -42,9 +38,9 @@ AmbisonicStrip::AmbisonicStrip (const juce::String& n) : MixerStrip (n) {}
 
 void AmbisonicStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 2);
-    comp.prepare (sampleRate, 2);
-    tube.prepare (sampleRate);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -58,10 +54,14 @@ void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
 }
 
 void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -90,6 +90,7 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
 
     ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
     processEffects (tempBuffer);
+    processSends (tempBuffer);
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
@@ -109,9 +110,9 @@ MSStrip::MSStrip (const juce::String& n) : MixerStrip (n) {}
 
 void MSStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 2);
-    comp.prepare (sampleRate, 2);
-    tube.prepare (sampleRate);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -124,10 +125,14 @@ void MSStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
 }
 
 void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -156,6 +161,7 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
     }
 
     processEffects (tempBuffer);
+    processSends (tempBuffer);
     tempBuffer.applyGain (level);
 
     // Balance using constant-power law
@@ -183,9 +189,9 @@ StereoStrip::StereoStrip (const juce::String& n) : MixerStrip (n) {}
 
 void StereoStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 2);
-    comp.prepare (sampleRate, 2);
-    tube.prepare (sampleRate);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -198,10 +204,14 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
 }
 
 void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -233,6 +243,7 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     }
 
     processEffects (tempBuffer);
+    processSends (tempBuffer);
     tempBuffer.applyGain (level);
 
     // Balance using Linear law (Classical Stereo)
@@ -260,9 +271,9 @@ MonoStrip::MonoStrip (const juce::String& n) : MixerStrip (n) {}
 
 void MonoStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 1);
-    comp.prepare (sampleRate, 1);
-    tube.prepare (sampleRate);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 1);
+
     meter.prepare (sampleRate);
     tempBuffer.setSize (1, samplesPerBlock);
 }
@@ -273,10 +284,14 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
 }
 
 void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -291,6 +306,7 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
     processEffects (tempBuffer);
+    processSends (tempBuffer);
     tempBuffer.applyGain (level);
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
@@ -315,10 +331,9 @@ StereoReverbStrip::StereoReverbStrip (const juce::String& n) : MixerStrip (n) {}
 
 void StereoReverbStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 2);
-    comp.prepare (sampleRate, 2);
-    tube.prepare (sampleRate);
-    reverb.prepare (sampleRate, samplesPerBlock);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -330,10 +345,14 @@ void StereoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& ap
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
 }
 
 void StereoReverbStrip::loadImpulse (const void* data, size_t size)
@@ -356,6 +375,7 @@ void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Au
 
     reverb.process (tempBuffer);
     processEffects (tempBuffer);
+    processSends (tempBuffer);
     tempBuffer.applyGain (level);
 
     // Balance using constant-power law
@@ -384,9 +404,9 @@ MonoReverbStrip::MonoReverbStrip (const juce::String& n) : MixerStrip (n) {}
 
 void MonoReverbStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 1);
-    comp.prepare (sampleRate, 1);
-    tube.prepare (sampleRate);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 1);
+
     reverb.prepare (sampleRate, samplesPerBlock);
     meter.prepare (sampleRate);
     tempBuffer.setSize (1, samplesPerBlock);
@@ -398,10 +418,14 @@ void MonoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvt
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
 }
 
 void MonoReverbStrip::loadImpulse (const void* data, size_t size)
@@ -422,6 +446,7 @@ void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Audi
 
     reverb.process (tempBuffer);
     processEffects (tempBuffer);
+    processSends (tempBuffer);
     tempBuffer.applyGain (level);
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
@@ -441,13 +466,125 @@ void MonoReverbStrip::clearMeters()
 }
 
 //==============================================================================
+BusStrip::BusStrip (const juce::String& n) : MixerStrip (n) {}
+
+void BusStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
+    busBuffer.setSize (2, samplesPerBlock);
+}
+
+void BusStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    wParam = apvts.getRawParameterValue (name + "_Width");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+    }
+}
+
+void BusStrip::addInput (const juce::AudioBuffer<float>& source, float gain)
+{
+    // Mix source into busBuffer. Source can be mono or stereo.
+    // busBuffer is stereo.
+    if (source.getNumChannels() == 1)
+    {
+        busBuffer.addFrom (0, 0, source, 0, 0, source.getNumSamples(), gain);
+        busBuffer.addFrom (1, 0, source, 0, 0, source.getNumSamples(), gain);
+    }
+    else
+    {
+        for (int i = 0; i < 2 && i < source.getNumChannels(); ++i)
+            busBuffer.addFrom (i, 0, source, i, 0, source.getNumSamples(), gain);
+    }
+}
+
+void BusStrip::clearBusBuffer()
+{
+    busBuffer.clear();
+}
+
+void BusStrip::loadImpulse (const void* data, size_t size)
+{
+    reverb.loadImpulse (data, size);
+}
+
+void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+{
+    // Bus ignores 'input' (sampler output) and uses 'busBuffer' (sends)
+    juce::ignoreUnused (input, inputChannelOffset);
+
+    if (panParam) pan = *panParam;
+    if (wParam) width = *wParam;
+    if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    if (tempBuffer.getNumSamples() != busBuffer.getNumSamples())
+        tempBuffer.setSize (2, busBuffer.getNumSamples(), false, false, true);
+
+    tempBuffer.makeCopyOf (busBuffer);
+
+    // Width processing (Standard M/S width control for stereo sources)
+    if (std::abs(width - 1.0f) > 0.001f)
+    {
+        auto* l = tempBuffer.getWritePointer(0);
+        auto* r = tempBuffer.getWritePointer(1);
+        for (int i = 0; i < tempBuffer.getNumSamples(); ++i)
+        {
+            float mid = (l[i] + r[i]) * 0.5f;
+            float side = (l[i] - r[i]) * 0.5f * width;
+            l[i] = mid + side;
+            r[i] = mid - side;
+        }
+    }
+
+    if (isReverb)
+        reverb.process (tempBuffer);
+
+    processEffects (tempBuffer);
+    processSends (tempBuffer); // Bus to Bus sends possible if ordered correctly
+    tempBuffer.applyGain (level);
+
+    // Balance using Linear law (Classical Stereo)
+    float gainL = 0.5f * (1.0f - pan);
+    float gainR = 0.5f * (1.0f + pan);
+    
+    tempBuffer.applyGain (0, 0, tempBuffer.getNumSamples(), gainL);
+    tempBuffer.applyGain (1, 0, tempBuffer.getNumSamples(), gainR);
+
+    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
+    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+
+    for (int ch = 0; ch < 2; ++ch)
+        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+}
+
+void BusStrip::clearMeters()
+{
+    meterL.clear();
+    meterR.clear();
+}
+
+//==============================================================================
 MasterStrip::MasterStrip (const juce::String& n) : MixerStrip (n) {}
 
 void MasterStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    eq.prepare (sampleRate, 2);
-    comp.prepare (sampleRate, 2);
-    tube.prepare (sampleRate);
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -462,10 +599,8 @@ void MasterStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     // Master doesn't really need solo, but we keep the pointer null or unused if not needed.
     // We'll bind it just in case to avoid null checks failing if we added it to params.
     soloParam = apvts.getRawParameterValue (name + "_Solo"); 
-    orderParam = apvts.getRawParameterValue (name + "_Order");
-    eq.assignParameters (apvts, name);
-    comp.assignParameters (apvts, name);
-    tube.assignParameters (apvts, name);
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
 }
 
 void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
@@ -597,16 +732,13 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
 
     for (auto* child : mixerNode->getChildIterator())
     {
+        std::unique_ptr<MixerStrip> newStrip;
+        juce::String type = child->getStringAttribute ("type");
+        juce::String name = child->getStringAttribute ("name");
+        juce::String chainType = child->getStringAttribute ("effectChain", "dynamics");
+
         if (child->hasTagName ("Strip"))
         {
-            juce::String type = child->getStringAttribute ("type");
-            juce::String name = child->getStringAttribute ("name");
-            juce::String imgName = child->getStringAttribute ("img");
-            juce::String irName = child->getStringAttribute ("resource");
-            juce::String colorStr = child->getStringAttribute ("color");
-
-            std::unique_ptr<MixerStrip> newStrip;
-
             if (type.equalsIgnoreCase ("ambisonic"))
                 newStrip = std::make_unique<AmbisonicStrip> (name);
             else if (type.equalsIgnoreCase ("stereo"))
@@ -619,9 +751,30 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
                 newStrip = std::make_unique<StereoReverbStrip> (name);
             else if (type.equalsIgnoreCase ("reverb"))
                 newStrip = std::make_unique<MonoReverbStrip> (name);
-
-            if (newStrip != nullptr)
+        }
+        else if (child->hasTagName ("Bus"))
+        {
+            if (type.equalsIgnoreCase ("dynamics"))
+                newStrip = std::make_unique<BusStrip> (name);
+            else if (type.equalsIgnoreCase ("stereoReverb"))
             {
+                auto bus = std::make_unique<BusStrip> (name);
+                bus->setReverbMode (true);
+                newStrip = std::move (bus);
+            }
+        }
+
+        if (newStrip != nullptr)
+        {
+            if (chainType.equalsIgnoreCase ("dynamics"))
+            {
+                // Default, already handled by constructor/prepare logic if we want, 
+                // but we can explicitly set it here if we add a setter.
+            }
+            juce::String imgName = child->getStringAttribute ("img");
+            juce::String irName = child->getStringAttribute ("resource");
+            juce::String colorStr = child->getStringAttribute ("color");
+
                 if (colorStr.isNotEmpty())
                 {
                     juce::StringArray tokens;
@@ -686,9 +839,37 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
                         }
                         if (data != nullptr) rs->loadImpulse (data, dataSize);
                     }
+                    else if (auto* bs = dynamic_cast<BusStrip*>(newStrip.get()))
+                    {
+                        juce::String resourceName = irName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+                        int dataSize = 0;
+                        const char* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), dataSize);
+
+                        if (data == nullptr)
+                        {
+                            for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+                                if (resourceName.equalsIgnoreCase (BinaryData::namedResourceList[i]))
+                                    { data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], dataSize); break; }
+                        }
+                        if (data != nullptr) bs->loadImpulse (data, dataSize);
+                    }
                 }
                 strips.push_back (std::move (newStrip));
-            }
+        }
+    }
+
+    // Link sends
+    std::vector<BusStrip*> buses;
+    for (auto& strip : strips)
+        if (auto* bus = dynamic_cast<BusStrip*>(strip.get()))
+            buses.push_back (bus);
+
+    for (auto& strip : strips)
+    {
+        for (auto* bus : buses)
+        {
+            if (strip.get() != bus) // Don't send to self
+                strip->addSend (bus->getName(), bus);
         }
     }
 
@@ -713,6 +894,10 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
     if (mixBuffer.getNumChannels() != 2 || mixBuffer.getNumSamples() != outputBuffer.getNumSamples())
         mixBuffer.setSize (2, outputBuffer.getNumSamples());
     mixBuffer.clear();
+
+    for (auto& strip : strips)
+        if (auto* bus = dynamic_cast<BusStrip*>(strip.get()))
+            bus->clearBusBuffer();
 
     bool anySolo = false;
     for (auto& strip : strips)

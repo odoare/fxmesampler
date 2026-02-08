@@ -3,11 +3,11 @@
   <Master channels="10" img="logo686.png" color="55,169,181"/>
 
   <Mixer>
-    <Group type="stereo" name="Cymb" img="Cymb.jpg" color="100,100,100"/>
-    <Group type="stereo" name="HH" img="HH.jpg" color="100,100,100"/>
-    <Group type="stereo" name="Kick" img="Kick.jpg" color="100,100,100"/>
-    <Group type="stereo" name="Snare" img="Snare.jpg" color="100,100,100"/>
-    <Group type="stereo" name="TomH" img="TomH.jpg" color="100,100,100"/>
+    <Strip type="stereo" name="Cymb" img="Cymb.jpg" color="100,100,100"/>
+    <Strip type="stereo" name="HH" img="HH.jpg" color="100,100,100"/>
+    <Strip type="stereo" name="Kick" img="Kick.jpg" color="100,100,100"/>
+    <Strip type="stereo" name="Snare" img="Snare.jpg" color="100,100,100"/>
+    <Strip type="stereo" name="TomH" img="TomH.jpg" color="100,100,100"/>
   </Mixer>
 
   <SampleGroup name="Cymb" channels="0:0, 1:1" muteGroup="0" oneShot="true" attack="0.001" decay="0.0" sustain="1.0" release="0.1"/>

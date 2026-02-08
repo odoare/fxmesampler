@@ -3,12 +3,12 @@
   <Master channels="9" img="logo686.png" color="55,169,181"/> <!-- Total output channels from Sampler -->
 
   <Mixer>
-    <Group type="ambisonic" name="Ambisonics" img="drums.jpg" color="183,140,48"/>
-    <Group type="mono" name="Room" img="room.jpg" color="67,136,189"/>
-    <Group type="mono" name="Kick" img="kick.jpg" color="67,136,189"/>
-    <Group type="mono" name="Snare" img="snare.jpg" color="67,136,189"/>
-    <Group type="mono" name="HH" img="hh.jpg" color="255,255,0"/>
-    <Group type="reverb" name="Room reverb" img="room.jpg" resource="ImpRoom 1.wav" color="148,153,77"/>
+    <Strip type="ambisonic" name="Ambisonics" img="drums.jpg" color="183,140,48"/>
+    <Strip type="mono" name="Room" img="room.jpg" color="67,136,189"/>
+    <Strip type="mono" name="Kick" img="kick.jpg" color="67,136,189"/>
+    <Strip type="mono" name="Snare" img="snare.jpg" color="67,136,189"/>
+    <Strip type="mono" name="HH" img="hh.jpg" color="255,255,0"/>
+    <Strip type="reverb" name="Room reverb" img="room.jpg" resource="ImpRoom 1.wav" color="148,153,77"/>
   </Mixer>
 
   <!-- Groups defining Routing, Envelope and Choke -->

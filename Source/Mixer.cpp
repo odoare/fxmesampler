@@ -597,7 +597,7 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
 
     for (auto* child : mixerNode->getChildIterator())
     {
-        if (child->hasTagName ("Group"))
+        if (child->hasTagName ("Strip"))
         {
             juce::String type = child->getStringAttribute ("type");
             juce::String name = child->getStringAttribute ("name");

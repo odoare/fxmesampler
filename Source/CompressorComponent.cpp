@@ -122,38 +122,13 @@ void CompressorComponent::resized()
     f4.items.add(fi(f3).withFlex(1.f));
     f5.items.add(fi(preGainSlider).withFlex(0.15f));
     f5.items.add(fi(f4).withFlex(1.f));
+    f5.items.add(fi(grMeter).withFlex(0.15f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 0)));
     f5.items.add(fi(gainSlider).withFlex(0.15f));
 
     fMain.items.add(fi(f1).withFlex(0.13f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
     fMain.items.add(fi(f5).withFlex(1.f));
 
     fMain.performLayout(area);
-
-
-
-
-    // auto header = area.removeFromTop (25);
-    // onButton.setBounds (header.removeFromLeft (40));
-    // titleLabel.setBounds (header);
-
-    // auto meterArea = area.removeFromRight (20);
-    // grMeter.setBounds (meterArea);
-    
-    // int w = area.getWidth() / 6;
-    
-    // auto layout = [&](juce::Slider& s, juce::Label& l, int index)
-    // {
-    //     auto r = area.withX (area.getX() + index * w).withWidth (w);
-    //     l.setBounds (r.removeFromTop (20));
-    //     s.setBounds (r);
-    // };
-
-    // layout (preGainSlider, preGainLabel, 0);
-    // layout (attackSlider, attackLabel, 1);
-    // layout (releaseSlider, releaseLabel, 2);
-    // layout (threshSlider, threshLabel, 3);
-    // layout (ratioSlider, ratioLabel, 4);
-    // layout (gainSlider, gainLabel, 5);
 }
 
 void CompressorComponent::timerCallback()

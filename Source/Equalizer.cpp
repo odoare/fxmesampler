@@ -99,7 +99,6 @@ void Equalizer::process (juce::AudioBuffer<float>& buffer)
         for (int i = 0; i < numSamples; ++i)
         {
             float s = data[i];
-            s *= preGain;
             s = strip.lowShelf.process (s);
             s = strip.band1.process (s);
             s = strip.band2.process (s);
@@ -113,7 +112,6 @@ void Equalizer::process (juce::AudioBuffer<float>& buffer)
 void Equalizer::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
 {
     onParam = apvts.getRawParameterValue (prefix + "_EQ_On");
-    preGainParam = apvts.getRawParameterValue (prefix + "_EQ_PreGain");
     postGainParam = apvts.getRawParameterValue (prefix + "_EQ_PostGain");
     lsFreqParam = apvts.getRawParameterValue (prefix + "_EQ_LS_Freq");
     lsGainParam = apvts.getRawParameterValue (prefix + "_EQ_LS_Gain");
@@ -131,7 +129,6 @@ void Equalizer::checkParameters()
 {
     if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }
 
-    if (preGainParam && *preGainParam != lastPreGain) { preGain = juce::Decibels::decibelsToGain (preGainParam->load()); lastPreGain = *preGainParam; }
     if (postGainParam && *postGainParam != lastPostGain) { postGain = juce::Decibels::decibelsToGain (postGainParam->load()); lastPostGain = *postGainParam; }
     
     bool changed = false;

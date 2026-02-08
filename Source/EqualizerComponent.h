@@ -19,7 +19,7 @@ public:
                         juce::Slider& b1F, juce::Slider& b1Q, juce::Slider& b1G,
                         juce::Slider& b2F, juce::Slider& b2Q, juce::Slider& b2G,
                         juce::Slider& hsF, juce::Slider& hsG,
-                        juce::Slider& preG, juce::Slider& postG,
+                        juce::Slider& postG,
                         juce::ToggleButton& onB);
     void paint (juce::Graphics& g) override;
     void updateCurve();
@@ -29,7 +29,7 @@ private:
     juce::Slider *b1Freq = nullptr, *b1Q = nullptr, *b1Gain = nullptr;
     juce::Slider *b2Freq = nullptr, *b2Q = nullptr, *b2Gain = nullptr;
     juce::Slider *hsFreq = nullptr, *hsGain = nullptr;
-    juce::Slider *preGain = nullptr, *postGain = nullptr;
+    juce::Slider *postGain = nullptr;
     juce::ToggleButton* onBtn = nullptr;
 
     juce::Path curvePath;
@@ -57,7 +57,7 @@ private:
     juce::Slider b1Freq, b1Q, b1Gain;
     juce::Slider b2Freq, b2Q, b2Gain;
     juce::Slider hsFreq, hsGain;
-    juce::Slider preGainSlider, postGainSlider;
+    juce::Slider postGainSlider;
 
     FrequencyResponseGraph responseGraph;
 
@@ -65,7 +65,6 @@ private:
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
     std::unique_ptr<ButtonAttachment> onAtt;
-    std::unique_ptr<SliderAttachment> preGainAtt;
     std::unique_ptr<SliderAttachment> postGainAtt;
     std::unique_ptr<SliderAttachment> lsFreqAtt, lsGainAtt;
     std::unique_ptr<SliderAttachment> b1FreqAtt, b1QAtt, b1GainAtt;

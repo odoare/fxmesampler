@@ -342,7 +342,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
 
                         // EQ
                         params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_EQ_On", 1 }, name + " EQ On", false));
-                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_PreGain", 1 }, name + " EQ Pre Gain", -24.0f, 24.0f, 0.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_PostGain", 1 }, name + " EQ Post Gain", -24.0f, 24.0f, 0.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_LS_Freq", 1 }, name + " EQ LS Freq", 20.0f, 1000.0f, 100.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_LS_Gain", 1 }, name + " EQ LS Gain", -15.0f, 15.0f, 0.0f));
@@ -362,7 +361,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Release", 1 }, name + " Comp Release", 10.0f, 1000.0f, 100.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Thresh", 1 }, name + " Comp Thresh", -60.0f, 0.0f, 0.0f));
                         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Ratio", 1 }, name + " Comp Ratio", 1.0f, 20.0f, 1.0f));
-                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Gain", 1 }, name + " Comp Gain", 0.0f, 24.0f, 0.0f));
+                        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Gain", 1 }, name + " Comp Gain", -24.0f, 24.0f, 0.0f));
 
                         // Tube
                         params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Tube_On", 1 }, name + " Tube On", false));
@@ -394,7 +393,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
     params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { name + "_Order", 1 }, name + " Order", orderOptions, 0));
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_EQ_On", 1 }, name + " EQ On", false));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_PreGain", 1 }, name + " EQ Pre Gain", -24.0f, 24.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_PostGain", 1 }, name + " EQ Post Gain", -24.0f, 24.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_LS_Freq", 1 }, name + " EQ LS Freq", 20.0f, 1000.0f, 100.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_EQ_LS_Gain", 1 }, name + " EQ LS Gain", -15.0f, 15.0f, 0.0f));
@@ -413,7 +411,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor:
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Release", 1 }, name + " Comp Release", 10.0f, 1000.0f, 100.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Thresh", 1 }, name + " Comp Thresh", -60.0f, 0.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Ratio", 1 }, name + " Comp Ratio", 1.0f, 20.0f, 1.0f));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Gain", 1 }, name + " Comp Gain", 0.0f, 24.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Comp_Gain", 1 }, name + " Comp Gain", -24.0f, 24.0f, 0.0f));
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Tube_On", 1 }, name + " Tube On", false));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Tube_Drive", 1 }, name + " Tube Drive", 0.0f, 40.0f, 0.0f));

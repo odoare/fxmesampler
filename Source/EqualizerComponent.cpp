@@ -16,14 +16,14 @@ void FrequencyResponseGraph::setReferences (juce::Slider& lsF, juce::Slider& lsG
                                             juce::Slider& b1F, juce::Slider& b1Qq, juce::Slider& b1G,
                                             juce::Slider& b2F, juce::Slider& b2Qq, juce::Slider& b2G,
                                             juce::Slider& hsF, juce::Slider& hsG,
-                                            juce::Slider& preG, juce::Slider& postG,
+                                            juce::Slider& postG,
                                             juce::ToggleButton& onB)
 {
     lsFreq = &lsF; lsGain = &lsG;
     b1Freq = &b1F; b1Q = &b1Qq; b1Gain = &b1G;
     b2Freq = &b2F; b2Q = &b2Qq; b2Gain = &b2G;
     hsFreq = &hsF; hsGain = &hsG;
-    preGain = &preG; postGain = &postG;
+    postGain = &postG;
     onBtn = &onB;
     updateCurve();
 }
@@ -47,12 +47,6 @@ void FrequencyResponseGraph::updateCurve()
 
     curvePath.clear();
     
-    if (!onBtn->getToggleState())
-    {
-        repaint();
-        return;
-    }
-
     double sr = 44100.0; // Assume 44.1k for visualization
     int w = getWidth();
     if (w <= 0) w = 1;
@@ -111,7 +105,7 @@ void FrequencyResponseGraph::updateCurve()
     double b0_hs, b1_hs, b2_hs, a1_hs, a2_hs;
     calcCoeffs (hsFreq->getValue(), 0.0, hsGain->getValue(), 2, b0_hs, b1_hs, b2_hs, a1_hs, a2_hs);
 
-    double globalGain = juce::Decibels::decibelsToGain (preGain->getValue() + postGain->getValue());
+    double globalGain = juce::Decibels::decibelsToGain (postGain->getValue());
 
     for (int x = 0; x < w; ++x)
     {
@@ -158,7 +152,10 @@ void FrequencyResponseGraph::paint (juce::Graphics& g)
         g.drawHorizontalLine ((int) y, 0.0f, (float) getWidth());
     }
 
-    g.setColour (juce::Colours::cyan);
+    if (onBtn && onBtn->getToggleState())
+        g.setColour (juce::Colours::cyan);
+    else
+        g.setColour (juce::Colours::grey);
     g.strokePath (curvePath, juce::PathStrokeType (2.0f));
     g.drawRect (getLocalBounds(), 1);
 }
@@ -231,18 +228,6 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     hsFreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Freq", hsFreq);
     hsGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Gain", hsGain);
 
-    addAndMakeVisible (preGainSlider);
-    preGainSlider.setSliderStyle (juce::Slider::LinearBarVertical);
-    preGainSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
-    preGainSlider.setRange (-24.0, 24.0, 0.1);
-    preGainSlider.setValue (0.0);
-    preGainSlider.setTextValueSuffix ("dB");
-    preGainSlider.setTooltip ("Pre Gain");
-    preGainSlider.setLookAndFeel(&fxmeLookAndFeel);
-    setSliderColours(preGainSlider, color);
-    preGainSlider.onValueChange = [this] { responseGraph.updateCurve(); };
-    preGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_PreGain", preGainSlider);
-
     addAndMakeVisible (postGainSlider);
     postGainSlider.setSliderStyle (juce::Slider::LinearBarVertical);
     postGainSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
@@ -259,7 +244,7 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     responseGraph.setReferences (lsFreq, lsGain,
                                  b1Freq, b1Q, b1Gain,
                                  b2Freq, b2Q, b2Gain,
-                                 hsFreq, hsGain, preGainSlider, postGainSlider, onButton);
+                                 hsFreq, hsGain, postGainSlider, onButton);
 }
 
 EqualizerComponent::~EqualizerComponent()
@@ -312,7 +297,6 @@ void EqualizerComponent::resized()
     feq.items.add(fi(feq2).withFlex(1.f));
     feq.items.add(fi(feq3).withFlex(1.f));
     feq.items.add(fi(feq4).withFlex(1.f));
-    fbottom.items.add(fi(preGainSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 10.f)));
     fbottom.items.add(fi(postGainSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(0.f, 20.f, 0.f, 10.f)));
     fbottom.items.add(fi(responseGraph).withFlex(1.4f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 0)));
     fmain.items.add(fi(ftop).withFlex(0.15f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));

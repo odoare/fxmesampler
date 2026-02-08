@@ -34,7 +34,7 @@ CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessor
     setupSlider (releaseSlider, releaseLabel, "Release (ms)", 10.0, 1000.0, 100.0);
     setupSlider (threshSlider, threshLabel, "Thresh (dB)", -60.0, 0.0, 0.0);
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
-    setupBarSlider (gainSlider, gainLabel, "Gain (dB)", 0.0, 24.0, 0.0);
+    setupBarSlider (gainSlider, gainLabel, "Gain (dB)", -24.0, 24.0, 0.0);
 
     preGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_PreGain", preGainSlider);
     attackAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Attack", attackSlider);
@@ -133,5 +133,10 @@ void CompressorComponent::resized()
 
 void CompressorComponent::timerCallback()
 {
+    if (compressor.isOn())
+        grMeter.setMeterColor (juce::Colours::red);
+    else
+        grMeter.setMeterColor (juce::Colours::grey);
+
     grMeter.setValue (compressor.getGrMeter().getPeak());
 }

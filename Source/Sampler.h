@@ -15,6 +15,10 @@
 #include <memory>
 
 //==============================================================================
+/**
+ * @struct SampleGroup
+ * @brief Represents a group of samples sharing common properties like ADSR and routing.
+ */
 struct SampleGroup
 {
     juce::String name;
@@ -35,9 +39,17 @@ struct SampleGroup
     std::atomic<float>* releaseParam = nullptr;
     std::atomic<float>* detuneParam = nullptr;
 
+    /**
+     * @brief Gets the name of the sample group.
+     * @return The name.
+     */
     juce::String getName() const { return name; }
 };
 
+/**
+ * @struct Sound
+ * @brief Represents a single sample sound with mapping and playback properties.
+ */
 struct Sound
 {
     juce::String name;
@@ -60,22 +72,74 @@ struct Sound
     juce::AudioBuffer<float> audioBuffer;
     double sourceSampleRate = 44100.0;
 
+    /**
+     * @brief Loads the audio data from the binary resource.
+     * @param formatManager The format manager to use for reading.
+     */
     void load (juce::AudioFormatManager& formatManager);
 };
 
 //==============================================================================
+/**
+ * @class Voice
+ * @brief A single voice that plays back a Sound.
+ */
 class Voice
 {
 public:
+    /**
+     * @brief Default constructor.
+     */
     Voice() = default;
 
+    /**
+     * @brief Starts playing a sound.
+     * @param sound The sound to play.
+     * @param note The MIDI note number.
+     * @param velocity The velocity (0.0 to 1.0).
+     * @param sampleRate The current sample rate.
+     */
     void start (const Sound* sound, int note, float velocity, double sampleRate);
+
+    /**
+     * @brief Stops the voice immediately.
+     */
     void stop();
+
+    /**
+     * @brief Chokes the voice (fast release).
+     */
     void choke();
+
+    /**
+     * @brief Triggers the release phase of the envelope.
+     */
     void noteOff();
+
+    /**
+     * @brief Checks if the voice is currently active.
+     * @return True if active, false otherwise.
+     */
     bool isActive() const;
+
+    /**
+     * @brief Gets the currently playing sound.
+     * @return Pointer to the active sound, or nullptr.
+     */
     const Sound* getSound() const { return activeSound; }
+
+    /**
+     * @brief Gets the MIDI note number currently being played.
+     * @return The note number.
+     */
     int getNote() const { return currentNote; }
+
+    /**
+     * @brief Renders the next block of audio for this voice.
+     * @param outputBuffer The buffer to mix audio into.
+     * @param startSample The start sample index in the buffer.
+     * @param numSamples The number of samples to render.
+     */
     void renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples);
 
 private:
@@ -96,20 +160,71 @@ private:
 };
 
 //==============================================================================
+/**
+ * @class Sampler
+ * @brief The main sampler engine managing sounds and voices.
+ */
 class Sampler
 {
 public:
+    /**
+     * @brief Constructor.
+     */
     Sampler();
+
+    /**
+     * @brief Destructor.
+     */
     ~Sampler();
 
+    /**
+     * @brief Prepares the sampler for playback.
+     * @param sampleRate The sample rate.
+     * @param samplesPerBlock The expected block size.
+     */
     void prepareToPlay (double sampleRate, int samplesPerBlock);
+
+    /**
+     * @brief Adds a sound to the sampler.
+     * @param sound The sound to add.
+     */
     void addSound (const Sound& sound);
+
+    /**
+     * @brief Processes a block of audio and MIDI messages.
+     * @param buffer The audio buffer to fill.
+     * @param midiMessages The MIDI messages to process.
+     */
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages);
+
+    /**
+     * @brief Loads sample configuration from XML data.
+     * @param xmlData Pointer to the XML data.
+     * @param xmlSize Size of the XML data.
+     */
     void loadSamplesFromXml (const void* xmlData, int xmlSize);
+
+    /**
+     * @brief Assigns parameters from APVTS to sample groups.
+     * @param apvts The AudioProcessorValueTreeState.
+     */
     void assignParameters (juce::AudioProcessorValueTreeState& apvts);
+
+    /**
+     * @brief Updates parameters for all sample groups.
+     */
     void updateParams();
     
+    /**
+     * @brief Gets the number of output channels required.
+     * @return The number of channels.
+     */
     int getNumOutputChannels() const { return numOutputChannels; }
+
+    /**
+     * @brief Gets the list of sample groups.
+     * @return Vector of unique pointers to SampleGroups.
+     */
     const std::vector<std::unique_ptr<SampleGroup>>& getSampleGroups() const { return sampleGroups; }
 
 private:

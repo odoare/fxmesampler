@@ -14,12 +14,16 @@
 
 //==============================================================================
 /**
+ * @class SimpleSamplerAudioProcessor
+ * @brief The main AudioProcessor class for the SimpleSampler plugin.
 */
 class SimpleSamplerAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
+    /** Constructor. */
     SimpleSamplerAudioProcessor();
+    /** Destructor. */
     ~SimpleSamplerAudioProcessor() override;
 
     //==============================================================================
@@ -55,8 +59,22 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    /**
+     * @brief Gets the Sampler instance.
+     * @return Reference to the Sampler.
+     */
     Sampler& getSampler() { return sampler; }
+
+    /**
+     * @brief Gets the Mixer instance.
+     * @return Reference to the Mixer.
+     */
     Mixer& getMixer() { return mixer; }
+
+    /**
+     * @brief Gets the AudioProcessorValueTreeState.
+     * @return Reference to the APVTS.
+     */
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
 private:

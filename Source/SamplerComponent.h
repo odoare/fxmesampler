@@ -12,9 +12,18 @@
 #include "Sampler.h"
 #include "SampleGroupComponent.h"
 
+/**
+ * @class SamplerComponent
+ * @brief GUI component for displaying and editing sampler settings.
+ */
 class SamplerComponent : public juce::Component
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param sampler The Sampler instance.
+     * @param apvts The APVTS.
+     */
     SamplerComponent (Sampler& sampler, juce::AudioProcessorValueTreeState& apvts);
     ~SamplerComponent() override;
 

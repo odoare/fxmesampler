@@ -17,14 +17,27 @@
 #include "SamplerComponent.h"
 
 //==============================================================================
+/**
+ * @class StripComponent
+ * @brief Base class for a mixer strip GUI component.
+ */
 class StripComponent : public juce::Component, public juce::Timer
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param strip The MixerStrip to control.
+     * @param apvts The APVTS for parameter attachments.
+     */
     StripComponent (MixerStrip& strip, juce::AudioProcessorValueTreeState& apvts);
     ~StripComponent() override;
 
     void paint (juce::Graphics& g) override;
     void resized() override;
+
+    /**
+     * @brief Timer callback for updating meters.
+     */
     void timerCallback() override;
 
 protected:
@@ -43,9 +56,18 @@ protected:
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
 };
 
+/**
+ * @class AmbisonicStripComponent
+ * @brief GUI component for an Ambisonic mixer strip.
+ */
 class AmbisonicStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The AmbisonicStrip.
+     * @param apvts The APVTS.
+     */
     AmbisonicStripComponent (AmbisonicStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -57,9 +79,18 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+/**
+ * @class MSStripComponent
+ * @brief GUI component for a Mid-Side mixer strip.
+ */
 class MSStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The MSStrip.
+     * @param apvts The APVTS.
+     */
     MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -73,9 +104,18 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+/**
+ * @class StereoStripComponent
+ * @brief GUI component for a Stereo mixer strip.
+ */
 class StereoStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The StereoStrip.
+     * @param apvts The APVTS.
+     */
     StereoStripComponent (StereoStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -89,9 +129,18 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+/**
+ * @class MonoStripComponent
+ * @brief GUI component for a Mono mixer strip.
+ */
 class MonoStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The MonoStrip.
+     * @param apvts The APVTS.
+     */
     MonoStripComponent (MonoStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -103,9 +152,18 @@ private:
     VuMeterComponent meter;
 };
 
+/**
+ * @class StereoReverbStripComponent
+ * @brief GUI component for a Stereo Reverb mixer strip.
+ */
 class StereoReverbStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The StereoReverbStrip.
+     * @param apvts The APVTS.
+     */
     StereoReverbStripComponent (StereoReverbStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -117,9 +175,18 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+/**
+ * @class MonoReverbStripComponent
+ * @brief GUI component for a Mono Reverb mixer strip.
+ */
 class MonoReverbStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The MonoReverbStrip.
+     * @param apvts The APVTS.
+     */
     MonoReverbStripComponent (MonoReverbStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -131,9 +198,18 @@ private:
     VuMeterComponent meter;
 };
 
+/**
+ * @class MasterStripComponent
+ * @brief GUI component for the Master mixer strip.
+ */
 class MasterStripComponent : public StripComponent
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param s The MasterStrip.
+     * @param apvts The APVTS.
+     */
     MasterStripComponent (MasterStrip& s, juce::AudioProcessorValueTreeState& apvts);
     void resized() override;
 protected:
@@ -145,9 +221,19 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+/**
+ * @class MixerComponent
+ * @brief The main component containing the mixer interface.
+ */
 class MixerComponent : public juce::Component
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param mixer The Mixer instance.
+     * @param sampler The Sampler instance.
+     * @param apvts The APVTS.
+     */
     MixerComponent (Mixer& mixer, Sampler& sampler, juce::AudioProcessorValueTreeState& apvts);
     ~MixerComponent() override;
 

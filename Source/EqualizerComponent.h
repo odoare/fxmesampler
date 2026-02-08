@@ -11,10 +11,30 @@
 #include <JuceHeader.h>
 #include "Equalizer.h"
 
+/**
+ * @class FrequencyResponseGraph
+ * @brief Component that draws the frequency response curve of the equalizer.
+ */
 class FrequencyResponseGraph : public juce::Component
 {
 public:
     FrequencyResponseGraph() = default;
+
+    /**
+     * @brief Sets references to the sliders controlling the EQ parameters.
+     * @param lsF Low Shelf Frequency slider.
+     * @param lsG Low Shelf Gain slider.
+     * @param b1F Band 1 Frequency slider.
+     * @param b1Q Band 1 Q slider.
+     * @param b1G Band 1 Gain slider.
+     * @param b2F Band 2 Frequency slider.
+     * @param b2Q Band 2 Q slider.
+     * @param b2G Band 2 Gain slider.
+     * @param hsF High Shelf Frequency slider.
+     * @param hsG High Shelf Gain slider.
+     * @param postG Post Gain slider.
+     * @param onB On/Off button.
+     */
     void setReferences (juce::Slider& lsF, juce::Slider& lsG,
                         juce::Slider& b1F, juce::Slider& b1Q, juce::Slider& b1G,
                         juce::Slider& b2F, juce::Slider& b2Q, juce::Slider& b2G,
@@ -22,6 +42,10 @@ public:
                         juce::Slider& postG,
                         juce::ToggleButton& onB);
     void paint (juce::Graphics& g) override;
+
+    /**
+     * @brief Updates the curve path based on current slider values.
+     */
     void updateCurve();
 
 private:
@@ -35,9 +59,19 @@ private:
     juce::Path curvePath;
 };
 
+/**
+ * @class EqualizerComponent
+ * @brief GUI component for controlling the Equalizer.
+ */
 class EqualizerComponent : public juce::Component
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param equalizerToControl The Equalizer instance.
+     * @param apvts The APVTS.
+     * @param prefix The parameter ID prefix.
+     */
     EqualizerComponent (Equalizer& equalizerToControl, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
     ~EqualizerComponent() override;
 

@@ -12,27 +12,85 @@
 #include <vector>
 #include <atomic>
 
+/**
+ * @class Equalizer
+ * @brief A 4-band equalizer with Low Shelf, two Peaking bands, and High Shelf.
+ *
+ * This class processes audio using a set of biquad filters per channel.
+ */
 class Equalizer
 {
 public:
+    /**
+     * @brief Constructor.
+     */
     Equalizer();
 
+    /**
+     * @brief Prepares the equalizer for playback.
+     * @param sampleRate The sample rate of the audio stream.
+     * @param numChannels The number of audio channels to process.
+     */
     void prepare (double sampleRate, int numChannels);
+
+    /**
+     * @brief Processes a block of audio samples.
+     * @param buffer The audio buffer to process in-place.
+     */
     void process (juce::AudioBuffer<float>& buffer);
 
-    // Band 0: Low Shelf
+    /**
+     * @brief Sets parameters for Band 0 (Low Shelf).
+     * @param freq The corner frequency in Hz.
+     * @param gaindB The gain in decibels.
+     */
     void setLowShelf (float freq, float gaindB);
-    // Band 1: Peaking
+
+    /**
+     * @brief Sets parameters for Band 1 (Peaking).
+     * @param freq The center frequency in Hz.
+     * @param Q The quality factor.
+     * @param gaindB The gain in decibels.
+     */
     void setBand1 (float freq, float Q, float gaindB);
-    // Band 2: Peaking
+
+    /**
+     * @brief Sets parameters for Band 2 (Peaking).
+     * @param freq The center frequency in Hz.
+     * @param Q The quality factor.
+     * @param gaindB The gain in decibels.
+     */
     void setBand2 (float freq, float Q, float gaindB);
-    // Band 3: High Shelf
+
+    /**
+     * @brief Sets parameters for Band 3 (High Shelf).
+     * @param freq The corner frequency in Hz.
+     * @param gaindB The gain in decibels.
+     */
     void setHighShelf (float freq, float gaindB);
 
+    /**
+     * @brief Enables or disables the equalizer.
+     * @param shouldBeOn True to enable, false to bypass.
+     */
     void setOn (bool shouldBeOn);
+
+    /**
+     * @brief Checks if the equalizer is currently enabled.
+     * @return True if enabled, false otherwise.
+     */
     bool isOn() const;
 
+    /**
+     * @brief Assigns parameters from the APVTS to this equalizer.
+     * @param apvts The AudioProcessorValueTreeState containing parameters.
+     * @param prefix The prefix used for parameter IDs.
+     */
     void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
+
+    /**
+     * @brief Checks for parameter updates and applies them.
+     */
     void checkParameters();
 
 private:

@@ -13,19 +13,45 @@
 #include <JuceHeader.h>
 #include "VuMeter.h"
 
+/**
+ * @class VuMeterComponent
+ * @brief A component that displays a VU meter.
+ */
 class VuMeterComponent : public juce::Component,
                           public juce::Timer
 {
 public:
+    /** Constructor. */
     VuMeterComponent();
+    /** Destructor. */
     ~VuMeterComponent() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    /**
+     * @brief Sets the current value to display.
+     * @param newValue The value in dB.
+     */
     void setValue (float newValue);
+
+    /**
+     * @brief Sets the color of the meter bar.
+     * @param newColor The new color.
+     */
     void setMeterColor (juce::Colour newColor);
+
+    /**
+     * @brief Sets the display range of the meter.
+     * @param newMin Minimum value in dB.
+     * @param newMax Maximum value in dB.
+     */
     void setRange (float newMin, float newMax);
+
+    /**
+     * @brief Sets the zero level mark.
+     * @param newZeroLevel The zero level in dB.
+     */
     void setZeroLevel (float newZeroLevel);
 
 private:

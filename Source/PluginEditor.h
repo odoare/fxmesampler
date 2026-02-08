@@ -12,9 +12,17 @@
 #include "PluginProcessor.h"
 #include "MixerComponent.h"
 
+/**
+ * @class SimpleSamplerAudioProcessorEditor
+ * @brief The editor (GUI) for the SimpleSampler plugin.
+ */
 class SimpleSamplerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
+    /**
+     * @brief Constructor.
+     * @param p The AudioProcessor to edit.
+     */
     SimpleSamplerAudioProcessorEditor (SimpleSamplerAudioProcessor&);
     ~SimpleSamplerAudioProcessorEditor() override;
 

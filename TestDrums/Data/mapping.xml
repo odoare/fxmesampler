@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Mappings>
+  <Master channels="9" img="logo686.png" color="55,169,181"/> <!-- Total output channels from Sampler -->
+
+  <Mixer>
+    <Group type="ambisonic" name="Ambisonics" img="drums.jpg" color="183,140,48"/>
+    <Group type="mono" name="Room" img="room.jpg" color="67,136,189"/>
+    <Group type="mono" name="Kick" img="kick.jpg" color="67,136,189"/>
+    <Group type="mono" name="Snare" img="snare.jpg" color="67,136,189"/>
+    <Group type="mono" name="HH" img="hh.jpg" color="255,255,0"/>
+    <Group type="reverb" name="Room reverb" img="room.jpg" resource="ImpRoom 1.wav" color="148,153,77"/>
+  </Mixer>
+
+  <!-- Groups defining Routing, Envelope and Choke -->
+  <SampleGroup name="Kick" channels="0,1,2,3,4,5,0:8" muteGroup="0" oneShot="true" attack="0.0" decay="0.0" sustain="1.0" release="0.1"/>
+  <SampleGroup name="Snare" channels="0,1,2,3,4,6,0:8" muteGroup="0" oneShot="true" attack="0.0" decay="0.0" sustain="1.0" release="0.1"/>
+  <SampleGroup name="HH" channels="0,1,2,3,4,7,0:8" muteGroup="1" oneShot="true" attack="0.0" decay="0.0" sustain="1.0" release="0.1"/>
+
+  <!-- Kick: 4 Velocity Layers -->
+  <Sound name="Kick_1" group="Kick" resource="Kick_Kick_01_0_36_36.wav" basePitch="36" noteLow="36" noteHigh="36" velLow="0" velHigh="31"/>
+  <Sound name="Kick_2" group="Kick" resource="Kick_Kick_02_0_36_36.wav" basePitch="36" noteLow="36" noteHigh="36" velLow="32" velHigh="63"/>
+  <Sound name="Kick_3" group="Kick" resource="Kick_Kick_03_0_36_36.wav" basePitch="36" noteLow="36" noteHigh="36" velLow="64" velHigh="95"/>
+  <Sound name="Kick_4" group="Kick" resource="Kick_Kick_04_0_36_36.wav" basePitch="36" noteLow="36" noteHigh="36" velLow="96" velHigh="127"/>
+
+  <!-- Snare: 4 Velocity Layers -->
+  <Sound name="Snare_1" group="Snare" resource="Snare_Snare_01_0_38_38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="0" velHigh="31"/>
+  <Sound name="Snare_2" group="Snare" resource="Snare_Snare_02_0_38_38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="32" velHigh="63"/>
+  <Sound name="Snare_3" group="Snare" resource="Snare_Snare_03_0_38_38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="64" velHigh="95"/>
+  <Sound name="Snare_4" group="Snare" resource="Snare_Snare_04_0_38_38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="96" velHigh="127"/>
+
+  <!-- HH: 8 Sounds (4 Closed, 4 Open) -->
+  <Sound name="HH_Closed_1" group="HH" resource="HH_Closed_01_1_42_42.wav" basePitch="42" noteLow="42" noteHigh="42" velLow="0" velHigh="31"/>
+  <Sound name="HH_Closed_2" group="HH" resource="HH_Closed_02_1_42_42.wav" basePitch="42" noteLow="42" noteHigh="42" velLow="32" velHigh="63"/>
+  <Sound name="HH_Closed_3" group="HH" resource="HH_Closed_03_1_42_42.wav" basePitch="42" noteLow="42" noteHigh="42" velLow="64" velHigh="95"/>
+  <Sound name="HH_Closed_4" group="HH" resource="HH_Closed_04_1_42_42.wav" basePitch="42" noteLow="42" noteHigh="42" velLow="96" velHigh="127"/>
+
+  <Sound name="HH_Open_1" group="HH" resource="HH_Open_01_1_44_44.wav" basePitch="44" noteLow="44" noteHigh="44" velLow="0" velHigh="31"/>
+  <Sound name="HH_Open_2" group="HH" resource="HH_Open_02_1_44_44.wav" basePitch="44" noteLow="44" noteHigh="44" velLow="32" velHigh="63"/>
+  <Sound name="HH_Open_3" group="HH" resource="HH_Open_03_1_44_44.wav" basePitch="44" noteLow="44" noteHigh="44" velLow="64" velHigh="95"/>
+  <Sound name="HH_Open_4" group="HH" resource="HH_Open_04_1_44_44.wav" basePitch="44" noteLow="44" noteHigh="44" velLow="96" velHigh="127"/>
+</Mappings>

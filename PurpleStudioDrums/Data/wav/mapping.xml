@@ -7,8 +7,8 @@
     <Strip type="stereo" name="HH" img="HH.jpg" color="100,100,100"/>
     <Strip type="stereo" name="Kick" img="Kick.jpg" color="100,100,100"/>
     <Strip type="stereo" name="Snare" img="Snare.jpg" color="100,100,100"/>
-    <Strip type="stereo" name="TomH" img="TomH.jpg" color="100,100,100"/>
-    <Bus type="stereo" effectChain="Dynamics" name="Parallel" img="logo686.png" color="100,100,100"/>
+    <Strip type="stereoReverb" name="TomH" img="TomH.jpg" resource="birr_L.wav,birr_R.wav" color="100,100,100"/>
+    <Bus type="stereo" effectChain="Reverb" name="RoomReverbBus" img="logo686.png" resource="birr_L.wav,birr_R.wav" color="100,100,100"/>
     <!-- <Bus type="stereo" effectChain="Reverb" resource="birr_L.wav" color="100,100,100"/> -->
   </Mixer>
 

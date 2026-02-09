@@ -15,6 +15,8 @@
 #include "EqualizerComponent.h"
 #include "TubeComponent.h"
 #include "SamplerComponent.h"
+#include "EffectChainReverbComponent.h"
+#include "ConvolReverbComponent.h" // For direct strip reverb IR dropdown
 
 //==============================================================================
 /**
@@ -174,6 +176,9 @@ private:
     StereoReverbStrip& reverbStrip;
     juce::Slider panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    juce::ComboBox irBox; // For IR selection dropdown
+    juce::Label irLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
     VuMeterComponent meterL, meterR;
 };
 
@@ -197,6 +202,9 @@ private:
     MonoReverbStrip& reverbStrip;
     juce::Slider panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    juce::ComboBox irBox; // For IR selection dropdown
+    juce::Label irLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
     VuMeterComponent meter;
 };
 

@@ -6,9 +6,6 @@
               companyName="Fx-Mechanics" pluginFormats="buildStandalone,buildVST3"
               pluginManufacturerCode="FXME" pluginCode="PSDR">
   <MAINGROUP id="zBzLwc" name="Purple Studio Drums">
-    <FILE id="ruBRn1" name="birr_L.wav" compile="0" resource="1" file="Data/wav/birr_L.wav"/>
-    <FILE id="pIUmVt" name="birr_R.wav" compile="0" resource="1" file="Data/wav/birr_R.wav"/>
-    <FILE id="AWTMyG" name="Kick.jpg" compile="0" resource="1" file="Data/img/Kick.jpg"/>
     <GROUP id="{FF688968-8994-8F17-EA35-A592FD880C2A}" name="Presets"/>
     <GROUP id="{F522994C-CC30-8876-8F29-3721025CCD03}" name="WDL">
       <FILE id="LHIuof" name="convoengine.cpp" compile="1" resource="0" file="../WDL/WDL/convoengine.cpp"/>
@@ -17,6 +14,7 @@
       <FILE id="xyL1z8" name="fft.h" compile="0" resource="0" file="../WDL/WDL/fft.h"/>
     </GROUP>
     <GROUP id="{E2914C61-1288-C5F6-6256-9DDC03E6D731}" name="Img">
+      <FILE id="AWTMyG" name="Kick.jpg" compile="0" resource="1" file="Data/img/Kick.jpg"/>
       <FILE id="wJgQpp" name="Cymb.jpg" compile="0" resource="1" file="Data/img/Cymb.jpg"/>
       <FILE id="FXYPuW" name="HH.jpg" compile="0" resource="1" file="Data/img/HH.jpg"/>
       <FILE id="Ckmijo" name="logo686.png" compile="0" resource="1" file="../img/logo686.png"/>
@@ -79,6 +77,8 @@
             resource="1" file="Data/wav/Snare Snare 08 0 38 38 38.wav"/>
       <FILE id="pjOlVJ" name="TomH TomH 01 0 47 47 47.wav" compile="0" resource="1"
             file="Data/wav/TomH TomH 01 0 47 47 47.wav"/>
+      <FILE id="ruBRn1" name="birr_L.wav" compile="0" resource="1" file="Data/wav/birr_L.wav"/>
+      <FILE id="pIUmVt" name="birr_R.wav" compile="0" resource="1" file="Data/wav/birr_R.wav"/>
       <FILE id="sSSg2T" name="TomH TomH 02 0 47 47 47.wav" compile="0" resource="1"
             file="Data/wav/TomH TomH 02 0 47 47 47.wav"/>
       <FILE id="see3uI" name="TomH TomH 03 0 47 47 47.wav" compile="0" resource="1"
@@ -98,6 +98,10 @@
       <FILE id="OFNXJ4" name="ConvolReverb.cpp" compile="1" resource="0"
             file="../Source/ConvolReverb.cpp"/>
       <FILE id="iRMQeQ" name="ConvolReverb.h" compile="0" resource="0" file="../Source/ConvolReverb.h"/>
+      <FILE id="yc0M4J" name="ConvolReverbComponent.cpp" compile="1" resource="0"
+            file="../Source/ConvolReverbComponent.cpp"/>
+      <FILE id="fPsiGr" name="ConvolReverbComponent.h" compile="0" resource="0"
+            file="../Source/ConvolReverbComponent.h"/>
       <FILE id="cI3Ef3" name="EffectChain.cpp" compile="1" resource="0" file="../Source/EffectChain.cpp"/>
       <FILE id="x96mJm" name="EffectChain.h" compile="0" resource="0" file="../Source/EffectChain.h"/>
       <FILE id="U7pECQ" name="EffectChainComponent.cpp" compile="1" resource="0"
@@ -112,6 +116,14 @@
             resource="0" file="../Source/EffectChainDynamicsComponent.cpp"/>
       <FILE id="PR87XE" name="EffectChainDynamicsComponent.h" compile="0"
             resource="0" file="../Source/EffectChainDynamicsComponent.h"/>
+      <FILE id="dJeVW6" name="EffectChainReverb.cpp" compile="1" resource="0"
+            file="../Source/EffectChainReverb.cpp"/>
+      <FILE id="wrn5JO" name="EffectChainReverb.h" compile="0" resource="0"
+            file="../Source/EffectChainReverb.h"/>
+      <FILE id="TUIbB3" name="EffectChainReverbComponent.cpp" compile="1"
+            resource="0" file="../Source/EffectChainReverbComponent.cpp"/>
+      <FILE id="kLaHBa" name="EffectChainReverbComponent.h" compile="0" resource="0"
+            file="../Source/EffectChainReverbComponent.h"/>
       <FILE id="wsd8Ud" name="Equalizer.cpp" compile="1" resource="0" file="../Source/Equalizer.cpp"/>
       <FILE id="xZsC2I" name="Equalizer.h" compile="0" resource="0" file="../Source/Equalizer.h"/>
       <FILE id="AtJ84V" name="EqualizerComponent.cpp" compile="1" resource="0"

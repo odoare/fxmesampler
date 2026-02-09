@@ -13,6 +13,7 @@
 #include "VuMeter.h"
 #include "EffectChainDynamics.h"
 #include "ConvolReverb.h"
+#include "EffectChainReverb.h"
 #include <atomic>
 
 // Forward declaration
@@ -162,7 +163,7 @@ public:
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
-    void loadImpulse (const void* data, size_t size);
+    void setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources);
 
     ConvolReverb reverb;
     float pan = 0.0f;
@@ -171,6 +172,7 @@ public:
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
+    std::atomic<float>* irParam = nullptr; // For dropdown selection
 };
 
 class MonoReverbStrip : public MixerStrip
@@ -183,7 +185,7 @@ public:
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
-    void loadImpulse (const void* data, size_t size);
+    void setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources);
 
     ConvolReverb reverb;
     float pan = 0.0f;
@@ -192,6 +194,7 @@ public:
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
+    std::atomic<float>* irParam = nullptr; // For dropdown selection
 };
 
 class MasterStrip : public MixerStrip
@@ -229,9 +232,6 @@ public:
     void addInput (const juce::AudioBuffer<float>& source, float gain);
     void clearBusBuffer();
 
-    void setReverbMode (bool enabled) { isReverb = enabled; }
-    void loadImpulse (const void* data, size_t size);
-
     VuMeter meterL, meterR;
 
 private:
@@ -242,8 +242,6 @@ private:
     float pan = 0.0f;
     float width = 1.0f;
     float level = 1.0f;
-    bool isReverb = false;
-    ConvolReverb reverb;
 };
 
 //==============================================================================
@@ -267,4 +265,5 @@ private:
     juce::AudioBuffer<float> mixBuffer;
     double currentSampleRate = 44100.0;
     int currentSamplesPerBlock = 512;
+    juce::CriticalSection lock;
 };

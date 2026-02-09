@@ -7,8 +7,8 @@
 */
 
 #include "MixerComponent.h"
+#include "EffectChainReverbComponent.h" // Include the new reverb effect chain component
 #include "EffectChainDynamicsComponent.h"
-
 //==============================================================================
 // StripComponent Base
 StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeState& apvts)
@@ -366,7 +366,6 @@ void MonoStripComponent::resized()
     fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f,25.f,10.f,25.f)));
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
 
     // Add sends
     juce::FlexBox fbSends;
@@ -399,6 +398,16 @@ StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, ju
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
 
+    if (s.reverb.getImpulseNames().size() > 1)
+    {
+        addAndMakeVisible (irBox);
+        const auto& names = s.reverb.getImpulseNames();
+        for (int i = 0; i < names.size(); ++i)
+            irBox.addItem (names[i], i + 1);
+        
+        irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, s.getName() + "_IR", irBox);
+    }
+
     setSliderColours (panSlider, c);
     setSliderColours (levelSlider, c);
 
@@ -430,7 +439,14 @@ void StereoReverbStripComponent::resized()
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
+    
+    if (irBox.isVisible())
+        fbMain.items.add(fi(icon).withFlex(0.2f));
+    else
+        fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    if (irBox.isVisible())
+        fbMain.items.add(fi(irBox).withFlex(0.1f).withMargin(2));
 
     // Add sends
     juce::FlexBox fbSends;
@@ -463,6 +479,16 @@ MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::Au
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
 
+    if (s.reverb.getImpulseNames().size() > 1)
+    {
+        addAndMakeVisible (irBox);
+        const auto& names = s.reverb.getImpulseNames();
+        for (int i = 0; i < names.size(); ++i)
+            irBox.addItem (names[i], i + 1);
+        
+        irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, s.getName() + "_IR", irBox);
+    }
+
     setSliderColours (panSlider, c);
     setSliderColours (levelSlider, c);
 
@@ -488,7 +514,14 @@ void MonoReverbStripComponent::resized()
     fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 25.f, 10.f, 25.f)));
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    if (irBox.isVisible())
+        fbMain.items.add(fi(icon).withFlex(0.2f));
+    else
+        fbMain.items.add(fi(icon).withFlex(0.3f));
+
+    if (irBox.isVisible())
+        fbMain.items.add(fi(irBox).withFlex(0.1f).withMargin(2));
 
     // Add sends
     juce::FlexBox fbSends;
@@ -630,7 +663,6 @@ void MasterStripComponent::resized()
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
 
     // Add sends
     juce::FlexBox fbSends;
@@ -705,20 +737,24 @@ MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueT
     // but addTab takes ownership if we pass true (which we will for these new components).
     // However, addTab with 'true' deletes the component. We need to make sure we allocate them.
     
-    auto addChain = [&](const juce::String& name, EffectChain* chain) {
+    auto addChainComponent = [&](const juce::String& name, EffectChain* chain) {
         if (auto* dynChain = dynamic_cast<EffectChainDynamics*>(chain))
         {
             tabs.addTab (name, juce::Colours::black, new EffectChainDynamicsComponent (*dynChain, apvts, name), true);
+        }
+        else if (auto* reverbChain = dynamic_cast<EffectChainReverb*>(chain))
+        {
+            tabs.addTab (name, juce::Colours::black, new EffectChainReverbComponent (*reverbChain, apvts, name), true);
         }
     };
 
     for (auto& strip : mixer.getStrips())
     {
-        addChain (strip->getName(), strip->getEffectChain());
+        addChainComponent (strip->getName(), strip->getEffectChain());
     }
     
     auto& master = mixer.getMasterStrip();
-    addChain (master.getName(), master.getEffectChain());
+    addChainComponent (master.getName(), master.getEffectChain());
 
     tabs.addTab ("Sampler", juce::Colours::black, &samplerComp, false);
 

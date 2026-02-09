@@ -38,7 +38,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lengthAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> shapeAtt;
 
-    juce::Path irPlotPath;
+    juce::Path irPlotPathL, irPlotPathR;
     void updateGraph();
     
     fxme::FxmeLookAndFeel fxmeLookAndFeel;

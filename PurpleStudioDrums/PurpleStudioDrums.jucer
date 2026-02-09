@@ -14,6 +14,7 @@
       <FILE id="xyL1z8" name="fft.h" compile="0" resource="0" file="../WDL/WDL/fft.h"/>
     </GROUP>
     <GROUP id="{E2914C61-1288-C5F6-6256-9DDC03E6D731}" name="Img">
+      <FILE id="Fzhzeb" name="drums.jpg" compile="0" resource="1" file="Data/img/drums.jpg"/>
       <FILE id="AWTMyG" name="Kick.jpg" compile="0" resource="1" file="Data/img/Kick.jpg"/>
       <FILE id="wJgQpp" name="Cymb.jpg" compile="0" resource="1" file="Data/img/Cymb.jpg"/>
       <FILE id="FXYPuW" name="HH.jpg" compile="0" resource="1" file="Data/img/HH.jpg"/>
@@ -24,6 +25,7 @@
       <FILE id="rOqgNH" name="tube_bw.png" compile="0" resource="1" file="../img/tube_bw.png"/>
     </GROUP>
     <GROUP id="{AC82C2F8-19E7-6905-EBEF-3BA5D7E86B11}" name="Sounds">
+      <FILE id="XpfdDk" name="imp_church.wav" compile="0" resource="1" file="Data/wav/imp_church.wav"/>
       <FILE id="UgkK3o" name="Cymb Cymb1 01 0 48 48 48.wav" compile="0" resource="1"
             file="Data/wav/Cymb Cymb1 01 0 48 48 48.wav"/>
       <FILE id="glLkFF" name="Cymb Cymb2 01 0 50 50 50.wav" compile="0" resource="1"

@@ -7,7 +7,7 @@
 */
 
 #include "MixerComponent.h"
-#include "EffectChainReverbComponent.h" // Include the new reverb effect chain component
+#include "EffectChainReverbComponent.h"
 #include "EffectChainDynamicsComponent.h"
 //==============================================================================
 // StripComponent Base
@@ -366,6 +366,7 @@ void MonoStripComponent::resized()
     fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f,25.f,10.f,25.f)));
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
 
     // Add sends
     juce::FlexBox fbSends;
@@ -663,6 +664,7 @@ void MasterStripComponent::resized()
     fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(icon).withFlex(0.3f));
 
     // Add sends
     juce::FlexBox fbSends;

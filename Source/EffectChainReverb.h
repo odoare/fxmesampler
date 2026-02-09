@@ -10,6 +10,7 @@
 
 #include "EffectChain.h"
 #include "ConvolReverb.h"
+#include "Equalizer.h"
 
 class EffectChainReverb : public EffectChain
 {
@@ -22,7 +23,9 @@ public:
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix) override;
 
     ConvolReverb& getReverb() { return reverb; }
+    Equalizer& getEQ() { return eq; }
 
 private:
     ConvolReverb reverb;
+    Equalizer eq;
 };

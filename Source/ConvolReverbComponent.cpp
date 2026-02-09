@@ -73,44 +73,68 @@ ConvolReverbComponent::~ConvolReverbComponent() {}
 
 void ConvolReverbComponent::updateGraph()
 {
-    irPlotPath.clear();
-    const auto& buffer = reverb.getModifiedIR();
-    if (buffer.getNumSamples() == 0) return;
+    irPlotPathL.clear();
+    irPlotPathR.clear();
 
-    auto* data = buffer.getReadPointer(0); // Use left channel for viz
+    const auto& buffer = reverb.getModifiedIR();
     int numSamples = buffer.getNumSamples();
+    int numChannels = buffer.getNumChannels();
+
+    if (numSamples == 0) return;
     
     float w = (float)getWidth();
-    float h = (float)getHeight() * 0.4f; // Graph takes 40% height
-    float yOffset = (float)getHeight() * 0.5f; // Center the graph vertically
+    // Graph area starts at 40% of height (below sliders)
+    float graphTop = (float)getHeight() * 0.4f;
+    float graphHeight = (float)getHeight() * 0.6f;
 
-    if (w <= 0 || h <= 0) return;
+    if (w <= 0 || graphHeight <= 0) return;
 
-    irPlotPath.startNewSubPath (0, yOffset);
-
-    int resolution = juce::jmin(numSamples, (int)w); // Max resolution is width of component
-    int step = numSamples / resolution;
-    if (step == 0) step = 1;
-
-    float maxVal = 0.0f;
-    for (int i = 0; i < numSamples; ++i)
-        maxVal = juce::jmax(maxVal, std::abs(data[i]));
-    if (maxVal == 0.0f) maxVal = 1.0f; // Avoid division by zero
-
-    for (int i = 0; i < resolution; ++i)
+    auto drawChannel = [&](int channel, float centerY, float height)
     {
-        int sampleIdx = i * step;
-        if (sampleIdx >= numSamples) sampleIdx = numSamples - 1;
-        
-        float val = data[sampleIdx];
-        float x = (float)i / (float)resolution * w;
-        float y = yOffset - (val / maxVal * h * 0.5f); // Scale to half height and center
-        
-        if (i == 0)
-            irPlotPath.startNewSubPath (x, y);
-        else
-            irPlotPath.lineTo (x, y);
+        juce::Path& p = (channel == 0) ? irPlotPathL : irPlotPathR;
+        auto* data = buffer.getReadPointer(channel);
+
+        p.startNewSubPath (0, centerY);
+
+        int resolution = juce::jmin(numSamples, (int)w);
+        int step = numSamples / resolution;
+        if (step == 0) step = 1;
+
+        float maxVal = 0.0f;
+        for (int i = 0; i < numSamples; ++i)
+            maxVal = juce::jmax(maxVal, std::abs(data[i]));
+        if (maxVal == 0.0f) maxVal = 1.0f;
+
+        for (int i = 0; i < resolution; ++i)
+        {
+            int start = i * step;
+            int end = juce::jmin (start + step, numSamples);
+            
+            float sumSq = 0.0f;
+            for (int k = start; k < end; ++k)
+                sumSq += data[k] * data[k];
+            
+            float val = (end > start) ? std::sqrt (sumSq / (float) (end - start)) : 0.0f;
+            float x = (float)i / (float)resolution * w;
+            float y = centerY - (val / maxVal * height * 0.5f);
+            
+            if (i == 0)
+                p.startNewSubPath (x, y);
+            else
+                p.lineTo (x, y);
+        }
+    };
+
+    if (numChannels == 1)
+    {
+        drawChannel(0, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
     }
+    else
+    {
+        drawChannel(0, graphTop + graphHeight * 0.25f, graphHeight * 0.45f);
+        drawChannel(1, graphTop + graphHeight * 0.75f, graphHeight * 0.45f);
+    }
+
     repaint();
 }
 
@@ -136,11 +160,28 @@ void ConvolReverbComponent::paint (juce::Graphics& g)
     g.fillAll();
 
     g.setColour (juce::Colours::lightgreen.withAlpha(0.7f));
-    g.strokePath (irPlotPath, juce::PathStrokeType (1.5f));
+    g.strokePath (irPlotPathL, juce::PathStrokeType (1.5f));
+    if (!irPlotPathR.isEmpty())
+        g.strokePath (irPlotPathR, juce::PathStrokeType (1.5f));
     
     // Draw a horizontal line for the zero crossing
     g.setColour (juce::Colours::white.withAlpha(0.3f));
-    g.drawLine (0, getHeight() * 0.5f, getWidth(), getHeight() * 0.5f, 1.0f);
+    
+    float graphTop = (float)getHeight() * 0.4f;
+    float graphHeight = (float)getHeight() * 0.6f;
+
+    if (irPlotPathR.isEmpty())
+    {
+        float y = graphTop + graphHeight * 0.5f;
+        g.drawLine (0, y, (float)getWidth(), y, 1.0f);
+    }
+    else
+    {
+        float y1 = graphTop + graphHeight * 0.25f;
+        float y2 = graphTop + graphHeight * 0.75f;
+        g.drawLine (0, y1, (float)getWidth(), y1, 1.0f);
+        g.drawLine (0, y2, (float)getWidth(), y2, 1.0f);
+    }
 }
 
 void ConvolReverbComponent::resized()

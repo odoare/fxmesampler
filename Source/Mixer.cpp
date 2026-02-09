@@ -552,8 +552,8 @@ BusStrip::BusStrip (const juce::String& n) : MixerStrip (n) {}
 
 void BusStrip::prepare (double sampleRate, int samplesPerBlock)
 {
-    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
-    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+    if (effectChain)
+        effectChain->prepare (sampleRate, samplesPerBlock, 2);
 
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
@@ -860,14 +860,17 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
         }
         else if (child->hasTagName ("Bus"))
         {
-            if (type.equalsIgnoreCase ("dynamics"))
-                newStrip = std::make_unique<BusStrip> (name);
-            else if (type.equalsIgnoreCase ("stereoReverb"))
+            // Bus is always stereo for now
+            auto bus = std::make_unique<BusStrip> (name);
+            
+            juce::String effectChainType = child->getStringAttribute ("effectChain", "Dynamics");
+            if (effectChainType.equalsIgnoreCase ("Dynamics"))
             {
-                auto bus = std::make_unique<BusStrip> (name);
-                bus->setReverbMode (true);
-                newStrip = std::move (bus);
+                bus->setEffectChain (std::make_unique<EffectChainDynamics>());
             }
+            // else if "None", effectChain remains nullptr
+            
+            newStrip = std::move (bus);
         }
 
         if (newStrip != nullptr)

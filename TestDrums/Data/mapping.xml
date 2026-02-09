@@ -9,7 +9,7 @@
     <Strip type="mono" name="Snare" img="snare.jpg" color="67,136,189"/>
     <Strip type="mono" name="HH" img="hh.jpg" color="255,255,0"/>
     <Strip type="reverb" name="Room reverb" img="room.jpg" resource="ImpRoom 1.wav" color="148,153,77"/>
-    <Bus type="dynamics" name="Parallel" img="drums.jpg" color="100,100,100"/>
+    <Bus type="stereo" name="Parallel" img="drums.jpg" color="100,100,100"/>
   </Mixer>
 
   <!-- Groups defining Routing, Envelope and Choke -->

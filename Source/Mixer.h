@@ -42,6 +42,7 @@ public:
     virtual void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) = 0;
     juce::String getName() const { return name; }
     EffectChain* getEffectChain() const { return effectChain.get(); }
+    void setEffectChain (std::unique_ptr<EffectChain> chain) { effectChain = std::move (chain); }
 
     bool isMute() const { return muteParam && *muteParam > 0.5f; }
     bool isSolo() const { return soloParam && *soloParam > 0.5f; }

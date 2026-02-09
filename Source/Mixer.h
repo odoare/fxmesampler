@@ -39,6 +39,7 @@ public:
     virtual int getNumInputChannels() const = 0;
 
     virtual void assignParameters (juce::AudioProcessorValueTreeState& apvts) = 0;
+    virtual void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) = 0;
     juce::String getName() const { return name; }
     EffectChain* getEffectChain() const { return effectChain.get(); }
 
@@ -77,6 +78,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 4; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
 
     AmbixToMS ambix;
@@ -96,6 +98,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
 
     float pan = 0.0f;
@@ -116,6 +119,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
 
     float pan = 0.0f;
@@ -136,6 +140,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
 
     float pan = 0.0f;
@@ -154,6 +159,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
     void loadImpulse (const void* data, size_t size);
 
@@ -174,6 +180,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
     void loadImpulse (const void* data, size_t size);
 
@@ -194,6 +201,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
 
     float pan = 0.0f;
@@ -214,6 +222,7 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 0; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
 
     void addInput (const juce::AudioBuffer<float>& source, float gain);
@@ -246,6 +255,7 @@ public:
     void processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::AudioBuffer<float>& outputBuffer);
     void loadFromXml (const void* xmlData, int xmlSize);
     void assignParameters (juce::AudioProcessorValueTreeState& apvts);
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params);
 
     const std::vector<std::unique_ptr<MixerStrip>>& getStrips() const { return strips; }
     MasterStrip& getMasterStrip() { return masterStrip; }

@@ -78,6 +78,17 @@ void Compressor::assignParameters (juce::AudioProcessorValueTreeState& apvts, co
     gainParam = apvts.getRawParameterValue (prefix + "_Comp_Gain");
 }
 
+void Compressor::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
+{
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "_Comp_On", 1 }, prefix + " Comp On", false));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Comp_PreGain", 1 }, prefix + " Comp Pre Gain", -24.0f, 24.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Comp_Attack", 1 }, prefix + " Comp Attack", 0.1f, 100.0f, 10.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Comp_Release", 1 }, prefix + " Comp Release", 10.0f, 1000.0f, 100.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Comp_Thresh", 1 }, prefix + " Comp Thresh", -60.0f, 0.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Comp_Ratio", 1 }, prefix + " Comp Ratio", 1.0f, 20.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Comp_Gain", 1 }, prefix + " Comp Gain", -24.0f, 24.0f, 0.0f));
+}
+
 void Compressor::checkParameters()
 {
     if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }

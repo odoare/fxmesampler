@@ -36,6 +36,15 @@ void Tube::assignParameters (juce::AudioProcessorValueTreeState& apvts, const ju
     modelParam = apvts.getRawParameterValue (prefix + "_Tube_Model");
 }
 
+void Tube::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
+{
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "_Tube_On", 1 }, prefix + " Tube On", false));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Tube_Drive", 1 }, prefix + " Tube Drive", 0.0f, 40.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Tube_Bias", 1 }, prefix + " Tube Bias", 0.0f, 0.5f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Tube_Out", 1 }, prefix + " Tube Out", -20.0f, 20.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Tube_Model", 1 }, prefix + " Tube Model", juce::StringArray { "Standard", "Dynamic" }, 0));
+}
+
 void Tube::checkParameters()
 {
     if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }

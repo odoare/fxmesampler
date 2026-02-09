@@ -41,6 +41,7 @@ public:
 
     void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
     void checkParameters();
+    static void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix);
 
 private:
     double currentSampleRate = 44100.0;

@@ -125,6 +125,22 @@ void Equalizer::assignParameters (juce::AudioProcessorValueTreeState& apvts, con
     hsGainParam = apvts.getRawParameterValue (prefix + "_EQ_HS_Gain");
 }
 
+void Equalizer::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
+{
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "_EQ_On", 1 }, prefix + " EQ On", false));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_PostGain", 1 }, prefix + " EQ Post Gain", -24.0f, 24.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_LS_Freq", 1 }, prefix + " EQ LS Freq", 20.0f, 1000.0f, 100.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_LS_Gain", 1 }, prefix + " EQ LS Gain", -15.0f, 15.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Freq", 1 }, prefix + " EQ B1 Freq", 100.0f, 5000.0f, 500.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Q", 1 }, prefix + " EQ B1 Q", 0.1f, 10.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Gain", 1 }, prefix + " EQ B1 Gain", -15.0f, 15.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Freq", 1 }, prefix + " EQ B2 Freq", 500.0f, 10000.0f, 2000.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Q", 1 }, prefix + " EQ B2 Q", 0.1f, 10.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Gain", 1 }, prefix + " EQ B2 Gain", -15.0f, 15.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_HS_Freq", 1 }, prefix + " EQ HS Freq", 1000.0f, 20000.0f, 5000.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_HS_Gain", 1 }, prefix + " EQ HS Gain", -15.0f, 15.0f, 0.0f));
+}
+
 void Equalizer::checkParameters()
 {
     if (onParam && *onParam != lastOn) { setOn (*onParam > 0.5f); lastOn = *onParam; }

@@ -44,6 +44,7 @@ struct SampleGroup
      * @return The name.
      */
     juce::String getName() const { return name; }
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params);
 };
 
 /**
@@ -226,6 +227,7 @@ public:
      * @return Vector of unique pointers to SampleGroups.
      */
     const std::vector<std::unique_ptr<SampleGroup>>& getSampleGroups() const { return sampleGroups; }
+    void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params);
 
 private:
     std::vector<Sound> sounds;

@@ -367,6 +367,23 @@ void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     }
 }
 
+void Sampler::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
+{
+    for (auto& group : sampleGroups)
+        group->addParameters (params);
+}
+
+void SampleGroup::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
+{
+    juce::String prefix = name + "_";
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "OneShot", 1 }, name + " One Shot", isOneShot));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Attack", 1 }, name + " Attack", 0.0f, 5.0f, (float)attack));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Decay", 1 }, name + " Decay", 0.0f, 5.0f, (float)decay));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Sustain", 1 }, name + " Sustain", 0.0f, 1.0f, (float)sustain));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Release", 1 }, name + " Release", 0.0f, 5.0f, (float)release));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Detune", 1 }, name + " Detune", -12.0f, 12.0f, (float)detune));
+}
+
 void Sampler::updateParams()
 {
     juce::ScopedLock sl (lock);

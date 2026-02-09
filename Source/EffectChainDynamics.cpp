@@ -28,6 +28,22 @@ void EffectChainDynamics::assignParameters (juce::AudioProcessorValueTreeState& 
     tube.assignParameters (apvts, prefix);
 }
 
+void EffectChainDynamics::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
+{
+    juce::StringArray orderOptions;
+    orderOptions.add ("EQ -> Comp -> Tube");
+    orderOptions.add ("EQ -> Tube -> Comp");
+    orderOptions.add ("Comp -> EQ -> Tube");
+    orderOptions.add ("Comp -> Tube -> EQ");
+    orderOptions.add ("Tube -> EQ -> Comp");
+    orderOptions.add ("Tube -> Comp -> EQ");
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Order", 1 }, prefix + " Order", orderOptions, 0));
+
+    Equalizer::addParameters (params, prefix);
+    Compressor::addParameters (params, prefix);
+    Tube::addParameters (params, prefix);
+}
+
 void EffectChainDynamics::checkParameters()
 {
     eq.checkParameters();

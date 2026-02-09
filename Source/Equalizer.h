@@ -93,6 +93,13 @@ public:
      */
     void checkParameters();
 
+    /**
+     * @brief Adds the equalizer parameters to the provided vector.
+     * @param params The vector to add parameters to.
+     * @param prefix The prefix used for parameter IDs.
+     */
+    static void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix);
+
 private:
     struct Biquad
     {

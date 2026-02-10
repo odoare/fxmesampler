@@ -24,6 +24,7 @@ struct SampleGroup
     juce::String name;
     int muteGroup = 0;
     bool isOneShot = true;
+    bool isLoop = false;
     double attack = 0.001;
     double decay = 0.0;
     double sustain = 1.0;
@@ -60,6 +61,10 @@ struct Sound
     int basePitch = 60;
     int muteGroup = 0;
     bool isOneShot = true;
+    int sampleStart = 0;
+    int sampleEnd = 0;
+    int loopStart = 0;
+    int loopEnd = 0;
     juce::Range<int> velocityRange { 0, 128 };
     std::vector<int> outputChannels;
     double attack = 0.001;  // Seconds

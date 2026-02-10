@@ -25,6 +25,20 @@ void Sound::load (juce::AudioFormatManager& formatManager)
         audioBuffer.setSize ((int) reader->numChannels, (int) reader->lengthInSamples);
         reader->read (&audioBuffer, 0, (int) reader->lengthInSamples, 0, true, true);
         sourceSampleRate = reader->sampleRate;
+
+        // Resolve defaults for end points if they were -1 or invalid
+        int numSamples = audioBuffer.getNumSamples();
+        if (sampleEnd == -1 || sampleEnd >= numSamples) sampleEnd = numSamples - 1;
+        if (sampleStart < 0) sampleStart = 0;
+        if (sampleStart > sampleEnd) sampleStart = sampleEnd;
+
+        if (loopEnd == -1 || loopEnd >= numSamples) loopEnd = sampleEnd;
+        if (loopStart < 0) loopStart = 0;
+        if (loopStart > loopEnd) loopStart = loopEnd;
+        
+        // Safety clamp
+        if (sampleEnd < 0) sampleEnd = 0;
+        if (loopEnd < 0) loopEnd = 0;
     }
 }
 
@@ -34,7 +48,7 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
     //std::cout << "Start a sound on note " << note << std::endl;
     activeSound = sound;
     currentNote = note;
-    currentPosition = 0.0;
+    currentPosition = (sound ? (double)sound->sampleStart : 0.0);
     currentVelocity = velocity;
     currentSampleRate = sampleRate;
 
@@ -114,6 +128,17 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
     int numOutputChannels = outputBuffer.getNumChannels();
     const auto& targetChannels = activeSound->outputChannels;
 
+    bool isLooping = false;
+    if (activeSound->group) isLooping = activeSound->group->isLoop;
+    
+    bool isOneShot = activeSound->isOneShot;
+    if (activeSound->group)
+    {
+        isOneShot = activeSound->group->isOneShot;
+    }
+
+    if (isOneShot) isLooping = false;
+    
     for (int s = 0; s < numSamples; ++s)
     {
         // Envelope processing
@@ -158,10 +183,20 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
         int pos = (int) currentPosition;
         float alpha = (float) (currentPosition - pos);
 
-        if (pos >= sourceBuffer.getNumSamples() - 1)
+        if (!isLooping)
         {
-            stop();
-            return;
+            if (pos >= activeSound->sampleEnd)
+            {
+                stop();
+                return;
+            }
+        }
+        else
+        {
+            if (pos >= activeSound->loopEnd)
+            {
+                // This will be handled in the next position update, but for interpolation we need to be careful
+            }
         }
 
         for (size_t i = 0; i < targetChannels.size(); i += 2)
@@ -172,7 +207,16 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
             if (outCh < numOutputChannels && srcCh < numSourceChannels)
             {
                 float sample = sourceBuffer.getSample (srcCh, pos);
-                float nextSample = sourceBuffer.getSample (srcCh, pos + 1);
+                
+                float nextSample = 0.0f;
+                if (isLooping && pos >= activeSound->loopEnd)
+                {
+                    nextSample = sourceBuffer.getSample (srcCh, activeSound->loopStart);
+                }
+                else if (pos + 1 < sourceBuffer.getNumSamples())
+                {
+                    nextSample = sourceBuffer.getSample (srcCh, pos + 1);
+                }
                 float interpolated = sample + alpha * (nextSample - sample);
 
                 outputBuffer.addSample (outCh, startSample + s, interpolated * envelopeVal * currentVelocity);
@@ -180,6 +224,14 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
         }
 
         currentPosition += increment;
+        
+        if (isLooping)
+        {
+            if (currentPosition >= (double)activeSound->loopEnd + 1.0) // Passed the end of the loop
+            {
+                currentPosition = (double)activeSound->loopStart + (currentPosition - ((double)activeSound->loopEnd + 1.0));
+            }
+        }
     }
 }
 
@@ -242,6 +294,7 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             group->name = child->getStringAttribute ("name");
             group->muteGroup = child->getIntAttribute ("muteGroup");
             group->isOneShot = child->getBoolAttribute ("oneShot", true);
+            group->isLoop = child->getBoolAttribute ("loop", false);
             group->attack = child->getDoubleAttribute ("attack", 0.001);
             group->decay = child->getDoubleAttribute ("decay", 0.0);
             group->sustain = child->getDoubleAttribute ("sustain", 1.0);
@@ -304,6 +357,11 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             sound.midiNoteRange = juce::Range<int> (child->getIntAttribute ("noteLow"), child->getIntAttribute ("noteHigh") + 1);
             sound.velocityRange = juce::Range<int> (child->getIntAttribute ("velLow"), child->getIntAttribute ("velHigh") + 1);
             sound.basePitch = child->getIntAttribute ("basePitch");
+
+            sound.sampleStart = child->getIntAttribute ("sampleStart", 0);
+            sound.sampleEnd = child->getIntAttribute ("sampleEnd", -1);
+            sound.loopStart = child->getIntAttribute ("loopStart", 0);
+            sound.loopEnd = child->getIntAttribute ("loopEnd", -1);
             
             // Apply Group settings
             juce::String groupName = child->getStringAttribute ("group");

@@ -25,10 +25,10 @@ void ConvolReverb::prepare (double sampleRate, int samplesPerBlock)
 
 void ConvolReverb::process (juce::AudioBuffer<float>& buffer)
 {
-    checkParameters(); // Update parameters before processing
-    
     juce::ScopedLock sl (lock);
 
+    checkParameters(); // Update parameters before processing
+    
     int numSamples = buffer.getNumSamples();
     int numChannels = buffer.getNumChannels();
 
@@ -113,11 +113,21 @@ void ConvolReverb::setShapeType (int type)
     }
 }
 
+void ConvolReverb::setStartOffset (float offsetMs)
+{
+    if (currentStartOffsetMs != offsetMs)
+    {
+        currentStartOffsetMs = offsetMs;
+        updateModifiedIR();
+    }
+}
+
 void ConvolReverb::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
 {
     irParam = apvts.getRawParameterValue (prefix + "_IR");
     lengthParam = apvts.getRawParameterValue (prefix + "_Length");
     shapeParam = apvts.getRawParameterValue (prefix + "_Shape");
+    startOffsetParam = apvts.getRawParameterValue (prefix + "_StartOffset");
 }
 
 void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
@@ -132,6 +142,7 @@ void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioP
     shapes.add ("Linear");
     shapes.add ("Slow Log");
     params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Shape", 1 }, prefix + " Shape", shapes, 0));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_StartOffset", 1 }, prefix + " Start Offset", -100.0f, 100.0f, 0.0f));
 }
 
 void ConvolReverb::loadResource (const juce::String& resourceName)
@@ -170,8 +181,15 @@ void ConvolReverb::loadResource (const juce::String& resourceName)
     }
 }
 
+juce::AudioBuffer<float> ConvolReverb::getModifiedIR() const
+{
+    juce::ScopedLock sl (lock);
+    return modifiedIR;
+}
+
 void ConvolReverb::updateModifiedIR()
 {
+    juce::ScopedLock sl (lock);
     if (originalIR.getNumSamples() == 0)
     {
         modifiedIR.clear();
@@ -179,19 +197,19 @@ void ConvolReverb::updateModifiedIR()
         return;
     }
 
+    // Create a temporary buffer with length and shape applied
     int newLength = (int)(originalIR.getNumSamples() * currentLengthRatio);
     if (newLength < 16) newLength = 16; // Minimum safety length
     if (newLength > originalIR.getNumSamples()) newLength = originalIR.getNumSamples();
 
-    modifiedIR.makeCopyOf (originalIR);
-    modifiedIR.setSize (modifiedIR.getNumChannels(), newLength, true, true); // Resize and clear new part
+    juce::AudioBuffer<float> shapedIR;
+    shapedIR.makeCopyOf(originalIR);
+    shapedIR.setSize(shapedIR.getNumChannels(), newLength, true, true);
 
     // Apply Envelope
-    // Shape 0: Exp, 1: Lin, 2: Log
-    
-    for (int ch = 0; ch < modifiedIR.getNumChannels(); ++ch)
+    for (int ch = 0; ch < shapedIR.getNumChannels(); ++ch)
     {
-        auto* data = modifiedIR.getWritePointer (ch);
+        auto* data = shapedIR.getWritePointer (ch);
         for (int i = 0; i < newLength; ++i)
         {
             float normPos = (float)i / (float)newLength;
@@ -210,10 +228,47 @@ void ConvolReverb::updateModifiedIR()
         // Fade out last few samples to avoid clicks
         int fadeLen = std::min(100, newLength);
         if (newLength > fadeLen)
-            modifiedIR.applyGainRamp (ch, newLength - fadeLen, fadeLen, 1.0f, 0.0f);
+            shapedIR.applyGainRamp (ch, newLength - fadeLen, fadeLen, 1.0f, 0.0f);
     }
 
-    loadImpulseToEngine (modifiedIR);
+    // Now apply offset
+    int offsetInSamples = (int)(currentStartOffsetMs * currentSampleRate / 1000.0);
+
+    if (offsetInSamples > 0)
+    {
+        // Positive offset: add silence at the start
+        modifiedIR.setSize(shapedIR.getNumChannels(), shapedIR.getNumSamples() + offsetInSamples, false, true, true);
+        modifiedIR.clear();
+        for (int ch = 0; ch < shapedIR.getNumChannels(); ++ch)
+        {
+            modifiedIR.copyFrom(ch, offsetInSamples, shapedIR, ch, 0, shapedIR.getNumSamples());
+        }
+    }
+    else if (offsetInSamples < 0)
+    {
+        // Negative offset: trim samples from the start
+        int trimSamples = -offsetInSamples;
+        if (trimSamples >= shapedIR.getNumSamples())
+        {
+            modifiedIR.clear();
+        }
+        else
+        {
+            const int numSamplesToCopy = shapedIR.getNumSamples() - trimSamples;
+            modifiedIR.setSize (shapedIR.getNumChannels(), numSamplesToCopy, false, true, true);
+
+            for (int ch = 0; ch < shapedIR.getNumChannels(); ++ch)
+            {
+                modifiedIR.copyFrom (ch, 0, shapedIR.getReadPointer (ch, trimSamples), numSamplesToCopy);
+            }
+        }
+    }
+    else // offsetInSamples == 0
+    {
+        modifiedIR.makeCopyOf(shapedIR);
+    }
+
+    loadImpulseToEngine(modifiedIR);
 }
 
 void ConvolReverb::loadImpulseToEngine (const juce::AudioBuffer<float>& buffer)
@@ -271,5 +326,11 @@ void ConvolReverb::checkParameters()
     {
         setShapeType ((int)*shapeParam);
         lastShapeType = (int)*shapeParam;
+    }
+
+    if (startOffsetParam && *startOffsetParam != lastStartOffset)
+    {
+        setStartOffset(*startOffsetParam);
+        lastStartOffset = *startOffsetParam;
     }
 }

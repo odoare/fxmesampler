@@ -26,9 +26,10 @@ public:
     void selectImpulse (int index);
     void setLengthRatio (float ratio); // 0.0 to 1.0
     void setShapeType (int type); // 0: Exp, 1: Lin, 2: Log
+    void setStartOffset (float offsetMs); // -100ms to 100ms
 
     const std::vector<juce::String>& getImpulseNames() const { return irNames; }
-    const juce::AudioBuffer<float>& getModifiedIR() const { return modifiedIR; }
+    juce::AudioBuffer<float> getModifiedIR() const;
     int getCurrentImpulseIndex() const { return currentIndex; }
     float getCurrentLengthRatio() const { return currentLengthRatio; }
     int getCurrentShapeType() const { return currentShapeType; }
@@ -41,7 +42,7 @@ private:
     // WDL Engine
     WDL_ImpulseBuffer impulseBuffer;
     WDL_ConvolutionEngine_Div engine;
-    juce::CriticalSection lock;
+    mutable juce::CriticalSection lock;
     std::vector<std::vector<WDL_FFT_REAL>> wdlInputData;
     std::vector<WDL_FFT_REAL*> wdlInputPtrs;
 
@@ -55,16 +56,19 @@ private:
     int currentIndex = -1;
     float currentLengthRatio = 1.0f;
     int currentShapeType = 0;
+    float currentStartOffsetMs = 0.0f;
 
     // Parameter pointers
     std::atomic<float>* irParam = nullptr;
     std::atomic<float>* lengthParam = nullptr;
     std::atomic<float>* shapeParam = nullptr;
+    std::atomic<float>* startOffsetParam = nullptr;
 
     // Last values for change detection
     int lastIR = -1;
     float lastLengthRatio = -1.0f;
     int lastShapeType = -1;
+    float lastStartOffset = 0.0f;
 
     void loadResource (const juce::String& resourceName);
     void updateModifiedIR(); // Applies length/shape to originalIR and loads into wdlReverb

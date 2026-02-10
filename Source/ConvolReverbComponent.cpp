@@ -17,7 +17,7 @@ void ConvolReverbComponent::setSliderColours (juce::Slider& s, juce::Colour c)
 
 void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
-    juce::Colour color = juce::Colours::green;
+    juce::Colour color = juce::Colours::yellow;
 
     addAndMakeVisible (label);
     label.setText (text, juce::NotificationType::dontSendNotification);
@@ -33,50 +33,11 @@ void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& labe
     setSliderColours(slider, color);
 }
 
-ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
-    : reverb (r), apvts (state)
+ImpulseResponsePlot::ImpulseResponsePlot(ConvolReverb& r) : reverb(r)
 {
-    addAndMakeVisible (titleLabel);
-    titleLabel.setText ("Convolution Reverb", juce::NotificationType::dontSendNotification);
-    titleLabel.setJustificationType (juce::Justification::centred);
-    titleLabel.setFont (juce::Font (16.0f, juce::Font::bold));
-
-    addAndMakeVisible (irLabel);
-    irLabel.setText ("Impulse", juce::NotificationType::dontSendNotification);
-    irLabel.setJustificationType (juce::Justification::centred);
-    addAndMakeVisible (irBox);
-    const auto& names = reverb.getImpulseNames();
-    for (int i = 0; i < names.size(); ++i)
-        irBox.addItem (names[i], i + 1);
-    irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_IR", irBox);
-    irBox.onChange = [this] { graphNeedsUpdate = true; };
-
-    setupSlider (lengthSlider, lengthLabel, "Length", 0.0, 1.0, 1.0);
-    lengthAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Length", lengthSlider);
-    lengthSlider.onValueChange = [this] { graphNeedsUpdate = true; };
-
-    setupSlider (startOffsetSlider, startOffsetLabel, "Offset", -100.0, 100.0, 0.0);
-    startOffsetSlider.setTextValueSuffix (" ms");
-    startOffsetAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_StartOffset", startOffsetSlider);
-    startOffsetSlider.onValueChange = [this] { graphNeedsUpdate = true; };
-
-    addAndMakeVisible (shapeLabel);
-    shapeLabel.setText ("Shape", juce::NotificationType::dontSendNotification);
-    shapeLabel.setJustificationType (juce::Justification::centred);
-    addAndMakeVisible (shapeBox);
-    shapeBox.addItem ("Fast Exp", 1);
-    shapeBox.addItem ("Linear", 2);
-    shapeBox.addItem ("Slow Log", 3);
-    shapeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Shape", shapeBox);
-    shapeBox.onChange = [this] { graphNeedsUpdate = true; };
-    
-    startTimerHz (24); // Update graph periodically
-    updateGraph();
 }
 
-ConvolReverbComponent::~ConvolReverbComponent() {}
-
-void ConvolReverbComponent::updateGraph()
+void ImpulseResponsePlot::updateGraph()
 {
     irPlotPathL.clear();
     irPlotPathR.clear();
@@ -90,13 +51,12 @@ void ConvolReverbComponent::updateGraph()
     if (numSamples == 0) return;
     
     float w = (float)getWidth();
-    // Graph area starts at 40% of height (below sliders)
-    float graphTop = (float)getHeight() * 0.4f;
-    float graphHeight = (float)getHeight() * 0.6f;
+    float graphTop = 0.0f;
+    float graphHeight = (float)getHeight();
 
     if (w <= 0 || graphHeight <= 0) return;
 
-    auto drawChannel = [&](int channel, float centerY, float height)
+    auto drawChannel = [&](int channel, float xOffset, float plotWidth, float centerY, float height)
     {
         juce::Path& p = (channel == 0) ? irPlotPathL : irPlotPathR;
         juce::Path& pMax = (channel == 0) ? irMaxPathL : irMaxPathR;
@@ -106,9 +66,9 @@ void ConvolReverbComponent::updateGraph()
         const float topY = centerY - height / 2.0f;
         const float bottomY = centerY + height / 2.0f;
  
-        pMax.startNewSubPath (0, bottomY);
+        pMax.startNewSubPath (xOffset, bottomY);
  
-        int resolution = juce::jmin(numSamples, (int)w);
+        int resolution = juce::jmin(numSamples, (int)plotWidth);
         int step = numSamples / resolution;
         if (step == 0) step = 1;
 
@@ -135,7 +95,7 @@ void ConvolReverbComponent::updateGraph()
             float valDb = juce::Decibels::gainToDecibels (val / maxVal, minDb);
             float maxAbsDb = juce::Decibels::gainToDecibels (maxAbs / maxVal, minDb);
 
-            float x = (float)i / (float)resolution * w;
+            float x = xOffset + (float)i / (float)resolution * plotWidth;
             float y = juce::jmap (valDb, minDb, 0.0f, bottomY, topY);
             float yMax = juce::jmap (maxAbsDb, minDb, 0.0f, bottomY, topY);
             
@@ -147,71 +107,56 @@ void ConvolReverbComponent::updateGraph()
             pMax.lineTo (x, yMax);
         }
  
-        pMax.lineTo (w, bottomY);
+        pMax.lineTo (xOffset + plotWidth, bottomY);
         pMax.closeSubPath();
     };
 
     if (numChannels == 1)
     {
-        drawChannel(0, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
+        drawChannel(0, 0.f, w, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
     }
     else
     {
-        drawChannel(0, graphTop + graphHeight * 0.25f, graphHeight * 0.45f);
-        drawChannel(1, graphTop + graphHeight * 0.75f, graphHeight * 0.45f);
-    }
-
-    repaint();
-}
-
-void ConvolReverbComponent::timerCallback()
-{
-    if (graphNeedsUpdate.exchange(false))
-    {
-        updateGraph();
+        float halfW = w * 0.5f;
+        drawChannel(0, 0.f, halfW, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
+        drawChannel(1, halfW, halfW, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
     }
 }
 
-void ConvolReverbComponent::paint (juce::Graphics& g)
+void ImpulseResponsePlot::paint(juce::Graphics& g)
 {
-    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
-    auto length = diagonale.getDistanceFromOrigin();
-    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
-    auto height = float (getWidth() * getHeight()) / length;
-    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
-    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
-                           bluegreengrey, perpendicular * -height, false);
-    g.setGradientFill(grad);
-    g.fillAll();
-
     // Draw grid lines for dB scale
-    float graphTop = (float)getHeight() * 0.4f;
-    float graphHeight = (float)getHeight() * 0.6f;
-    const float minDb = -60.0f;
+    float graphTop = 0.0f;
+    float graphHeight = (float)getHeight();
+    const float minDb = -90.0f;
     const float maxDb = 0.0f;
 
-    auto drawDbGrid = [&](float centerY, float height)
+    auto drawDbGrid = [&](float x, float width, float centerY, float height)
     {
         const float topY = centerY - height / 2.0f;
         const float bottomY = centerY + height / 2.0f;
 
         g.setColour (juce::Colours::white.withAlpha(0.3f));
-        g.drawHorizontalLine (juce::roundToInt(topY), 0.0f, (float)getWidth()); // 0dB
+        g.drawHorizontalLine (juce::roundToInt(topY), x, x + width); // 0dB
 
-        for (float db = -12.0f; db > minDb; db -= 12.0f)
+        for (float db = -18.0f; db > minDb; db -= 18.0f)
         {
             float y = juce::jmap (db, minDb, maxDb, bottomY, topY);
             g.setColour (juce::Colours::white.withAlpha (0.1f));
-            g.drawHorizontalLine (juce::roundToInt(y), 0.0f, (float)getWidth());
+            g.drawHorizontalLine (juce::roundToInt(y), x, x + width);
         }
     };
 
+    float w = (float)getWidth();
     if (irPlotPathR.isEmpty())
-        drawDbGrid(graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
+        drawDbGrid(0.f, w, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
     else
     {
-        drawDbGrid(graphTop + graphHeight * 0.25f, graphHeight * 0.45f);
-        drawDbGrid(graphTop + graphHeight * 0.75f, graphHeight * 0.45f);
+        float halfW = w * 0.5f;
+        drawDbGrid(0.f, halfW, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
+        drawDbGrid(halfW, halfW, graphTop + graphHeight * 0.5f, graphHeight * 0.9f);
+        g.setColour (juce::Colours::white.withAlpha(0.3f));
+        g.drawVerticalLine (juce::roundToInt(halfW), graphTop, graphTop + graphHeight);
     }
 
     g.setColour (juce::Colours::lightgrey.withAlpha(0.5f));
@@ -223,6 +168,80 @@ void ConvolReverbComponent::paint (juce::Graphics& g)
     g.strokePath (irPlotPathL, juce::PathStrokeType (1.5f));
     if (!irPlotPathR.isEmpty())
         g.strokePath (irPlotPathR, juce::PathStrokeType (1.5f));
+}
+
+ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
+    : reverb (r), apvts (state), irPlot(r)
+{
+    addAndMakeVisible (titleLabel);
+    titleLabel.setText ("Convolution Reverb", juce::NotificationType::dontSendNotification);
+    titleLabel.setJustificationType (juce::Justification::centred);
+    titleLabel.setFont (juce::Font (16.0f, juce::Font::bold));
+
+    addAndMakeVisible (onButton);
+    onButton.setButtonText ("On");
+    onButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::yellow);
+    onButton.setLookAndFeel(&fxmeLookAndFeel);
+    onAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, prefix + "_Rev_On", onButton);
+
+    addAndMakeVisible (irLabel);
+    irLabel.setText ("Impulse", juce::NotificationType::dontSendNotification);
+    irLabel.setJustificationType (juce::Justification::centred);
+    addAndMakeVisible (irBox);
+    const auto& names = reverb.getImpulseNames();
+    for (int i = 0; i < names.size(); ++i)
+        irBox.addItem (names[i], i + 1);
+    irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Rev_IR", irBox);
+    irBox.onChange = [this] { graphNeedsUpdate = true; };
+
+    setupSlider (lengthSlider, lengthLabel, "Length", 0.0, 1.0, 1.0);
+    lengthAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Rev_Length", lengthSlider);
+    lengthSlider.onValueChange = [this] { graphNeedsUpdate = true; };
+
+    setupSlider (startOffsetSlider, startOffsetLabel, "Offset", -100.0, 100.0, 0.0);
+    startOffsetSlider.setTextValueSuffix (" ms");
+    startOffsetAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Rev_StartOffset", startOffsetSlider);
+    startOffsetSlider.onValueChange = [this] { graphNeedsUpdate = true; };
+
+    addAndMakeVisible (shapeLabel);
+    shapeLabel.setText ("Shape", juce::NotificationType::dontSendNotification);
+    shapeLabel.setJustificationType (juce::Justification::centred);
+    addAndMakeVisible (shapeBox);
+    shapeBox.addItem ("Fast Exp", 1);
+    shapeBox.addItem ("Linear", 2);
+    shapeBox.addItem ("Slow Log", 3);
+    shapeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Rev_Shape", shapeBox);
+    shapeBox.onChange = [this] { graphNeedsUpdate = true; };
+    
+    addAndMakeVisible(irPlot);
+
+    startTimerHz (24); // Update graph periodically
+    irPlot.updateGraph();
+}
+
+ConvolReverbComponent::~ConvolReverbComponent() {}
+
+void ConvolReverbComponent::timerCallback()
+{
+    if (graphNeedsUpdate.exchange(false))
+    {
+        irPlot.updateGraph();
+        irPlot.repaint();
+    }
+}
+
+void ConvolReverbComponent::paint (juce::Graphics& g)
+{
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    //auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    auto bluegreengrey = juce::Colours::yellow.darker(3.f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
 }
 
 void ConvolReverbComponent::resized()
@@ -237,7 +256,8 @@ void ConvolReverbComponent::resized()
     fSl2.flexDirection = juce::FlexBox::Direction::column;
     fBoxes.flexDirection = juce::FlexBox::Direction::column;
 
-    fTop.items.add(fi(titleLabel).withFlex(1.f));
+    fTop.items.add(fi(onButton).withFlex(0.2f));
+    fTop.items.add(fi(titleLabel).withFlex(1.5f));
 
     fBoxes.items.add(fi(irLabel).withFlex(0.5f));
     fBoxes.items.add(fi(irBox).withFlex(0.8f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 5.f, 0)));
@@ -251,18 +271,12 @@ void ConvolReverbComponent::resized()
     fSliders.items.add(fi(fSl1).withFlex(1.f));
     fSliders.items.add(fi(fSl2).withFlex(1.f));
 
-    fMain.items.add(fi(fTop).withFlex(0.1f));
-    fMain.items.add(fi(fSliders).withFlex(0.3f));
+    fMain.items.add(fi(fTop).withFlex(0.12f));
+    fMain.items.add(fi(fSliders).withFlex(0.35f));
     // Graph will take the remaining space
-    fMain.items.add(fi().withFlex(0.6f)); // Placeholder for graph area
+    fMain.items.add(fi(irPlot).withFlex(0.55f));
 
     fMain.performLayout(area);
-
-    // Manually set bounds for the graph area
-    juce::Rectangle<int> graphArea = area;
-    graphArea.removeFromTop(area.getHeight() * 0.4f); // Sliders and title take 40%
-    // The graph is drawn in paint, so we just need to make sure its bounds are correct for drawing.
-    // The flexbox layout above already reserves space.
-
-    updateGraph(); // Update graph after resize
+    
+    irPlot.updateGraph();
 }

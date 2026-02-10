@@ -27,6 +27,8 @@ public:
     void setLengthRatio (float ratio); // 0.0 to 1.0
     void setShapeType (int type); // 0: Exp, 1: Lin, 2: Log
     void setStartOffset (float offsetMs); // -100ms to 100ms
+    void setOn (bool shouldBeOn);
+    bool isOn() const { return on; }
 
     const std::vector<juce::String>& getImpulseNames() const { return irNames; }
     juce::AudioBuffer<float> getModifiedIR() const;
@@ -57,8 +59,10 @@ private:
     float currentLengthRatio = 1.0f;
     int currentShapeType = 0;
     float currentStartOffsetMs = 0.0f;
+    bool on = true;
 
     // Parameter pointers
+    std::atomic<float>* onParam = nullptr;
     std::atomic<float>* irParam = nullptr;
     std::atomic<float>* lengthParam = nullptr;
     std::atomic<float>* shapeParam = nullptr;
@@ -69,6 +73,7 @@ private:
     float lastLengthRatio = -1.0f;
     int lastShapeType = -1;
     float lastStartOffset = 0.0f;
+    float lastOn = -1.0f;
 
     void loadResource (const juce::String& resourceName);
     void updateModifiedIR(); // Applies length/shape to originalIR and loads into wdlReverb

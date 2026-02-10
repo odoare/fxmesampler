@@ -8,6 +8,8 @@
 
 #include "MixerComponent.h"
 #include "EffectChainReverbComponent.h"
+#include "EffectChainDelay.h"
+#include "EffectChainDelayComponent.h"
 #include "EffectChainDynamicsComponent.h"
 //==============================================================================
 // StripComponent Base
@@ -747,6 +749,10 @@ MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueT
         else if (auto* reverbChain = dynamic_cast<EffectChainReverb*>(chain))
         {
             tabs.addTab (name, juce::Colours::black, new EffectChainReverbComponent (*reverbChain, apvts, name), true);
+        }
+        else if (auto* delayChain = dynamic_cast<EffectChainDelay*>(chain))
+        {
+            tabs.addTab (name, juce::Colours::black, new EffectChainDelayComponent (*delayChain, apvts, name), true);
         }
     };
 

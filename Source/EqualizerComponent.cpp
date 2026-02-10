@@ -257,7 +257,8 @@ void EqualizerComponent::paint (juce::Graphics& g)
     auto length = diagonale.getDistanceFromOrigin();
     auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
     auto height = float (getWidth() * getHeight()) / length;
-    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    //auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    auto bluegreengrey = juce::Colours::cyan.darker(3.f);
     juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
                            bluegreengrey, perpendicular * -height, false);
     g.setGradientFill(grad);
@@ -299,7 +300,7 @@ void EqualizerComponent::resized()
     feq.items.add(fi(feq4).withFlex(1.f));
     fbottom.items.add(fi(postGainSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(0.f, 20.f, 0.f, 10.f)));
     fbottom.items.add(fi(responseGraph).withFlex(1.4f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 0)));
-    fmain.items.add(fi(ftop).withFlex(0.15f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
+    fmain.items.add(fi(ftop).withFlex(0.13f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
     fmain.items.add(fi(feq).withFlex(1.f));
     fmain.items.add(fi(fbottom).withFlex(0.85f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0)));
 

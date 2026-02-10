@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    EffectChainReverb.h
+    EffectChainDelay.h
 
   ==============================================================================
 */
@@ -9,26 +9,20 @@
 #pragma once
 
 #include "EffectChain.h"
-#include "ConvolReverb.h"
-#include "Equalizer.h"
 #include "StereoDelay.h"
 
-class EffectChainReverb : public EffectChain
+class EffectChainDelay : public EffectChain
 {
 public:
-    EffectChainReverb();
+    EffectChainDelay();
     
     void prepare (double sampleRate, int samplesPerBlock, int numChannels) override;
     void process (juce::AudioBuffer<float>& buffer) override;
     void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix) override;
 
-    ConvolReverb& getReverb() { return reverb; }
-    Equalizer& getEQ() { return eq; }
     StereoDelay& getDelay() { return delay; }
     
 private:
-    ConvolReverb reverb;
-    Equalizer eq;
     StereoDelay delay;
 };

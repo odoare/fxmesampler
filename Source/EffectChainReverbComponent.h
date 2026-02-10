@@ -12,6 +12,7 @@
 #include "EffectChainReverb.h"
 #include "ConvolReverbComponent.h"
 #include "EqualizerComponent.h"
+#include "StereoDelayComponent.h"
 
 class EffectChainReverbComponent : public EffectChainComponent
 {
@@ -23,4 +24,5 @@ private:
     EffectChainReverb& chain;
     ConvolReverbComponent reverbComp;
     EqualizerComponent eqComp;
+    StereoDelayComponent delayComp;
 };

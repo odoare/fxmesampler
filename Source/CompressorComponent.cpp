@@ -93,7 +93,8 @@ void CompressorComponent::paint (juce::Graphics& g)
     auto length = diagonale.getDistanceFromOrigin();
     auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
     auto height = float (getWidth() * getHeight()) / length;
-    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    //auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    auto bluegreengrey = juce::Colours::red.darker(4.f);
     juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
                            bluegreengrey, perpendicular * -height, false);
     g.setGradientFill(grad);
@@ -125,7 +126,7 @@ void CompressorComponent::resized()
     f5.items.add(fi(grMeter).withFlex(0.15f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 0)));
     f5.items.add(fi(gainSlider).withFlex(0.15f));
 
-    fMain.items.add(fi(f1).withFlex(0.13f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
+    fMain.items.add(fi(f1).withFlex(0.11f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
     fMain.items.add(fi(f5).withFlex(1.f));
 
     fMain.performLayout(area);

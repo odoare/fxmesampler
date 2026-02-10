@@ -16,18 +16,21 @@ void EffectChainReverb::prepare (double sampleRate, int samplesPerBlock, int num
 {
     reverb.prepare (sampleRate, samplesPerBlock);
     eq.prepare (sampleRate, numChannels);
+    delay.prepare (sampleRate, samplesPerBlock);
 }
 
 void EffectChainReverb::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
 {
     reverb.assignParameters (apvts, prefix);
     eq.assignParameters (apvts, prefix);
+    delay.assignParameters (apvts, prefix);
 }
 
 void EffectChainReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
 {
     reverb.addParameters (params, prefix);
-    Equalizer::addParameters (params, prefix);
+    eq.addParameters (params, prefix);
+    delay.addParameters (params,prefix);
 }
 
 void EffectChainReverb::process (juce::AudioBuffer<float>& buffer)
@@ -37,4 +40,6 @@ void EffectChainReverb::process (juce::AudioBuffer<float>& buffer)
     reverb.process (buffer);
     eq.checkParameters();
     eq.process (buffer);
+    delay.checkParameters();
+    delay.process(buffer);
 }

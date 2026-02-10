@@ -11,6 +11,18 @@
 #include <JuceHeader.h>
 #include "ConvolReverb.h"
 
+class ImpulseResponsePlot : public juce::Component
+{
+public:
+    ImpulseResponsePlot(ConvolReverb& r);
+    void paint(juce::Graphics& g) override;
+    void updateGraph();
+
+private:
+    ConvolReverb& reverb;
+    juce::Path irPlotPathL, irPlotPathR, irMaxPathL, irMaxPathR;
+};
+
 class ConvolReverbComponent : public juce::Component, public juce::Timer
 {
 public:
@@ -26,6 +38,7 @@ private:
     juce::AudioProcessorValueTreeState& apvts;
 
     juce::Label titleLabel;
+    juce::ToggleButton onButton;
 
     juce::ComboBox irBox;
     juce::Label irLabel;
@@ -37,12 +50,12 @@ private:
     juce::Label shapeLabel;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lengthAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> startOffsetAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> shapeAtt;
 
-    juce::Path irPlotPathL, irPlotPathR, irMaxPathL, irMaxPathR;
-    void updateGraph();    
+    ImpulseResponsePlot irPlot;
     std::atomic<bool> graphNeedsUpdate { false };
     
     fxme::FxmeLookAndFeel fxmeLookAndFeel;

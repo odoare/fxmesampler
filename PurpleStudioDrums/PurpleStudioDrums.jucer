@@ -110,6 +110,14 @@
             file="../Source/EffectChainComponent.cpp"/>
       <FILE id="aJjmjs" name="EffectChainComponent.h" compile="0" resource="0"
             file="../Source/EffectChainComponent.h"/>
+      <FILE id="kNod4D" name="EffectChainDelay.cpp" compile="1" resource="0"
+            file="../Source/EffectChainDelay.cpp"/>
+      <FILE id="wqLZsE" name="EffectChainDelay.h" compile="0" resource="0"
+            file="../Source/EffectChainDelay.h"/>
+      <FILE id="nGcdqa" name="EffectChainDelayComponent.cpp" compile="1"
+            resource="0" file="../Source/EffectChainDelayComponent.cpp"/>
+      <FILE id="JNZPvw" name="EffectChainDelayComponent.h" compile="0" resource="0"
+            file="../Source/EffectChainDelayComponent.h"/>
       <FILE id="Z13cnH" name="EffectChainDynamics.cpp" compile="1" resource="0"
             file="../Source/EffectChainDynamics.cpp"/>
       <FILE id="nqQUTw" name="EffectChainDynamics.h" compile="0" resource="0"
@@ -155,6 +163,12 @@
             file="../Source/SamplerComponent.cpp"/>
       <FILE id="l7HUrf" name="SamplerComponent.h" compile="0" resource="0"
             file="../Source/SamplerComponent.h"/>
+      <FILE id="WDBK3h" name="StereoDelay.cpp" compile="1" resource="0" file="../Source/StereoDelay.cpp"/>
+      <FILE id="NwTLnP" name="StereoDelay.h" compile="0" resource="0" file="../Source/StereoDelay.h"/>
+      <FILE id="R2RCiL" name="StereoDelayComponent.cpp" compile="1" resource="0"
+            file="../Source/StereoDelayComponent.cpp"/>
+      <FILE id="pm45xd" name="StereoDelayComponent.h" compile="0" resource="0"
+            file="../Source/StereoDelayComponent.h"/>
       <FILE id="n4ZUbQ" name="Tube.cpp" compile="1" resource="0" file="../Source/Tube.cpp"/>
       <FILE id="mfRcRb" name="Tube.h" compile="0" resource="0" file="../Source/Tube.h"/>
       <FILE id="csEOjd" name="TubeComponent.cpp" compile="1" resource="0"

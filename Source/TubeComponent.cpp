@@ -101,7 +101,8 @@ void TubeComponent::paint (juce::Graphics& g)
     auto length = diagonale.getDistanceFromOrigin();
     auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
     auto height = float (getWidth() * getHeight()) / length;
-    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    //auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    auto bluegreengrey = juce::Colours::orange.darker(4.f);
     juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
                            bluegreengrey, perpendicular * -height, false);
     g.setGradientFill(grad);
@@ -125,31 +126,8 @@ void TubeComponent::resized()
     f2.items.add(fi(biasSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
     f2.items.add(fi(outSlider).withFlex(0.3f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 5.f, 5.f)));
 
-    fMain.items.add(fi(f1).withFlex(0.18f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
+    fMain.items.add(fi(f1).withFlex(0.2f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));
     fMain.items.add(fi(f2).withFlex(0.9f));
 
     fMain.performLayout(area);
-
-    // auto header = area.removeFromTop (25);
-    // onButton.setBounds (header.removeFromLeft (40));
-    // modelBox.setBounds (header.removeFromRight (80));
-    // titleLabel.setBounds (header);
-
-    // tubeImage.setBounds(area.reduced(10));
-
-    // int w = area.getWidth() / 3;
-    // auto layout = [&](juce::Slider& s, juce::Label& l, int idx) { 
-    //     auto r = area.withX(area.getX() + idx*w).withWidth(w).reduced(5); 
-    //     if (s.getSliderStyle() == juce::Slider::LinearBarVertical)
-    //     {
-    //         s.setBounds(r);
-    //     }
-    //     else
-    //     {
-    //         l.setBounds(r.removeFromTop(20)); s.setBounds(r); 
-    //     }
-    // };
-    // layout (driveSlider, driveLabel, 0);
-    // layout (biasSlider, biasLabel, 1);
-    // layout (outSlider, outLabel, 2);
 }

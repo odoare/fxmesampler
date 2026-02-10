@@ -29,6 +29,8 @@ void ConvolReverb::process (juce::AudioBuffer<float>& buffer)
 
     checkParameters(); // Update parameters before processing
     
+    if (!on) return;
+
     int numSamples = buffer.getNumSamples();
     int numChannels = buffer.getNumChannels();
 
@@ -122,27 +124,34 @@ void ConvolReverb::setStartOffset (float offsetMs)
     }
 }
 
+void ConvolReverb::setOn (bool shouldBeOn)
+{
+    on = shouldBeOn;
+}
+
 void ConvolReverb::assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
 {
-    irParam = apvts.getRawParameterValue (prefix + "_IR");
-    lengthParam = apvts.getRawParameterValue (prefix + "_Length");
-    shapeParam = apvts.getRawParameterValue (prefix + "_Shape");
-    startOffsetParam = apvts.getRawParameterValue (prefix + "_StartOffset");
+    irParam = apvts.getRawParameterValue (prefix + "_Rev_IR");
+    lengthParam = apvts.getRawParameterValue (prefix + "_Rev_Length");
+    shapeParam = apvts.getRawParameterValue (prefix + "_Rev_Shape");
+    startOffsetParam = apvts.getRawParameterValue (prefix + "_Rev_StartOffset");
+    onParam = apvts.getRawParameterValue (prefix + "_Rev_On");
 }
 
 void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
 {
     // IR selection: range depends on the number of loaded IRs, but we need a fixed range for APVTS
     // Max 100 IRs for parameter definition, UI will limit to actual count.
-    params.push_back (std::make_unique<juce::AudioParameterInt> (juce::ParameterID { prefix + "_IR", 1 }, prefix + " IR", 0, 100, 0));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Length", 1 }, prefix + " Length", 0.0f, 1.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterInt> (juce::ParameterID { prefix + "_Rev_IR", 1 }, prefix + " Rev IR", 0, 100, 0));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_Length", 1 }, prefix + " Rev Length", 0.0f, 1.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "_Rev_On", 1 }, prefix + " Rev On", true));
     
     juce::StringArray shapes;
     shapes.add ("Fast Exp");
     shapes.add ("Linear");
     shapes.add ("Slow Log");
-    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Shape", 1 }, prefix + " Shape", shapes, 0));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_StartOffset", 1 }, prefix + " Start Offset", -100.0f, 100.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Rev_Shape", 1 }, prefix + " Rev Shape", shapes, 0));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_StartOffset", 1 }, prefix + " Rev Start Offset", -100.0f, 100.0f, 0.0f));
 }
 
 void ConvolReverb::loadResource (const juce::String& resourceName)
@@ -332,5 +341,11 @@ void ConvolReverb::checkParameters()
     {
         setStartOffset(*startOffsetParam);
         lastStartOffset = *startOffsetParam;
+    }
+
+    if (onParam && *onParam != lastOn)
+    {
+        setOn (*onParam > 0.5f);
+        lastOn = *onParam;
     }
 }

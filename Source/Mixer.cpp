@@ -7,6 +7,9 @@
 */
 
 #include "Mixer.h"
+#include "EffectChainDelay.h"
+#include "EffectChainDynamics.h"
+#include "EffectChainReverb.h"
 
 //==============================================================================
 void MixerStrip::processEffects (juce::AudioBuffer<float>& buffer)
@@ -869,6 +872,10 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
             else if (effectChainType.equalsIgnoreCase ("Reverb"))
             {
                 bus->setEffectChain (std::make_unique<EffectChainReverb>());
+            }
+            else if (effectChainType.equalsIgnoreCase ("Delay"))
+            {
+                bus->setEffectChain (std::make_unique<EffectChainDelay>());
             }
             // else if "None", effectChain remains nullptr
             

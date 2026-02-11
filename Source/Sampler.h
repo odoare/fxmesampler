@@ -23,6 +23,7 @@ struct SampleGroup
 {
     juce::String name;
     int muteGroup = 0;
+    int midiChannel = 0; // 0 = omni, 1-16 = specific channel
     bool isOneShot = true;
     bool isLoop = false;
     double attack = 0.001;
@@ -34,6 +35,7 @@ struct SampleGroup
 
     // Parameter pointers
     std::atomic<float>* oneShotParam = nullptr;
+    std::atomic<float>* midiChannelParam = nullptr;
     std::atomic<float>* attackParam = nullptr;
     std::atomic<float>* decayParam = nullptr;
     std::atomic<float>* sustainParam = nullptr;

@@ -293,6 +293,11 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             auto group = std::make_unique<SampleGroup>();
             group->name = child->getStringAttribute ("name");
             group->muteGroup = child->getIntAttribute ("muteGroup");
+            
+            juce::String mCh = child->getStringAttribute ("midiChannel", "0");
+            if (mCh.equalsIgnoreCase ("omni")) group->midiChannel = 0;
+            else group->midiChannel = mCh.getIntValue();
+
             group->isOneShot = child->getBoolAttribute ("oneShot", true);
             group->isLoop = child->getBoolAttribute ("loop", false);
             group->attack = child->getDoubleAttribute ("attack", 0.001);
@@ -417,6 +422,7 @@ void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     {
         juce::String prefix = group->getName() + "_";
         group->oneShotParam = apvts.getRawParameterValue (prefix + "OneShot");
+        group->midiChannelParam = apvts.getRawParameterValue (prefix + "MidiChannel");
         group->attackParam = apvts.getRawParameterValue (prefix + "Attack");
         group->decayParam = apvts.getRawParameterValue (prefix + "Decay");
         group->sustainParam = apvts.getRawParameterValue (prefix + "Sustain");
@@ -435,6 +441,7 @@ void SampleGroup::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
 {
     juce::String prefix = name + "_";
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "OneShot", 1 }, name + " One Shot", isOneShot));
+    params.push_back (std::make_unique<juce::AudioParameterInt> (juce::ParameterID { prefix + "MidiChannel", 1 }, name + " MIDI Channel", 0, 16, midiChannel));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Attack", 1 }, name + " Attack", 0.0f, 5.0f, (float)attack));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Decay", 1 }, name + " Decay", 0.0f, 5.0f, (float)decay));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Sustain", 1 }, name + " Sustain", 0.0f, 1.0f, (float)sustain));
@@ -448,6 +455,7 @@ void Sampler::updateParams()
     for (auto& group : sampleGroups)
     {
         if (group->oneShotParam) group->isOneShot = *group->oneShotParam > 0.5f;
+        if (group->midiChannelParam) group->midiChannel = (int)*group->midiChannelParam;
         if (group->attackParam) group->attack = *group->attackParam;
         if (group->decayParam) group->decay = *group->decayParam;
         if (group->sustainParam) group->sustain = *group->sustainParam;
@@ -479,11 +487,15 @@ void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& 
             int note = message.getNoteNumber();
             int velocity = message.getVelocity();
             float velocityFloat = message.getFloatVelocity();
+            int channel = message.getChannel();
 
             for (const auto& sound : sounds)
             {
                 if (sound.midiNoteRange.contains (note) && sound.velocityRange.contains (velocity))
                 {
+                    if (sound.group && sound.group->midiChannel != 0 && sound.group->midiChannel != channel)
+                        continue;
+
                     // Handle Mute Groups
                     if (sound.muteGroup > 0) // Choke group 0 corresponds to no mute behaviour
                     {
@@ -504,10 +516,14 @@ void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& 
         else if (message.isNoteOff())
         {
             int note = message.getNoteNumber();
+            int channel = message.getChannel();
             for (auto& voice : voices)
             {
                 if (voice->isActive() && voice->getSound())
                 {
+                    if (voice->getSound()->group && voice->getSound()->group->midiChannel != 0 && voice->getSound()->group->midiChannel != channel)
+                        continue;
+
                     bool isOneShot = voice->getSound()->isOneShot;
                     if (voice->getSound()->group) isOneShot = voice->getSound()->group->isOneShot;
                     

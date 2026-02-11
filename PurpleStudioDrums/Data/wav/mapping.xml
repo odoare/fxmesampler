@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <Mappings>
+  <WelcomeTab text="This is a welcome text" img="logo686.png" />
   <Master channels="10" img="logo686.png" color="55,169,181"/>
 
   <Mixer>
@@ -34,7 +36,7 @@
   <Sound name="Kick_5" group="Kick" resource="Kick Kick 05 0 36 36 36.wav" basePitch="36" noteLow="36" noteHigh="36" velLow="85" velHigh="105"/>
   <Sound name="Kick_6" group="Kick" resource="Kick Kick 06 0 36 36 36.wav" basePitch="36" noteLow="36" noteHigh="36" velLow="106" velHigh="127"/>
 
-  <SampleGroup name="Snare" channels="0:6, 1:7" muteGroup="0" oneShot="true" attack="0.001" decay="0.0" sustain="1.0" release="0.1"/>
+  <SampleGroup name="Snare" channels="0:6, 1:7" muteGroup="0" oneShot="false" loop="true" attack="0.001" decay="0.0" sustain="1.0" release="0.1"/>
   <Sound name="Snare_1" group="Snare" resource="Snare Snare 01 0 38 38 38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="0" velHigh="15"/>
   <Sound name="Snare_2" group="Snare" resource="Snare Snare 02 0 38 38 38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="16" velHigh="31"/>
   <Sound name="Snare_3" group="Snare" resource="Snare Snare 03 0 38 38 38.wav" basePitch="38" noteLow="38" noteHigh="38" velLow="32" velHigh="47"/>

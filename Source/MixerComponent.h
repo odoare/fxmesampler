@@ -249,6 +249,19 @@ private:
     VuMeterComponent meterL, meterR;
 };
 
+class WelcomeComponent : public juce::Component
+{
+public:
+    WelcomeComponent() = default;
+    void setText(const juce::String& t) { text = t; }
+    void setImage(const juce::Image& i) { img = i; }
+    void paint(juce::Graphics& g) override;
+    void resized() override;
+private:
+    juce::String text;
+    juce::Image img;
+};
+
 /**
  * @class MixerComponent
  * @brief The main component containing the mixer interface.
@@ -288,6 +301,7 @@ private:
     
     LevelsComponent levelsComp;
     SamplerComponent samplerComp;
+    WelcomeComponent welcomeComp;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MixerComponent)
 };

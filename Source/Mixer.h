@@ -258,6 +258,9 @@ public:
 
     const std::vector<std::unique_ptr<MixerStrip>>& getStrips() const { return strips; }
     MasterStrip& getMasterStrip() { return masterStrip; }
+    
+    juce::String getWelcomeText() const { return welcomeText; }
+    juce::Image getWelcomeImage() const { return welcomeImage; }
 
 private:
     std::vector<std::unique_ptr<MixerStrip>> strips;
@@ -265,5 +268,8 @@ private:
     juce::AudioBuffer<float> mixBuffer;
     double currentSampleRate = 44100.0;
     int currentSamplesPerBlock = 512;
+    
+    juce::String welcomeText;
+    juce::Image welcomeImage;
     juce::CriticalSection lock;
 };

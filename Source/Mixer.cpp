@@ -789,6 +789,29 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
     if (root == nullptr || ! root->hasTagName ("Mappings"))
         return;
 
+    auto* welcomeNode = root->getChildByName ("WelcomeTab");
+    if (welcomeNode != nullptr)
+    {
+        welcomeText = welcomeNode->getStringAttribute ("text");
+        juce::String imgName = welcomeNode->getStringAttribute ("img");
+        if (imgName.isNotEmpty())
+        {
+            juce::String resourceName = imgName.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+            int dataSize = 0;
+            const char* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), dataSize);
+
+            if (data == nullptr)
+            {
+                for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+                    if (resourceName.equalsIgnoreCase (BinaryData::namedResourceList[i]))
+                        { data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], dataSize); break; }
+            }
+
+            if (data != nullptr)
+                welcomeImage = juce::ImageCache::getFromMemory (data, dataSize);
+        }
+    }
+
     auto* masterNode = root->getChildByName ("Master");
     if (masterNode != nullptr)
     {

@@ -689,6 +689,24 @@ void MasterStripComponent::updateMeters()
     meterR.setValue (masterStrip.meterR.getRMS());
 }
 
+void WelcomeComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::black);
+    auto area = getLocalBounds().toFloat().reduced(20);
+    
+    if (img.isValid())
+    {
+        auto imgArea = area.removeFromTop(area.getHeight() * 0.7f);
+        g.drawImage(img, imgArea, juce::RectanglePlacement::centred);
+    }
+    
+    g.setColour(juce::Colours::white);
+    g.setFont(24.0f);
+    g.drawFittedText(text, area.toNearestInt(), juce::Justification::centred, 10);
+}
+
+void WelcomeComponent::resized() {}
+
 //==============================================================================
 MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessorValueTreeState& state)
     : mixer (m)
@@ -734,6 +752,10 @@ void MixerComponent::LevelsComponent::resized()
 MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueTreeState& state)
     : mixer (m), apvts (state), tabs (juce::TabbedButtonBar::TabsAtTop), levelsComp (m, state), samplerComp (s, state)
 {
+    welcomeComp.setText(mixer.getWelcomeText());
+    welcomeComp.setImage(mixer.getWelcomeImage());
+    tabs.addTab("Welcome", juce::Colours::black, &welcomeComp, false);
+
     tabs.addTab ("Levels", juce::Colours::black, &levelsComp, false);
     
     // We create EffectChainComponents dynamically and pass ownership to the tabs

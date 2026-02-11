@@ -54,7 +54,7 @@ Optional. Configures the master output strip.
 
 | Attribute | Type | Description |
 | :--- | :--- | :--- |
-| `channels` | Integer | Total number of output channels for the plugin (default: 2). |
+| `channels` | Integer | Total number of internal channels feeding the mixer strips. This must correspond to the sum of channels required by all defined strips (e.g., 4 for Ambisonic, 2 for Stereo). |
 | `img` | String | Icon resource for the master strip. |
 | `color` | String | Color for the strip (format: "r,g,b" or color name). |
 

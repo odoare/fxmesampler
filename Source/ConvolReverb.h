@@ -22,7 +22,7 @@ public:
     void prepare (double sampleRate, int samplesPerBlock);
     void process (juce::AudioBuffer<float>& buffer);
 
-    void setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resourceNames);
+    void setImpulseList (const juce::StringArray& names, const juce::StringArray& resourceNames);
     void selectImpulse (int index);
     void setLengthRatio (float ratio); // 0.0 to 1.0
     void setShapeType (int type); // 0: Exp, 1: Lin, 2: Log
@@ -30,7 +30,7 @@ public:
     void setOn (bool shouldBeOn);
     bool isOn() const { return on; }
 
-    const std::vector<juce::String>& getImpulseNames() const { return irNames; }
+    const juce::StringArray& getImpulseNames() const { return irNames; }
     juce::AudioBuffer<float> getModifiedIR() const;
     int getCurrentImpulseIndex() const { return currentIndex; }
     float getCurrentLengthRatio() const { return currentLengthRatio; }
@@ -50,8 +50,8 @@ private:
 
     double currentSampleRate = 44100.0;
 
-    std::vector<juce::String> irNames;
-    std::vector<juce::String> irResources;
+    juce::StringArray irNames;
+    juce::StringArray irResources;
     juce::AudioBuffer<float> originalIR; // Stores the raw loaded IR
     juce::AudioBuffer<float> modifiedIR; // Stores the IR after length/shape modifications
 

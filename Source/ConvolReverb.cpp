@@ -75,11 +75,11 @@ void ConvolReverb::process (juce::AudioBuffer<float>& buffer)
     engine.Advance (toCopy);
 }
 
-void ConvolReverb::setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources)
+void ConvolReverb::setImpulseList (const juce::StringArray& names, const juce::StringArray& resources)
 {
     irNames = names;
     irResources = resources;
-    if (!irResources.empty())
+    if (!irResources.isEmpty())
         selectImpulse (0); // Select the first one by default
 }
 

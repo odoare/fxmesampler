@@ -163,7 +163,7 @@ public:
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
-    void setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources);
+    void setImpulseList (const juce::StringArray& names, const juce::StringArray& resources);
 
     ConvolReverb reverb;
     float pan = 0.0f;
@@ -185,7 +185,7 @@ public:
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
     void clearMeters() override;
-    void setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources);
+    void setImpulseList (const juce::StringArray& names, const juce::StringArray& resources);
 
     ConvolReverb reverb;
     float pan = 0.0f;

@@ -427,7 +427,7 @@ void StereoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedA
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
 }
 
-void StereoReverbStrip::setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources)
+void StereoReverbStrip::setImpulseList (const juce::StringArray& names, const juce::StringArray& resources)
 {
     reverb.setImpulseList (names, resources);
 }
@@ -515,7 +515,7 @@ void MonoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAud
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
 }
 
-void MonoReverbStrip::setImpulseList (const std::vector<juce::String>& names, const std::vector<juce::String>& resources)
+void MonoReverbStrip::setImpulseList (const juce::StringArray& names, const juce::StringArray& resources)
 {
     reverb.setImpulseList (names, resources);
 }
@@ -962,8 +962,8 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
                 if (irName.isNotEmpty())
                 {
                     juce::StringArray resources = juce::StringArray::fromTokens (irName, ",", "");
-                    std::vector<juce::String> namesList;
-                    std::vector<juce::String> resList;
+                    juce::StringArray namesList;
+                    juce::StringArray resList;
 
                     for (auto& res : resources)
                     {
@@ -971,8 +971,8 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
                         if (trimmedRes.isNotEmpty())
                         {
                             juce::String resourceName = trimmedRes.replaceCharacter ('.', '_').replaceCharacter (' ', '_');
-                            resList.push_back (resourceName);
-                            namesList.push_back (trimmedRes);
+                            resList.add (resourceName);
+                            namesList.add (trimmedRes);
                         }
                     }
 

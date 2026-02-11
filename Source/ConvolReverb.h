@@ -45,7 +45,7 @@ private:
     WDL_ImpulseBuffer impulseBuffer;
     WDL_ConvolutionEngine_Div engine;
     mutable juce::CriticalSection lock;
-    std::vector<std::vector<WDL_FFT_REAL>> wdlInputData;
+    juce::AudioBuffer<WDL_FFT_REAL> wdlInputBuffer;
     std::vector<WDL_FFT_REAL*> wdlInputPtrs;
 
     double currentSampleRate = 44100.0;

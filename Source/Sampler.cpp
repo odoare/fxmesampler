@@ -10,6 +10,7 @@
 
 #include "Sampler.h"
 #include <map>
+#include <cmath>
 
 //==============================================================================
 void Sound::load (juce::AudioFormatManager& formatManager)
@@ -183,28 +184,18 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
         int pos = (int) currentPosition;
         float alpha = (float) (currentPosition - pos);
 
-        if (!isLooping)
+        if (!isLooping && pos >= activeSound->sampleEnd)
         {
-            if (pos >= activeSound->sampleEnd)
-            {
-                stop();
-                return;
-            }
-        }
-        else
-        {
-            if (pos >= activeSound->loopEnd)
-            {
-                // This will be handled in the next position update, but for interpolation we need to be careful
-            }
+            stop();
+            return;
         }
 
-        for (size_t i = 0; i < targetChannels.size(); i += 2)
+        for (size_t i = 0; i + 1 < targetChannels.size(); i += 2)
         {
             int srcCh = targetChannels[i];
             int outCh = targetChannels[i + 1];
 
-            if (outCh < numOutputChannels && srcCh < numSourceChannels)
+            if (outCh >= 0 && outCh < numOutputChannels && srcCh >= 0 && srcCh < numSourceChannels && pos >= 0 && pos < sourceBuffer.getNumSamples())
             {
                 float sample = sourceBuffer.getSample (srcCh, pos);
                 
@@ -229,7 +220,12 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
         {
             if (currentPosition >= (double)activeSound->loopEnd + 1.0) // Passed the end of the loop
             {
-                currentPosition = (double)activeSound->loopStart + (currentPosition - ((double)activeSound->loopEnd + 1.0));
+                double loopLen = (double)activeSound->loopEnd - (double)activeSound->loopStart + 1.0;
+                double over = currentPosition - ((double)activeSound->loopEnd + 1.0);
+                if (loopLen > 0.0)
+                    currentPosition = (double)activeSound->loopStart + std::fmod(over, loopLen);
+                else
+                    currentPosition = (double)activeSound->loopStart;
             }
         }
     }
@@ -252,7 +248,7 @@ void Sampler::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
     juce::ignoreUnused (samplesPerBlock);
-}
+}   
 
 void Sampler::addSound (const Sound& sound)
 {
@@ -477,6 +473,7 @@ Voice* Sampler::findFreeVoice()
 
 void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    // std::cout << "In process block" << std::endl;
     juce::ScopedLock sl (lock);
     // Process MIDI events to trigger sounds
     for (const auto metadata : midiMessages)
@@ -544,4 +541,5 @@ void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& 
             voice->renderNextBlock (buffer, 0, buffer.getNumSamples());
         }
     }
+    // std::cout << "Out of process block" << std::endl;
 }

@@ -16,8 +16,10 @@ void Tube::prepare (double sampleRate)
 {
     currentSampleRate = sampleRate;
     envelope = 0.0f;
-    x1.clear();
-    y1.clear();
+    // Pre-allocate for a maximum of 4 channels to be safe in real-time.
+    const int maxChannels = 4;
+    x1.resize(maxChannels, 0.0f);
+    y1.resize(maxChannels, 0.0f);
 }
 
 void Tube::setDrive (float drivedB) { drive = juce::Decibels::decibelsToGain (drivedB); }
@@ -61,11 +63,7 @@ void Tube::process (juce::AudioBuffer<float>& buffer)
     int numChannels = buffer.getNumChannels();
     int numSamples = buffer.getNumSamples();
 
-    if ((int)x1.size() < numChannels)
-    {
-        x1.resize (numChannels, 0.0f);
-        y1.resize (numChannels, 0.0f);
-    }
+    if (numChannels > (int)x1.size()) return; // Safety check
 
     // Coefficients for envelope follower (approx 50ms attack, 100ms release)
     // Slower attack reduces control signal feedthrough (thump)

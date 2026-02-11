@@ -20,7 +20,9 @@ void ConvolReverb::prepare (double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
     engine.Reset();
-    juce::ignoreUnused (samplesPerBlock);
+    const int maxChannels = 4; // Pre-allocate for a maximum number of channels
+    wdlInputBuffer.setSize(maxChannels, samplesPerBlock, false, true, true);
+    wdlInputPtrs.resize(maxChannels);
 }
 
 void ConvolReverb::process (juce::AudioBuffer<float>& buffer)
@@ -32,42 +34,39 @@ void ConvolReverb::process (juce::AudioBuffer<float>& buffer)
     if (!on) return;
 
     int numSamples = buffer.getNumSamples();
-    int numChannels = buffer.getNumChannels();
+    int numInputChannels = buffer.getNumChannels();
+    int numImpulseChannels = impulseBuffer.GetNumChannels();
+    int channelsToProcess = juce::jmin(numInputChannels, numImpulseChannels);
 
-    if ((int) wdlInputData.size() < numChannels) wdlInputData.resize (numChannels);
-    if ((int) wdlInputPtrs.size() < numChannels) wdlInputPtrs.resize (numChannels);
+    if (channelsToProcess == 0)
+        return;
 
-    for (int c = 0; c < numChannels; ++c)
+    if (wdlInputBuffer.getNumSamples() < numSamples)
+        wdlInputBuffer.setSize(wdlInputBuffer.getNumChannels(), numSamples, false, true, true);
+
+    for (int c = 0; c < channelsToProcess; ++c)
     {
-        wdlInputData[c].resize (numSamples);
         auto* src = buffer.getReadPointer (c);
-        auto* dst = wdlInputData[c].data();
+        auto* dst = wdlInputBuffer.getWritePointer(c);
         for (int i = 0; i < numSamples; ++i)
             dst[i] = (WDL_FFT_REAL) src[i];
-        wdlInputPtrs[c] = wdlInputData[c].data();
+        wdlInputPtrs[c] = dst;
     }
 
-    engine.Add (wdlInputPtrs.data(), numSamples, numChannels);
+    engine.Add (wdlInputPtrs.data(), numSamples, channelsToProcess);
 
     int avail = engine.Avail (numSamples);
     WDL_FFT_REAL** out = engine.Get();
     int toCopy = juce::jmin (avail, numSamples);
 
-    for (int c = 0; c < numChannels; ++c)
+    for (int c = 0; c < channelsToProcess; ++c)
     {
         auto* dst = buffer.getWritePointer (c);
         
         // If the engine has output for this channel
-        if (c < impulseBuffer.GetNumChannels())
-        {
-            auto* src = out[c];
-            for (int i = 0; i < toCopy; ++i)
-                dst[i] = (float) src[i];
-        }
-        else
-        {
-            juce::FloatVectorOperations::clear (dst, toCopy);
-        }
+        auto* src = out[c];
+        for (int i = 0; i < toCopy; ++i)
+            dst[i] = (float) src[i];
 
         if (toCopy < numSamples)
             juce::FloatVectorOperations::clear (dst + toCopy, numSamples - toCopy);

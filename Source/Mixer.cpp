@@ -95,16 +95,14 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     tempBuffer.clear();
     // AmbixToMS expects 4 channels starting at 0 in its input buffer logic, 
     // but we pass a subset or use pointers. AmbixToMS::process takes buffers.
-    // We need to create a proxy buffer for the input channels.
-    juce::AudioBuffer<float> proxyBuffer;
     // const_cast is ugly but AudioBuffer doesn't have a const-correct subset creation easily without copying
     // However, AmbixToMS::process takes const input.
     // We can create a buffer that points to the data.
-    std::vector<const float*> readPointers;
+    const float* readPointers[4];
     for (int i = 0; i < 4; ++i)
-        readPointers.push_back (input.getReadPointer (inputChannelOffset + i));
+        readPointers[i] = input.getReadPointer (inputChannelOffset + i);
     
-    juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers.data()), 4, input.getNumSamples());
+    juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers), 4, input.getNumSamples());
 
     ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
     processEffects (tempBuffer);
@@ -601,6 +599,10 @@ void BusStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParam
 
 void BusStrip::addInput (const juce::AudioBuffer<float>& source, float gain)
 {
+    // Ensure busBuffer is large enough to hold the source
+    if (busBuffer.getNumSamples() < source.getNumSamples())
+        busBuffer.setSize (2, source.getNumSamples(), true, true, true);
+
     // Mix source into busBuffer. Source can be mono or stereo.
     // busBuffer is stereo.
     if (source.getNumChannels() == 1)
@@ -629,17 +631,24 @@ void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer
     if (wParam) width = *wParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
-    if (tempBuffer.getNumSamples() != busBuffer.getNumSamples())
-        tempBuffer.setSize (2, busBuffer.getNumSamples(), false, false, true);
+    int numSamples = output.getNumSamples();
 
-    tempBuffer.makeCopyOf (busBuffer);
+    if (tempBuffer.getNumSamples() != numSamples)
+        tempBuffer.setSize (2, numSamples, false, false, true);
+
+    // Ensure busBuffer has enough data (it should from addInput, but safety first)
+    if (busBuffer.getNumSamples() < numSamples)
+        busBuffer.setSize(2, numSamples, true, true, true);
+
+    for (int i = 0; i < 2; ++i)
+        tempBuffer.copyFrom (i, 0, busBuffer, i, 0, numSamples);
 
     // Width processing (Standard M/S width control for stereo sources)
     if (std::abs(width - 1.0f) > 0.001f)
     {
         auto* l = tempBuffer.getWritePointer(0);
         auto* r = tempBuffer.getWritePointer(1);
-        for (int i = 0; i < tempBuffer.getNumSamples(); ++i)
+        for (int i = 0; i < numSamples; ++i)
         {
             float mid = (l[i] + r[i]) * 0.5f;
             float side = (l[i] - r[i]) * 0.5f * width;
@@ -656,14 +665,14 @@ void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer
     float gainL = 0.5f * (1.0f - pan);
     float gainR = 0.5f * (1.0f + pan);
     
-    tempBuffer.applyGain (0, 0, tempBuffer.getNumSamples(), gainL);
-    tempBuffer.applyGain (1, 0, tempBuffer.getNumSamples(), gainR);
+    tempBuffer.applyGain (0, 0, numSamples, gainL);
+    tempBuffer.applyGain (1, 0, numSamples, gainR);
 
-    meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
-    meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
+    meterL.process (tempBuffer.getReadPointer (0), numSamples);
+    meterR.process (tempBuffer.getReadPointer (1), numSamples);
 
     for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+        output.addFrom (ch, 0, tempBuffer, ch, 0, numSamples);
 }
 
 void BusStrip::clearMeters()

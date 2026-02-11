@@ -15,7 +15,10 @@ Equalizer::Equalizer()
 void Equalizer::prepare (double sampleRate, int numChannels)
 {
     currentSampleRate = sampleRate;
-    channels.resize (numChannels);
+    // Pre-allocate for a maximum of 4 channels to be safe in real-time.
+    const int maxChannels = 4;
+    channels.resize (maxChannels);
+
     for (auto& ch : channels)
     {
         ch.lowShelf.reset();
@@ -83,14 +86,11 @@ void Equalizer::process (juce::AudioBuffer<float>& buffer)
 {
     int numChannels = buffer.getNumChannels();
     int numSamples = buffer.getNumSamples();
-
-    // Ensure we have enough channel strips
-    if (numChannels > (int) channels.size())
-        prepare (currentSampleRate, numChannels);
-
+ 
     if (! on)
         return;
 
+    if (numChannels > (int)channels.size()) return; // Safety check
     for (int ch = 0; ch < numChannels; ++ch)
     {
         auto* data = buffer.getWritePointer (ch);

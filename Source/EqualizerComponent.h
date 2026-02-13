@@ -30,6 +30,9 @@ public:
      * @param b2F Band 2 Frequency slider.
      * @param b2Q Band 2 Q slider.
      * @param b2G Band 2 Gain slider.
+     * @param b3F Band 3 Frequency slider.
+     * @param b3Q Band 3 Q slider.
+     * @param b3G Band 3 Gain slider.
      * @param hsF High Shelf Frequency slider.
      * @param hsG High Shelf Gain slider.
      * @param postG Post Gain slider.
@@ -38,6 +41,7 @@ public:
     void setReferences (juce::Slider& lsF, juce::Slider& lsG,
                         juce::Slider& b1F, juce::Slider& b1Q, juce::Slider& b1G,
                         juce::Slider& b2F, juce::Slider& b2Q, juce::Slider& b2G,
+                        juce::Slider& b3F, juce::Slider& b3Q, juce::Slider& b3G,
                         juce::Slider& hsF, juce::Slider& hsG,
                         juce::Slider& postG,
                         juce::ToggleButton& onB);
@@ -52,6 +56,7 @@ private:
     juce::Slider *lsFreq = nullptr, *lsGain = nullptr;
     juce::Slider *b1Freq = nullptr, *b1Q = nullptr, *b1Gain = nullptr;
     juce::Slider *b2Freq = nullptr, *b2Q = nullptr, *b2Gain = nullptr;
+    juce::Slider *b3Freq = nullptr, *b3Q = nullptr, *b3Gain = nullptr;
     juce::Slider *hsFreq = nullptr, *hsGain = nullptr;
     juce::Slider *postGain = nullptr;
     juce::ToggleButton* onBtn = nullptr;
@@ -85,11 +90,12 @@ private:
     juce::ToggleButton onButton;
     juce::Label titleLabel;
     
-    // LowShelf, Band1, Band2, HighShelf
-    // LS: F, G. B1: F, Q, G. B2: F, Q, G. HS: F, G.
+    // LowShelf, Band1, Band2, Band3, HighShelf
+    // LS: F, G. B1: F, Q, G. B2: F, Q, G. B3: F, Q, G. HS: F, G.
     juce::Slider lsFreq, lsGain;
     juce::Slider b1Freq, b1Q, b1Gain;
     juce::Slider b2Freq, b2Q, b2Gain;
+    juce::Slider b3Freq, b3Q, b3Gain;
     juce::Slider hsFreq, hsGain;
     juce::Slider postGainSlider;
 
@@ -103,6 +109,7 @@ private:
     std::unique_ptr<SliderAttachment> lsFreqAtt, lsGainAtt;
     std::unique_ptr<SliderAttachment> b1FreqAtt, b1QAtt, b1GainAtt;
     std::unique_ptr<SliderAttachment> b2FreqAtt, b2QAtt, b2GainAtt;
+    std::unique_ptr<SliderAttachment> b3FreqAtt, b3QAtt, b3GainAtt;
     std::unique_ptr<SliderAttachment> hsFreqAtt, hsGainAtt;
 
     void setSliderColours (juce::Slider& s, juce::Colour c);

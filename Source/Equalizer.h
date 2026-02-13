@@ -63,6 +63,14 @@ public:
     void setBand2 (float freq, float Q, float gaindB);
 
     /**
+     * @brief Sets parameters for Band 3 (Peaking).
+     * @param freq The center frequency in Hz.
+     * @param Q The quality factor.
+     * @param gaindB The gain in decibels.
+     */
+    void setBand3 (float freq, float Q, float gaindB);
+
+    /**
      * @brief Sets parameters for Band 3 (High Shelf).
      * @param freq The corner frequency in Hz.
      * @param gaindB The gain in decibels.
@@ -115,6 +123,7 @@ private:
         Biquad lowShelf;
         Biquad band1;
         Biquad band2;
+        Biquad band3;
         Biquad highShelf;
     };
 
@@ -127,6 +136,7 @@ private:
     struct { float f, g; } lsParams { 100.0f, 0.0f };
     struct { float f, q, g; } b1Params { 500.0f, 1.0f, 0.0f };
     struct { float f, q, g; } b2Params { 2000.0f, 1.0f, 0.0f };
+    struct { float f, q, g; } b3Params { 3500.0f, 1.0f, 0.0f };
     struct { float f, g; } hsParams { 5000.0f, 0.0f };
 
     // Parameter Pointers
@@ -135,6 +145,7 @@ private:
     std::atomic<float>* lsFreqParam = nullptr; std::atomic<float>* lsGainParam = nullptr;
     std::atomic<float>* b1FreqParam = nullptr; std::atomic<float>* b1QParam = nullptr; std::atomic<float>* b1GainParam = nullptr;
     std::atomic<float>* b2FreqParam = nullptr; std::atomic<float>* b2QParam = nullptr; std::atomic<float>* b2GainParam = nullptr;
+    std::atomic<float>* b3FreqParam = nullptr; std::atomic<float>* b3QParam = nullptr; std::atomic<float>* b3GainParam = nullptr;
     std::atomic<float>* hsFreqParam = nullptr; std::atomic<float>* hsGainParam = nullptr;
 
     // Last values for change detection
@@ -143,6 +154,7 @@ private:
     float lastLsFreq = -1.0f, lastLsGain = -100.0f;
     float lastB1Freq = -1.0f, lastB1Q = -1.0f, lastB1Gain = -100.0f;
     float lastB2Freq = -1.0f, lastB2Q = -1.0f, lastB2Gain = -100.0f;
+    float lastB3Freq = -1.0f, lastB3Q = -1.0f, lastB3Gain = -100.0f;
     float lastHsFreq = -1.0f, lastHsGain = -100.0f;
 
     void updateCoefficients();

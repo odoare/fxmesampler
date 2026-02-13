@@ -24,6 +24,7 @@ void Equalizer::prepare (double sampleRate, int numChannels)
         ch.lowShelf.reset();
         ch.band1.reset();
         ch.band2.reset();
+        ch.band3.reset();
         ch.highShelf.reset();
     }
     updateCoefficients();
@@ -44,6 +45,12 @@ void Equalizer::setBand1 (float freq, float Q, float gaindB)
 void Equalizer::setBand2 (float freq, float Q, float gaindB)
 {
     b2Params.f = freq; b2Params.q = Q; b2Params.g = gaindB;
+    updateCoefficients();
+}
+
+void Equalizer::setBand3 (float freq, float Q, float gaindB)
+{
+    b3Params.f = freq; b3Params.q = Q; b3Params.g = gaindB;
     updateCoefficients();
 }
 
@@ -70,6 +77,7 @@ void Equalizer::updateCoefficients()
         calcLowShelf (ch.lowShelf, lsParams.f, lsParams.g);
         calcPeaking (ch.band1, b1Params.f, b1Params.q, b1Params.g);
         calcPeaking (ch.band2, b2Params.f, b2Params.q, b2Params.g);
+        calcPeaking (ch.band3, b3Params.f, b3Params.q, b3Params.g);
         calcHighShelf (ch.highShelf, hsParams.f, hsParams.g);
     }
 }
@@ -102,6 +110,7 @@ void Equalizer::process (juce::AudioBuffer<float>& buffer)
             s = strip.lowShelf.process (s);
             s = strip.band1.process (s);
             s = strip.band2.process (s);
+            s = strip.band3.process (s);
             s = strip.highShelf.process (s);
             s *= postGain;
             data[i] = s;
@@ -121,6 +130,9 @@ void Equalizer::assignParameters (juce::AudioProcessorValueTreeState& apvts, con
     b2FreqParam = apvts.getRawParameterValue (prefix + "_EQ_B2_Freq");
     b2QParam = apvts.getRawParameterValue (prefix + "_EQ_B2_Q");
     b2GainParam = apvts.getRawParameterValue (prefix + "_EQ_B2_Gain");
+    b3FreqParam = apvts.getRawParameterValue (prefix + "_EQ_B3_Freq");
+    b3QParam = apvts.getRawParameterValue (prefix + "_EQ_B3_Q");
+    b3GainParam = apvts.getRawParameterValue (prefix + "_EQ_B3_Gain");
     hsFreqParam = apvts.getRawParameterValue (prefix + "_EQ_HS_Freq");
     hsGainParam = apvts.getRawParameterValue (prefix + "_EQ_HS_Gain");
 }
@@ -131,12 +143,15 @@ void Equalizer::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPara
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_PostGain", 1 }, prefix + " EQ Post Gain", -24.0f, 24.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_LS_Freq", 1 }, prefix + " EQ LS Freq", 20.0f, 1000.0f, 100.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_LS_Gain", 1 }, prefix + " EQ LS Gain", -15.0f, 15.0f, 0.0f));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Freq", 1 }, prefix + " EQ B1 Freq", 100.0f, 5000.0f, 500.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Freq", 1 }, prefix + " EQ B1 Freq", 50.0f, 5000.0f, 500.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Q", 1 }, prefix + " EQ B1 Q", 0.1f, 10.0f, 1.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B1_Gain", 1 }, prefix + " EQ B1 Gain", -15.0f, 15.0f, 0.0f));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Freq", 1 }, prefix + " EQ B2 Freq", 500.0f, 10000.0f, 2000.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Freq", 1 }, prefix + " EQ B2 Freq", 100.0f, 10000.0f, 2000.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Q", 1 }, prefix + " EQ B2 Q", 0.1f, 10.0f, 1.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B2_Gain", 1 }, prefix + " EQ B2 Gain", -15.0f, 15.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B3_Freq", 1 }, prefix + " EQ B3 Freq", 500.0f, 15000.0f, 3500.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B3_Q", 1 }, prefix + " EQ B3 Q", 0.1f, 10.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_B3_Gain", 1 }, prefix + " EQ B3 Gain", -15.0f, 15.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_HS_Freq", 1 }, prefix + " EQ HS Freq", 1000.0f, 20000.0f, 5000.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_EQ_HS_Gain", 1 }, prefix + " EQ HS Gain", -15.0f, 15.0f, 0.0f));
 }
@@ -158,6 +173,10 @@ void Equalizer::checkParameters()
     if (b2FreqParam && *b2FreqParam != lastB2Freq) { b2Params.f = *b2FreqParam; lastB2Freq = b2Params.f; changed = true; }
     if (b2QParam && *b2QParam != lastB2Q)       { b2Params.q = *b2QParam;    lastB2Q = b2Params.q;    changed = true; }
     if (b2GainParam && *b2GainParam != lastB2Gain) { b2Params.g = *b2GainParam; lastB2Gain = b2Params.g; changed = true; }
+
+    if (b3FreqParam && *b3FreqParam != lastB3Freq) { b3Params.f = *b3FreqParam; lastB3Freq = b3Params.f; changed = true; }
+    if (b3QParam && *b3QParam != lastB3Q)       { b3Params.q = *b3QParam;    lastB3Q = b3Params.q;    changed = true; }
+    if (b3GainParam && *b3GainParam != lastB3Gain) { b3Params.g = *b3GainParam; lastB3Gain = b3Params.g; changed = true; }
 
     if (hsFreqParam && *hsFreqParam != lastHsFreq) { hsParams.f = *hsFreqParam; lastHsFreq = hsParams.f; changed = true; }
     if (hsGainParam && *hsGainParam != lastHsGain) { hsParams.g = *hsGainParam; lastHsGain = hsParams.g; changed = true; }

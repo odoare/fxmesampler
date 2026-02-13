@@ -15,6 +15,7 @@
 void FrequencyResponseGraph::setReferences (juce::Slider& lsF, juce::Slider& lsG,
                                             juce::Slider& b1F, juce::Slider& b1Qq, juce::Slider& b1G,
                                             juce::Slider& b2F, juce::Slider& b2Qq, juce::Slider& b2G,
+                                            juce::Slider& b3F, juce::Slider& b3Qq, juce::Slider& b3G,
                                             juce::Slider& hsF, juce::Slider& hsG,
                                             juce::Slider& postG,
                                             juce::ToggleButton& onB)
@@ -22,6 +23,7 @@ void FrequencyResponseGraph::setReferences (juce::Slider& lsF, juce::Slider& lsG
     lsFreq = &lsF; lsGain = &lsG;
     b1Freq = &b1F; b1Q = &b1Qq; b1Gain = &b1G;
     b2Freq = &b2F; b2Q = &b2Qq; b2Gain = &b2G;
+    b3Freq = &b3F; b3Q = &b3Qq; b3Gain = &b3G;
     hsFreq = &hsF; hsGain = &hsG;
     postGain = &postG;
     onBtn = &onB;
@@ -102,6 +104,9 @@ void FrequencyResponseGraph::updateCurve()
     double b0_b2, b1_b2, b2_b2, a1_b2, a2_b2;
     calcCoeffs (b2Freq->getValue(), b2Q->getValue(), b2Gain->getValue(), 1, b0_b2, b1_b2, b2_b2, a1_b2, a2_b2);
 
+    double b0_b3, b1_b3, b2_b3, a1_b3, a2_b3;
+    calcCoeffs (b3Freq->getValue(), b3Q->getValue(), b3Gain->getValue(), 1, b0_b3, b1_b3, b2_b3, a1_b3, a2_b3);
+
     double b0_hs, b1_hs, b2_hs, a1_hs, a2_hs;
     calcCoeffs (hsFreq->getValue(), 0.0, hsGain->getValue(), 2, b0_hs, b1_hs, b2_hs, a1_hs, a2_hs);
 
@@ -114,6 +119,7 @@ void FrequencyResponseGraph::updateCurve()
         mag *= getMagnitude (b0_ls, b1_ls, b2_ls, a1_ls, a2_ls, freq, sr);
         mag *= getMagnitude (b0_b1, b1_b1, b2_b1, a1_b1, a2_b1, freq, sr);
         mag *= getMagnitude (b0_b2, b1_b2, b2_b2, a1_b2, a2_b2, freq, sr);
+        mag *= getMagnitude (b0_b3, b1_b3, b2_b3, a1_b3, a2_b3, freq, sr);
         mag *= getMagnitude (b0_hs, b1_hs, b2_hs, a1_hs, a2_hs, freq, sr);
 
         double db = juce::Decibels::gainToDecibels (mag);
@@ -182,7 +188,7 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     onButton.onClick = [this] { responseGraph.updateCurve(); };
 
     addAndMakeVisible (titleLabel);
-    titleLabel.setText ("Equalizer (LS / Peak / Peak / HS)", juce::NotificationType::dontSendNotification);
+    titleLabel.setText ("Equalizer (LS / Peak / Peak / Peak / HS)", juce::NotificationType::dontSendNotification);
     titleLabel.setJustificationType (juce::Justification::centred);
     titleLabel.setFont (juce::Font (16.0f, juce::Font::bold));
 
@@ -222,6 +228,14 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     b2QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Q", b2Q);
     b2GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Gain", b2Gain);
 
+    // Band 3
+    setup (b3Freq, 500.0, 15000.0, 3500.0, "Peak 3 Freq");
+    setup (b3Q, 0.1, 10.0, 1.0, "Peak 3 Q");
+    setup (b3Gain, -15.0, 15.0, 0.0, "Peak 3 Gain");
+    b3FreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B3_Freq", b3Freq);
+    b3QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B3_Q", b3Q);
+    b3GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B3_Gain", b3Gain);
+
     // High Shelf
     setup (hsFreq, 1000.0, 20000.0, 5000.0, "HS Freq");
     setup (hsGain, -15.0, 15.0, 0.0, "HS Gain");
@@ -244,6 +258,7 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     responseGraph.setReferences (lsFreq, lsGain,
                                  b1Freq, b1Q, b1Gain,
                                  b2Freq, b2Q, b2Gain,
+                                 b3Freq, b3Q, b3Gain,
                                  hsFreq, hsGain, postGainSlider, onButton);
 }
 
@@ -270,7 +285,7 @@ void EqualizerComponent::resized()
     auto area = getLocalBounds().reduced (5);
     using fi = juce::FlexItem;
     juce::FlexBox fmain, ftop, fbottom,
-                    feq1, feq2, feq3, feq4, feq;
+                    feq1, feq2, feq3, feq4, feq5, feq;
     
     ftop.flexDirection = juce::FlexBox::Direction::row;
     fbottom.flexDirection = juce::FlexBox::Direction::row;
@@ -278,6 +293,7 @@ void EqualizerComponent::resized()
     feq2.flexDirection = juce::FlexBox::Direction::column;
     feq3.flexDirection = juce::FlexBox::Direction::column;
     feq4.flexDirection = juce::FlexBox::Direction::column;
+    feq5.flexDirection = juce::FlexBox::Direction::column;
     feq.flexDirection = juce::FlexBox::Direction::row;
     fmain.flexDirection = juce::FlexBox::Direction::column;
 
@@ -292,12 +308,16 @@ void EqualizerComponent::resized()
     feq3.items.add(fi(b2Freq).withFlex(1.f));
     feq3.items.add(fi(b2Q).withFlex(1.f));
     feq3.items.add(fi(b2Gain).withFlex(1.f));
-    feq4.items.add(fi(hsFreq).withFlex(1.f));
-    feq4.items.add(fi(hsGain).withFlex(1.f));
+    feq4.items.add(fi(b3Freq).withFlex(1.f));
+    feq4.items.add(fi(b3Q).withFlex(1.f));
+    feq4.items.add(fi(b3Gain).withFlex(1.f));
+    feq5.items.add(fi(hsFreq).withFlex(1.f));
+    feq5.items.add(fi(hsGain).withFlex(1.f));
     feq.items.add(fi(feq1).withFlex(1.f));
     feq.items.add(fi(feq2).withFlex(1.f));
     feq.items.add(fi(feq3).withFlex(1.f));
     feq.items.add(fi(feq4).withFlex(1.f));
+    feq.items.add(fi(feq5).withFlex(1.f));
     fbottom.items.add(fi(postGainSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(0.f, 20.f, 0.f, 10.f)));
     fbottom.items.add(fi(responseGraph).withFlex(1.4f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 0)));
     fmain.items.add(fi(ftop).withFlex(0.13f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));

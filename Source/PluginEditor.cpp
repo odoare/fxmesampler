@@ -15,7 +15,7 @@ SimpleSamplerAudioProcessorEditor::SimpleSamplerAudioProcessorEditor (SimpleSamp
 {
     addAndMakeVisible (mixerComponent);
     int n = p.getMixer().getStrips().size();
-    setSize (n*150, 500);
+    setSize (juce::jmax<int>(n*150,1024), 640);
 }
 
 SimpleSamplerAudioProcessorEditor::~SimpleSamplerAudioProcessorEditor()

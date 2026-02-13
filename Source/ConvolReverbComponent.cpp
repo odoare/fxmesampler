@@ -164,7 +164,7 @@ void ImpulseResponsePlot::paint(juce::Graphics& g)
     if (!irMaxPathR.isEmpty())
         g.fillPath (irMaxPathR);
 
-    g.setColour (juce::Colours::lightgreen.withAlpha(0.7f));
+    g.setColour (juce::Colours::yellow.withAlpha(0.7f));
     g.strokePath (irPlotPathL, juce::PathStrokeType (1.5f));
     if (!irPlotPathR.isEmpty())
         g.strokePath (irPlotPathR, juce::PathStrokeType (1.5f));

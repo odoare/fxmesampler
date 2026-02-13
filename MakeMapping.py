@@ -84,7 +84,7 @@ def generate_mappings(folder_path):
     
     for group_name in sorted_groups:
         # One stereo strip per SampleGroup
-        xml.append(f'    <Group type="stereo" name="{group_name}" img="{group_name}.jpg" color="100,100,100"/>')
+        xml.append(f'    <Strip type="stereo" name="{group_name}" img="{group_name}.jpg" color="100,100,100"/>')
     xml.append('  </Mixer>')
     xml.append('')
     

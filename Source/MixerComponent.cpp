@@ -59,6 +59,8 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
         sendSliders.push_back (std::move (slider));
     }
 
+    createRouteButtons(apvts);
+
     startTimerHz (24);
 }
 
@@ -105,6 +107,28 @@ void StripComponent::setSliderColours (juce::Slider& s, juce::Colour c)
     s.setColour (juce::Slider::trackColourId, c.darker());
     s.setColour (juce::Slider::thumbColourId, c);
     s.setColour (juce::Slider::rotarySliderOutlineColourId, c.darker (2.0f));
+}
+
+void StripComponent::createRouteButtons(juce::AudioProcessorValueTreeState& apvts)
+{
+    for (int i = 0; i < 4; ++i)
+    {
+        auto btn = std::make_unique<juce::ToggleButton>();
+        juce::String name = (i == 0) ? "Main" : "Aux " + juce::String(i);
+        juce::String paramId = (i == 0) ? strip.getName() + "_Route_Main" : strip.getName() + "_Route_Aux" + juce::String(i);
+        
+        btn->setButtonText(juce::String(i));
+        btn->setTooltip("Route to " + name);
+        btn->setColour(juce::ToggleButton::tickColourId, juce::Colours::white);
+        btn->setLookAndFeel(&fxmeLookAndFeel);
+        addAndMakeVisible(*btn);
+        
+        // Master strip doesn't have these params, so check if param exists
+        if (apvts.getParameter(paramId) != nullptr)
+            routeAtts.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, paramId, *btn));
+        
+        routeButtons.push_back(std::move(btn));
+    }
 }
 
 //==============================================================================
@@ -166,6 +190,14 @@ void AmbisonicStripComponent::resized()
     
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbKnobs.items.add(fi(fbRoutes).withFlex(0.5f));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 0, 0, 5.f)));
@@ -238,6 +270,14 @@ void MSStripComponent::resized()
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbKnobs.items.add(fi(fbRoutes).withFlex(0.5f));
+
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
 
@@ -309,6 +349,14 @@ void StereoStripComponent::resized()
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbKnobs.items.add(fi(fbRoutes).withFlex(0.5f));
+
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
 
@@ -378,6 +426,14 @@ void MonoStripComponent::resized()
         fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
     if (!sendSliders.empty())
         fbMain.items.add(fi(fbSends).withFlex(0.2f));
+
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbMain.items.add(fi(fbRoutes).withFlex(0.1f));
 
     fbMain.items.add(fi(panSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f,0.f,0.f,0.f)));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
@@ -460,6 +516,14 @@ void StereoReverbStripComponent::resized()
     if (!sendSliders.empty())
         fbMain.items.add(fi(fbSends).withFlex(0.2f));
 
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbMain.items.add(fi(fbRoutes).withFlex(0.1f));
+
     fbMain.items.add(fi(panSlider).withFlex(0.2f));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
@@ -535,6 +599,14 @@ void MonoReverbStripComponent::resized()
     if (!sendSliders.empty())
         fbMain.items.add(fi(fbSends).withFlex(0.2f));
 
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbMain.items.add(fi(fbRoutes).withFlex(0.1f));
+
     fbMain.items.add(fi(panSlider).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbSlider).withFlex(0.8f));
 
@@ -592,6 +664,14 @@ void BusStripComponent::resized()
         fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+
+    // Add routing buttons
+    juce::FlexBox fbRoutes;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
+    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    for (auto& b : routeButtons)
+        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
+    fbKnobs.items.add(fi(fbRoutes).withFlex(0.5f));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));

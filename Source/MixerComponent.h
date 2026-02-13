@@ -53,6 +53,10 @@ protected:
     std::vector<std::unique_ptr<juce::Slider>> sendSliders;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sendAtts;
 
+    std::vector<std::unique_ptr<juce::ToggleButton>> routeButtons;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> routeAtts;
+    void createRouteButtons(juce::AudioProcessorValueTreeState& apvts);
+
     virtual void updateMeters() = 0;
     void setupKnob (juce::Slider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts);
     void setSliderColours (juce::Slider& s, juce::Colour c);

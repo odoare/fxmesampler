@@ -13,7 +13,10 @@
 SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Main Output", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Aux 1", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Aux 2", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Aux 3", juce::AudioChannelSet::stereo(), true)
                        ),
        apvts (*this, nullptr, "Parameters", createParameterLayout())
 #else

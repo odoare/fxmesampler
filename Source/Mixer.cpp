@@ -65,6 +65,12 @@ void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void AmbisonicStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
@@ -80,9 +86,14 @@ void AmbisonicStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudi
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
-void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     if (azParam) ambix.setAzimuth (*azParam);
     if (elParam) ambix.setElevation (*elParam);
@@ -111,8 +122,22 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
 
-    for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+        for (int ch = 0; ch < 2; ++ch)
+            mixBuffer.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (2 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (4 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
 void AmbisonicStrip::clearMeters()
@@ -149,6 +174,12 @@ void MSStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void MSStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
@@ -163,9 +194,14 @@ void MSStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParame
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
-void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
@@ -204,8 +240,22 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
 
-    for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+        for (int ch = 0; ch < 2; ++ch)
+            mixBuffer.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (2 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (4 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
 void MSStrip::clearMeters()
@@ -242,6 +292,12 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void StereoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
@@ -256,9 +312,14 @@ void StereoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
-void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     if (panParam) pan = *panParam;
     if (wParam) width = *wParam;
@@ -300,8 +361,22 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
 
-    for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+        for (int ch = 0; ch < 2; ++ch)
+            mixBuffer.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (2 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (4 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
 void StereoStrip::clearMeters()
@@ -336,6 +411,12 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void MonoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
@@ -349,9 +430,14 @@ void MonoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPara
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
-void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
@@ -374,8 +460,28 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     float gainL = juce::dsp::FastMathApproximations::cos (panRad);
     float gainR = juce::dsp::FastMathApproximations::sin (panRad);
 
-    output.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-    output.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+    {
+        mixBuffer.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        mixBuffer.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+    {
+        outputBuffer.addFrom (2, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        outputBuffer.addFrom (3, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+    {
+        outputBuffer.addFrom (4, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        outputBuffer.addFrom (5, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+    {
+        outputBuffer.addFrom (6, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        outputBuffer.addFrom (7, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
 }
 
 void MonoStrip::clearMeters()
@@ -411,6 +517,12 @@ void StereoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& ap
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void StereoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) // NOLINT
@@ -425,6 +537,11 @@ void StereoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedA
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
 void StereoReverbStrip::setImpulseList (const juce::StringArray& names, const juce::StringArray& resources)
@@ -432,7 +549,7 @@ void StereoReverbStrip::setImpulseList (const juce::StringArray& names, const ju
     reverb.setImpulseList (names, resources);
 }
 
-void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
@@ -461,8 +578,22 @@ void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Au
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
 
-    for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+        for (int ch = 0; ch < 2; ++ch)
+            mixBuffer.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (2 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (4 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
 void StereoReverbStrip::clearMeters()
@@ -499,6 +630,12 @@ void MonoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvt
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void MonoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) // NOLINT
@@ -513,6 +650,11 @@ void MonoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAud
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
 void MonoReverbStrip::setImpulseList (const juce::StringArray& names, const juce::StringArray& resources)
@@ -520,7 +662,7 @@ void MonoReverbStrip::setImpulseList (const juce::StringArray& names, const juce
     reverb.setImpulseList (names, resources);
 }
 
-void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
@@ -543,8 +685,28 @@ void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Audi
     float gainL = juce::dsp::FastMathApproximations::cos (panRad);
     float gainR = juce::dsp::FastMathApproximations::sin (panRad);
     
-    output.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-    output.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+    {
+        mixBuffer.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        mixBuffer.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+    {
+        outputBuffer.addFrom (2, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        outputBuffer.addFrom (3, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+    {
+        outputBuffer.addFrom (4, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        outputBuffer.addFrom (5, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+    {
+        outputBuffer.addFrom (6, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
+        outputBuffer.addFrom (7, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+    }
 }
 
 void MonoReverbStrip::clearMeters()
@@ -581,6 +743,12 @@ void BusStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
     }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
 }
 
 void BusStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
@@ -595,6 +763,11 @@ void BusStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParam
 
     for (auto& send : sends)
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
 }
 
 void BusStrip::addInput (const juce::AudioBuffer<float>& source, float gain)
@@ -622,7 +795,7 @@ void BusStrip::clearBusBuffer()
     busBuffer.clear();
 }
 
-void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
     // Bus ignores 'input' (sampler output) and uses 'busBuffer' (sends)
     juce::ignoreUnused (input, inputChannelOffset);
@@ -631,7 +804,7 @@ void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer
     if (wParam) width = *wParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
-    int numSamples = output.getNumSamples();
+    int numSamples = outputBuffer.getNumSamples();
 
     if (tempBuffer.getNumSamples() != numSamples)
         tempBuffer.setSize (2, numSamples, false, false, true);
@@ -671,8 +844,22 @@ void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer
     meterL.process (tempBuffer.getReadPointer (0), numSamples);
     meterR.process (tempBuffer.getReadPointer (1), numSamples);
 
-    for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, numSamples);
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+        for (int ch = 0; ch < 2; ++ch)
+            mixBuffer.addFrom (ch, 0, tempBuffer, ch, 0, numSamples);
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (2 + ch, 0, tempBuffer, ch, 0, numSamples);
+
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (4 + ch, 0, tempBuffer, ch, 0, numSamples);
+
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, numSamples);
 }
 
 void BusStrip::clearMeters()
@@ -717,11 +904,11 @@ void MasterStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
     if (effectChain) effectChain->addParameters (params, name);
 }
 
-void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& output, int inputChannelOffset)
+void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
 {
-    // MasterStrip process takes the mixBuffer (input) and writes to outputBuffer (output)
+    // MasterStrip process takes the mixBuffer (input) and writes to outputBuffer (channels 0-1)
     // It behaves like StereoStrip: copies input to temp, processes, adds to output.
-    // Since output is cleared before Mixer::processBlock finishes, this works as "set".
+    // mixBuffer arg is unused here as Master is the final stage for Main Output.
 
     // We can reuse StereoStrip logic if we cast or just copy the code. 
     // Since I cannot easily call StereoStrip::process on *this without inheritance tricks or code duplication,
@@ -766,7 +953,7 @@ void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
 
     for (int ch = 0; ch < 2; ++ch)
-        output.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
+        outputBuffer.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
 void MasterStrip::clearMeters()
@@ -1061,7 +1248,7 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
             else         shouldProcess = ! strip->isMute();
 
             if (shouldProcess)
-                strip->process (inputBuffer, mixBuffer, currentInputChannel); // Sum to mixBuffer
+                strip->process (inputBuffer, mixBuffer, outputBuffer, currentInputChannel); // Sum to mixBuffer and/or outputBuffer
             else
                 strip->clearMeters();
             currentInputChannel += needed;
@@ -1071,7 +1258,7 @@ void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::Aud
     // Process Master Chain
     // Master takes mixBuffer (stereo) and adds to outputBuffer (which is cleared by processor)
     if (! masterStrip.isMute())
-        masterStrip.process (mixBuffer, outputBuffer, 0);
+        masterStrip.process (mixBuffer, mixBuffer, outputBuffer, 0);
     else
         masterStrip.clearMeters();
 }

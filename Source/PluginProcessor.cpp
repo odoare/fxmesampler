@@ -221,12 +221,10 @@ void SimpleSamplerAudioProcessor::getStateInformation (juce::MemoryBlock& destDa
         if (!xmlFile.getParentDirectory().exists())
             xmlFile.getParentDirectory().createDirectory();
 
-        // if (xml->writeTo (xmlFile))
-        //     // DBG ("Saved samplerdata.xml to: " + xmlFile.getFullPathName());
-        //     std::cout << "Saved to:" << xmlFile.getFullPathName() << std::endl;
-        // else
-        //     // DBG ("Failed to save samplerdata.xml to: " + xmlFile.getFullPathName());
-        //     std::cout << "Failed to save to:" << xmlFile.getFullPathName() << std::endl;
+        if (xml->writeTo (xmlFile))
+            std::cout << "Saved to:" << xmlFile.getFullPathName() << std::endl;
+        else
+            std::cout << "Failed to save to:" << xmlFile.getFullPathName() << std::endl;
     }
 }
 

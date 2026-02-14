@@ -61,6 +61,7 @@ public:
 
     void processEffects (juce::AudioBuffer<float>& buffer);
     virtual void clearMeters() {}
+    void setBPM(double bpm);
 
 protected:
     juce::String name;
@@ -257,6 +258,7 @@ public:
     void loadFromXml (const void* xmlData, int xmlSize);
     void assignParameters (juce::AudioProcessorValueTreeState& apvts);
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params);
+    void setBPM(double bpm);
 
     const std::vector<std::unique_ptr<MixerStrip>>& getStrips() const { return strips; }
     MasterStrip& getMasterStrip() { return masterStrip; }

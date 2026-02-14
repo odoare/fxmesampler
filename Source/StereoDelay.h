@@ -25,6 +25,8 @@ public:
     static void addParameters(std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix);
     void setOn (bool shouldBeOn);
     bool isOn() const { return on; }
+    void setBPM(double bpm);
+    double getBPM() const { return currentBPM; }
 
 private:
     struct Biquad
@@ -49,7 +51,7 @@ private:
     Biquad filterL, filterR;
 
     // Parameter cache
-    float delayTimeLMs = 500.0f, delayTimeRMs = 500.0f;
+    float delayTimeLMs = 0.5f, delayTimeRMs = 0.5f; // Now in beats
     float feedbackL = -6.0f, feedbackR = -6.0f;
     float crossFeedback = -60.0f;
     float filterCutoff = 5000.0f, filterQ = 1.0f;
@@ -57,6 +59,7 @@ private:
     bool on = true;
 
     // Smoothed gains
+    double currentBPM = 120.0;
     float feedbackLGain = 0.0f, feedbackRGain = 0.0f;
     float crossFeedbackGain = 0.0f;
     float outputGainLinear = 1.0f;

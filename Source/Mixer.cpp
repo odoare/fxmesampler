@@ -26,6 +26,14 @@ void MixerStrip::addSend (const juce::String& busName, BusStrip* bus)
     sends.push_back (s);
 }
 
+void MixerStrip::setBPM(double bpm)
+{
+    if (auto* d = dynamic_cast<EffectChainDelay*>(effectChain.get()))
+    {
+        d->getDelay().setBPM(bpm);
+    }
+}
+
 void MixerStrip::processSends (juce::AudioBuffer<float>& buffer, bool isPre)
 {
     for (auto& send : sends)
@@ -1275,6 +1283,14 @@ void Mixer::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParamete
     for (auto& strip : strips)
         strip->addParameters (params);
     masterStrip.addParameters (params);
+}
+
+void Mixer::setBPM(double bpm)
+{
+    juce::ScopedLock sl (lock);
+    for (auto& strip : strips)
+        strip->setBPM(bpm);
+    masterStrip.setBPM(bpm);
 }
 
 void Mixer::processBlock (const juce::AudioBuffer<float>& inputBuffer, juce::AudioBuffer<float>& outputBuffer)

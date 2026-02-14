@@ -12,7 +12,7 @@
 #include "StereoDelay.h"
 #include "ConvolReverbComponent.h" // For FxmeLookAndFeel
 
-class StereoDelayComponent : public juce::Component
+class StereoDelayComponent : public juce::Component, public juce::Timer
 {
 public:
     StereoDelayComponent(StereoDelay& delayToControl, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
@@ -20,6 +20,7 @@ public:
 
     void paint(juce::Graphics& g) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
     StereoDelay& delay;
@@ -29,6 +30,7 @@ private:
     juce::ToggleButton onButton;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
 
+    juce::Label bpmLabel;
     juce::Slider delayLSlider, delayRSlider;
     juce::Label delayLLabel, delayRLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> delayLAtt, delayRAtt;

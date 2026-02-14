@@ -45,12 +45,16 @@ StereoDelayComponent::StereoDelayComponent(StereoDelay& d, juce::AudioProcessorV
     onButton.setLookAndFeel(&fxmeLookAndFeel);
     onAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, prefix + "_Del_On", onButton);
 
+    addAndMakeVisible(bpmLabel);
+    bpmLabel.setJustificationType(juce::Justification::centredRight);
+    startTimer(200);
+
     setupSlider(delayLSlider, delayLLabel, "Delay L");
-    delayLSlider.setTextValueSuffix(" ms");
+    delayLSlider.setTextValueSuffix(" bt");
     delayLAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_DelayL", delayLSlider);
 
     setupSlider(delayRSlider, delayRLabel, "Delay R");
-    delayRSlider.setTextValueSuffix(" ms");
+    delayRSlider.setTextValueSuffix(" bt");
     delayRAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_DelayR", delayRSlider);
 
     setupSlider(fdbkLSlider, fdbkLLabel, "Fdbk L");
@@ -77,7 +81,10 @@ StereoDelayComponent::StereoDelayComponent(StereoDelay& d, juce::AudioProcessorV
     outGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_OutGain", outGainSlider);
 }
 
-StereoDelayComponent::~StereoDelayComponent() {}
+StereoDelayComponent::~StereoDelayComponent()
+{
+    stopTimer();
+}
 
 void StereoDelayComponent::paint(juce::Graphics& g)
 {
@@ -104,6 +111,7 @@ void StereoDelayComponent::resized()
 
     fTop.items.add(fi(onButton).withFlex(0.15f));
     fTop.items.add(fi(titleLabel).withFlex(1.f));
+    fTop.items.add(fi(bpmLabel).withFlex(0.3f));
 
     auto setupSliderBox = [](juce::FlexBox& box, juce::Label& label, juce::Slider& slider)
     {
@@ -136,4 +144,9 @@ void StereoDelayComponent::resized()
     fMain.items.add(fi(fSliders2).withFlex(0.85f));
     
     fMain.performLayout(area);
+}
+
+void StereoDelayComponent::timerCallback()
+{
+    bpmLabel.setText(juce::String(delay.getBPM(), 1) + " BPM", juce::NotificationType::dontSendNotification);
 }

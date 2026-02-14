@@ -82,8 +82,8 @@ void StereoDelay::setOn (bool shouldBeOn)
 
 void StereoDelay::addParameters(std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
 {
-    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_DelayL", prefix + " Del Delay L", 0.0f, 2000.0f, 300.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_DelayR", prefix + " Del Delay R", 0.0f, 2000.0f, 500.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_DelayL", prefix + " Del Delay L", 0.0f, 2.0f, 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_DelayR", prefix + " Del Delay R", 0.0f, 2.0f, 0.75f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FdbkL", prefix + " Del Feedback L", -60.0f, 6.0f, -6.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FdbkR", prefix + " Del Feedback R", -60.0f, 6.0f, -6.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_CrossFdbk", prefix + " Del Cross Feedback", -60.0f, 6.0f, -60.0f));
@@ -163,13 +163,25 @@ void StereoDelay::checkParameters()
     }
 }
 
+void StereoDelay::setBPM(double bpm)
+{
+    if (currentBPM != bpm)
+    {
+        currentBPM = bpm;
+        updateDelayTimes();
+    }
+}
+
 void StereoDelay::updateDelayTimes()
 {
-    delaySamplesL = (int)(delayTimeLMs * currentSampleRate / 1000.0);
+    if (currentBPM <= 0.0) currentBPM = 120.0;
+    double secondsPerBeat = 60.0 / currentBPM;
+
+    delaySamplesL = (int)(delayTimeLMs * secondsPerBeat * currentSampleRate);
     if (delaySamplesL < 1) delaySamplesL = 1;
     if (delaySamplesL >= maxDelaySamples) delaySamplesL = maxDelaySamples - 1;
 
-    delaySamplesR = (int)(delayTimeRMs * currentSampleRate / 1000.0);
+    delaySamplesR = (int)(delayTimeRMs * secondsPerBeat * currentSampleRate);
     if (delaySamplesR < 1) delaySamplesR = 1;
     if (delaySamplesR >= maxDelaySamples) delaySamplesR = maxDelaySamples - 1;
 }

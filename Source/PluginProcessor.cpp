@@ -189,6 +189,15 @@ void SimpleSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     if (samplerOutputBuffer.getNumChannels() != sampler.getNumOutputChannels() || samplerOutputBuffer.getNumSamples() != buffer.getNumSamples())
         samplerOutputBuffer.setSize(sampler.getNumOutputChannels(), buffer.getNumSamples());
 
+    double bpm = 120.0;
+    if (auto* ph = getPlayHead())
+    {
+        if (auto pos = ph->getPosition())
+            if (pos->getBpm().hasValue())
+                bpm = *pos->getBpm();
+    }
+    mixer.setBPM(bpm);
+
     samplerOutputBuffer.clear();
     
     sampler.updateParams();

@@ -53,6 +53,9 @@ protected:
     std::vector<std::unique_ptr<juce::Slider>> sendSliders;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sendAtts;
 
+    std::vector<std::unique_ptr<juce::ToggleButton>> prePostButtons;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> prePostAtts;
+
     std::vector<std::unique_ptr<juce::ToggleButton>> routeButtons;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> routeAtts;
     void createRouteButtons(juce::AudioProcessorValueTreeState& apvts);

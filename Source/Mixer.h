@@ -25,6 +25,7 @@ struct Send
     juce::String busName;
     BusStrip* bus = nullptr;
     std::atomic<float>* gainParam = nullptr;
+    std::atomic<float>* prePostParam = nullptr; // 0.0 = Post, 1.0 = Pre
     float currentGain = 0.0f;
 };
 
@@ -55,7 +56,7 @@ public:
     juce::Colour getColor() const { return color; }
 
     void addSend (const juce::String& busName, BusStrip* bus);
-    void processSends (juce::AudioBuffer<float>& buffer);
+    void processSends (juce::AudioBuffer<float>& buffer, bool isPre);
     const std::vector<Send>& getSends() const { return sends; }
 
     void processEffects (juce::AudioBuffer<float>& buffer);

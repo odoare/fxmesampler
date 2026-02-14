@@ -26,13 +26,17 @@ void MixerStrip::addSend (const juce::String& busName, BusStrip* bus)
     sends.push_back (s);
 }
 
-void MixerStrip::processSends (juce::AudioBuffer<float>& buffer)
+void MixerStrip::processSends (juce::AudioBuffer<float>& buffer, bool isPre)
 {
     for (auto& send : sends)
     {
-        if (send.gainParam) send.currentGain = juce::Decibels::decibelsToGain (send.gainParam->load());
-        if (send.bus && send.currentGain > 0.0001f)
-            send.bus->addInput (buffer, send.currentGain);
+        bool sendIsPre = (send.prePostParam && *send.prePostParam > 0.5f);
+        if (sendIsPre == isPre)
+        {
+            if (send.gainParam) send.currentGain = juce::Decibels::decibelsToGain (send.gainParam->load());
+            if (send.bus && send.currentGain > 0.0001f)
+                send.bus->addInput (buffer, send.currentGain);
+        }
     }
 }
 
@@ -64,6 +68,8 @@ void AmbisonicStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -85,7 +91,10 @@ void AmbisonicStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudi
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -98,7 +107,10 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     if (azParam) ambix.setAzimuth (*azParam);
     if (elParam) ambix.setElevation (*elParam);
     if (wParam) ambix.setWidth (*wParam);
-    if (lvlParam) ambix.setLevel (juce::Decibels::decibelsToGain (lvlParam->load()));
+    
+    float currentLevel = 1.0f;
+    if (lvlParam) currentLevel = juce::Decibels::decibelsToGain (lvlParam->load());
+    ambix.setLevel(1.0f); // Decode at unity to allow pre-fader sends
 
     if (tempBuffer.getNumSamples() != input.getNumSamples())
         tempBuffer.setSize (2, input.getNumSamples(), false, false, true);
@@ -116,8 +128,12 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
     juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers), 4, input.getNumSamples());
 
     ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
+    
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer);
+    
+    tempBuffer.applyGain (currentLevel);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     meterL.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
     meterR.process (tempBuffer.getReadPointer (1), tempBuffer.getNumSamples());
@@ -173,6 +189,8 @@ void MSStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -193,7 +211,10 @@ void MSStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParame
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -226,9 +247,11 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
         r[i] = mid - side;
     }
 
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer);
+    
     tempBuffer.applyGain (level);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     // Balance using constant-power law
     float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
@@ -291,6 +314,8 @@ void StereoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -311,7 +336,10 @@ void StereoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -347,9 +375,11 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
         }
     }
 
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer);
+    
     tempBuffer.applyGain (level);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     // Balance using Linear law (Classical Stereo)
     float gainL = 0.5f * (1.0f - pan);
@@ -410,6 +440,8 @@ void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -429,7 +461,10 @@ void MonoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPara
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -448,9 +483,11 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer);
+    
     tempBuffer.applyGain (level);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
 
@@ -516,6 +553,8 @@ void StereoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& ap
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -536,7 +575,10 @@ void StereoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedA
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -563,9 +605,11 @@ void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Au
     tempBuffer.copyFrom (1, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
     reverb.process (tempBuffer);
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer);
+    
     tempBuffer.applyGain (level);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     // Balance using constant-power law
     float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
@@ -629,6 +673,8 @@ void MonoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvt
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -649,7 +695,10 @@ void MonoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAud
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -674,9 +723,11 @@ void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Audi
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
 
     reverb.process (tempBuffer);
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer);
+    
     tempBuffer.applyGain (level);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
 
@@ -742,6 +793,8 @@ void BusStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     {
         juce::String paramID = name + "_Send_" + send.busName;
         send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
     }
 
     routeParams.resize(4);
@@ -762,7 +815,10 @@ void BusStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParam
     if (effectChain) effectChain->addParameters (params, name);
 
     for (auto& send : sends)
+    {
         params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
@@ -830,9 +886,11 @@ void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer
         }
     }
 
+    processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
-    processSends (tempBuffer); // Bus to Bus sends possible if ordered correctly
+    
     tempBuffer.applyGain (level);
+    processSends (tempBuffer, false); // Post FX+Fader
 
     // Balance using Linear law (Classical Stereo)
     float gainL = 0.5f * (1.0f - pan);

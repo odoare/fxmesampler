@@ -57,6 +57,15 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
         addAndMakeVisible (*slider);
         sendAtts.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, strip.getName() + "_Send_" + send.busName, *slider));
         sendSliders.push_back (std::move (slider));
+
+        auto button = std::make_unique<juce::ToggleButton>();
+        button->setButtonText("Pre");
+        button->setTooltip("Pre/Post FX+Fader");
+        button->setColour(juce::ToggleButton::tickColourId, juce::Colours::white);
+        button->setLookAndFeel(&fxmeLookAndFeel);
+        addAndMakeVisible(*button);
+        prePostAtts.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, strip.getName() + "_Send_" + send.busName + "_Pre", *button));
+        prePostButtons.push_back(std::move(button));
     }
 
     createRouteButtons(apvts);
@@ -183,10 +192,16 @@ void AmbisonicStripComponent::resized()
 
     // Add sends to knobs area
     juce::FlexBox fbSends;
-    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexDirection = juce::FlexBox::Direction::column;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
@@ -265,8 +280,14 @@ void MSStripComponent::resized()
     juce::FlexBox fbSends;
     fbSends.flexDirection = juce::FlexBox::Direction::row;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
@@ -329,10 +350,10 @@ void StereoStripComponent::resized()
 {
     auto bounds = getLocalBounds();
     using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbSlider, fbButtonsMeters, fbMeters, fbKnobs;
+    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
-    fbSlider.flexDirection = juce::FlexBox::Direction::row;
+    fbBottom.flexDirection = juce::FlexBox::Direction::row;
     fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
@@ -342,20 +363,27 @@ void StereoStripComponent::resized()
 
     // Add sends
     juce::FlexBox fbSends;
-    fbSends.flexDirection = juce::FlexBox::Direction::row;
+    fbSends.flexDirection = juce::FlexBox::Direction::column;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
-    if (!sendSliders.empty())
-        fbKnobs.items.add(fi(fbSends).withFlex(1.f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        //juce::FlexBox fbSendItem;
+        //fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
+        fbSends.items.add(fi(*prePostButtons[i]).withFlex(1.0f));
+        //fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
+    fbSends.items.add(fi().withFlex(1.f));
+    // if (!sendSliders.empty())
+    //     fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
     // Add routing buttons
     juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::row;
-    fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
+    // fbRoutes.flexWrap = juce::FlexBox::Wrap::wrap;
     for (auto& b : routeButtons)
-        fbRoutes.items.add(fi(*b).withFlex(0.0f).withWidth(20.0f).withHeight(20.0f).withMargin(1.0f));
-    fbKnobs.items.add(fi(fbRoutes).withFlex(0.5f));
+        fbSends.items.add(fi(*b).withFlex(1.0f));
+    // fbKnobs.items.add(fi(fbRoutes).withFlex(0.5f));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
@@ -364,13 +392,14 @@ void StereoStripComponent::resized()
     fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
     fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
 
-    fbSlider.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 25.f, 10.f, 25.f)));
-    fbSlider.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
+    fbBottom.items.add(fi(fbSends).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
+    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
-    fbMain.items.add(fi(fbSlider).withFlex(0.8f));
+    fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
     fbMain.performLayout (bounds);
 }
@@ -422,8 +451,14 @@ void MonoStripComponent::resized()
     juce::FlexBox fbSends;
     fbSends.flexDirection = juce::FlexBox::Direction::row;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     if (!sendSliders.empty())
         fbMain.items.add(fi(fbSends).withFlex(0.2f));
 
@@ -511,8 +546,14 @@ void StereoReverbStripComponent::resized()
     juce::FlexBox fbSends;
     fbSends.flexDirection = juce::FlexBox::Direction::row;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     if (!sendSliders.empty())
         fbMain.items.add(fi(fbSends).withFlex(0.2f));
 
@@ -594,8 +635,14 @@ void MonoReverbStripComponent::resized()
     juce::FlexBox fbSends;
     fbSends.flexDirection = juce::FlexBox::Direction::row;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     if (!sendSliders.empty())
         fbMain.items.add(fi(fbSends).withFlex(0.2f));
 
@@ -660,8 +707,14 @@ void BusStripComponent::resized()
     juce::FlexBox fbSends;
     fbSends.flexDirection = juce::FlexBox::Direction::row;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
@@ -752,8 +805,14 @@ void MasterStripComponent::resized()
     juce::FlexBox fbSends;
     fbSends.flexDirection = juce::FlexBox::Direction::row;
     fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (auto& s : sendSliders)
-        fbSends.items.add(fi(*s).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f).withMargin(2.0f));
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        juce::FlexBox fbSendItem;
+        fbSendItem.flexDirection = juce::FlexBox::Direction::column;
+        fbSendItem.items.add(fi(*sendSliders[i]).withFlex(0.0f).withWidth(30.0f).withHeight(30.0f));
+        fbSendItem.items.add(fi(*prePostButtons[i]).withFlex(0.0f).withWidth(30.0f).withHeight(15.0f));
+        fbSends.items.add(fi(fbSendItem).withFlex(0.0f).withWidth(30.0f).withHeight(45.0f).withMargin(2.0f));
+    }
     if (!sendSliders.empty())
         fbKnobs.items.add(fi(fbSends).withFlex(1.f));
 
@@ -771,7 +830,17 @@ void MasterStripComponent::updateMeters()
 
 void WelcomeComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::black);
+    auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
+    auto length = diagonale.getDistanceFromOrigin();
+    auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
+    auto height = float (getWidth() * getHeight()) / length;
+    //auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    auto bluegreengrey = juce::Colours::blue.darker(3.f);
+    juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
+                           bluegreengrey, perpendicular * -height, false);
+    g.setGradientFill(grad);
+    g.fillAll();
+
     auto area = getLocalBounds().toFloat().reduced(20);
     
     if (img.isValid())

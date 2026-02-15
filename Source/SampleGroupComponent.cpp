@@ -78,7 +78,7 @@ void SampleGroupComponent::paint (juce::Graphics& g)
     auto length = diagonale.getDistanceFromOrigin();
     auto perpendicular = diagonale.rotatedAboutOrigin (juce::degreesToRadians (270.0f)) / length;
     auto height = float (getWidth() * getHeight()) / length;
-    auto bluegreengrey = juce::Colour::fromFloatRGBA (0.15f, 0.15f, 0.25f, 1.0f);
+    auto bluegreengrey = juce::Colours::darkgrey.darker(1.f);
     juce::ColourGradient grad (bluegreengrey.darker().darker().darker(), perpendicular * height,
                            bluegreengrey, perpendicular * -height, false);
     g.setGradientFill(grad);
@@ -88,28 +88,37 @@ void SampleGroupComponent::paint (juce::Graphics& g)
 void SampleGroupComponent::resized()
 {
     auto area = getLocalBounds().reduced (5);
-    
-    auto headerArea = area.removeFromTop (25);
-    nameLabel.setBounds (headerArea.removeFromLeft (area.getWidth() / 2));
-    oneShotButton.setBounds (headerArea);
-    
-    auto detuneArea = area.removeFromTop (50);
-    detuneLabel.setBounds (detuneArea.removeFromTop (15));
-    detuneSlider.setBounds (detuneArea.reduced (2));
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain,fbDetune,fbAttack, fbDecay, fbSustain, fbRelease;
+    fbDetune.flexDirection = juce::FlexBox::Direction::column;
+    fbAttack.flexDirection = juce::FlexBox::Direction::column;
+    fbDecay.flexDirection = juce::FlexBox::Direction::column;
+    fbSustain.flexDirection = juce::FlexBox::Direction::column;
+    fbRelease.flexDirection = juce::FlexBox::Direction::column;
+    fbMain.flexDirection = juce::FlexBox::Direction::row;
 
-    // ADSR Grid
-    auto adsrArea = area;
-    int w = adsrArea.getWidth() / 4;
-    
-    auto setupBounds = [&](juce::Slider& s, juce::Label& l, int idx)
-    {
-        auto r = adsrArea.withX (adsrArea.getX() + idx * w).withWidth (w);
-        l.setBounds (r.removeFromTop (15));
-        s.setBounds (r.reduced (2));
-    };
+    fbDetune.items.add(fi(detuneLabel).withFlex(0.2f));
+    fbDetune.items.add(fi(detuneSlider).withFlex(1.f));
 
-    setupBounds (attackSlider, attackLabel, 0);
-    setupBounds (decaySlider, decayLabel, 1);
-    setupBounds (sustainSlider, sustainLabel, 2);
-    setupBounds (releaseSlider, releaseLabel, 3);
+    fbAttack.items.add(fi(attackLabel).withFlex(0.2f));
+    fbAttack.items.add(fi(attackSlider).withFlex(1.f));
+
+    fbDecay.items.add(fi(decayLabel).withFlex(0.2f));
+    fbDecay.items.add(fi(decaySlider).withFlex(1.f));
+
+    fbSustain.items.add(fi(sustainLabel).withFlex(0.2f));
+    fbSustain.items.add(fi(sustainSlider).withFlex(1.f));
+
+    fbRelease.items.add(fi(releaseLabel).withFlex(0.2f));
+    fbRelease.items.add(fi(releaseSlider).withFlex(1.f));
+
+    fbMain.items.add(fi(nameLabel).withFlex(1.f));
+    fbMain.items.add(fi(fbDetune).withFlex(.6f));
+    fbMain.items.add(fi(oneShotButton).withFlex(.5f));
+    fbMain.items.add(fi(fbAttack).withFlex(0.6f));    
+    fbMain.items.add(fi(fbDecay).withFlex(0.6f));
+    fbMain.items.add(fi(fbSustain).withFlex(0.6f));
+    fbMain.items.add(fi(fbRelease).withFlex(0.6f));
+
+    fbMain.performLayout (area);
 }

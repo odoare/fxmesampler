@@ -37,29 +37,17 @@ void SamplerComponent::paint (juce::Graphics& g)
 void SamplerComponent::resized()
 {
     viewport.setBounds (getLocalBounds());
-    
-    int itemHeight = 150;
-    int itemWidth = 280;
-    int margin = 10;
-    
-    int x = margin;
-    int y = margin;
-    
-    int width = getWidth() - viewport.getScrollBarThickness();
-    if (width <= 0) width = getWidth();
+
+    juce::FlexBox fbMain;
+
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    using fi = juce::FlexItem;
 
     for (auto& comp : groupComponents)
     {
-        if (x + itemWidth > width && x > margin)
-        {
-            x = margin;
-            y += itemHeight + margin;
-        }
-        
-        comp->setBounds (x, y, itemWidth, itemHeight);
-        x += itemWidth + margin;
+        fbMain.items.add(fi(*comp).withFlex(0.0f).withHeight(120.0f));
     }
-    
-    // Ensure the content component is large enough to scroll
-    contentComp->setBounds (0, 0, width, y + itemHeight + margin);
+
+    contentComp->setBounds(0, 0, viewport.getMaximumVisibleWidth(), 120 * (int)groupComponents.size());
+    fbMain.performLayout(contentComp->getLocalBounds().toFloat());
 }

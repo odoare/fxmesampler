@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "Compressor.h"
 #include "VuMeterComponent.h"
+#include "Knob.h"
 
 class CompressorComponent : public juce::Component,
                             public juce::Timer
@@ -31,7 +32,7 @@ private:
     juce::Label titleLabel;
     VuMeterComponent grMeter;
     juce::Label preGainLabel, attackLabel, releaseLabel, threshLabel, ratioLabel, gainLabel;
-    juce::Slider preGainSlider, attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
+    Knob preGainSlider, attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;

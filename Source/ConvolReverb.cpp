@@ -7,6 +7,7 @@
 */
 
 #include "ConvolReverb.h"
+#include "../WDL/WDL/resample.h"
 
 ConvolReverb::ConvolReverb()
 {
@@ -175,8 +176,42 @@ void ConvolReverb::loadResource (const juce::String& resourceName)
 
         if (reader)
         {
-            originalIR.setSize ((int)reader->numChannels, (int)reader->lengthInSamples);
-            reader->read (&originalIR, 0, (int)reader->lengthInSamples, 0, true, true);
+            if (currentSampleRate > 0 && reader->sampleRate > 0 && std::abs(reader->sampleRate - currentSampleRate) > 1.0)
+            {
+                std::cout << "Resampling IR from " << reader->sampleRate << " to " << currentSampleRate << " Hz\n" << std::flush;
+                WDL_Resampler resampler;
+                resampler.SetMode(true, 0, true); // Sinc interpolation
+                resampler.SetRates(reader->sampleRate, currentSampleRate);
+                resampler.SetFeedMode(true);
+
+                int numChannels = (int)reader->numChannels;
+                int numInputSamples = (int)reader->lengthInSamples;
+
+                juce::AudioBuffer<float> tempBuffer(numChannels, numInputSamples);
+                reader->read(&tempBuffer, 0, numInputSamples, 0, true, true);
+
+                WDL_ResampleSample* wdlIn = nullptr;
+                resampler.ResamplePrepare(numInputSamples, numChannels, &wdlIn);
+
+                for (int i = 0; i < numInputSamples; ++i)
+                    for (int c = 0; c < numChannels; ++c)
+                        wdlIn[i * numChannels + c] = (WDL_ResampleSample)tempBuffer.getSample(c, i);
+
+                int maxOutSamples = (int)(numInputSamples * currentSampleRate / reader->sampleRate) + 1024;
+                std::vector<WDL_ResampleSample> wdlOut(maxOutSamples * numChannels);
+
+                int outSamples = resampler.ResampleOut(wdlOut.data(), numInputSamples, maxOutSamples, numChannels);
+
+                originalIR.setSize(numChannels, outSamples);
+                for (int i = 0; i < outSamples; ++i)
+                    for (int c = 0; c < numChannels; ++c)
+                        originalIR.setSample(c, i, (float)wdlOut[i * numChannels + c]);
+            }
+            else
+            {
+                originalIR.setSize ((int)reader->numChannels, (int)reader->lengthInSamples);
+                reader->read (&originalIR, 0, (int)reader->lengthInSamples, 0, true, true);
+            }
         }
         else
         {

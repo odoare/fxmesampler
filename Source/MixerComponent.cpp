@@ -47,7 +47,7 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
     // Create Send Sliders
     for (const auto& send : strip.getSends())
     {
-        auto slider = std::make_unique<juce::Slider>();
+        auto slider = std::make_unique<Knob>();
         slider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
         slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
         slider->setRange (-60.0, 6.0);

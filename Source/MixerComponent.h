@@ -17,6 +17,7 @@
 #include "SamplerComponent.h"
 #include "EffectChainReverbComponent.h"
 #include "ConvolReverbComponent.h" // For direct strip reverb IR dropdown
+#include "Knob.h"
 
 //==============================================================================
 /**
@@ -87,7 +88,7 @@ protected:
     void updateMeters() override;
 private:
     AmbisonicStrip& ambStrip;
-    juce::Slider azSlider, elSlider, wSlider;
+    Knob azSlider, elSlider, wSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> azAtt, elAtt, wAtt;
     VuMeterComponent meterL, meterR;
 };
@@ -110,8 +111,8 @@ protected:
     void updateMeters() override;
 private:
     MSStrip& msStrip;
-    juce::Slider panSlider;
-    juce::Slider wSlider;
+    Knob panSlider;
+    Knob wSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wAtt;
     VuMeterComponent meterL, meterR;
@@ -135,8 +136,8 @@ protected:
     void updateMeters() override;
 private:
     StereoStrip& stereoStrip;
-    juce::Slider panSlider;
-    juce::Slider wSlider;
+    Knob panSlider;
+    Knob wSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wAtt;
     VuMeterComponent meterL, meterR;
@@ -160,7 +161,7 @@ protected:
     void updateMeters() override;
 private:
     MonoStrip& monoStrip;
-    juce::Slider panSlider;
+    Knob panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     VuMeterComponent meter;
 };
@@ -183,7 +184,7 @@ protected:
     void updateMeters() override;
 private:
     StereoReverbStrip& reverbStrip;
-    juce::Slider panSlider;
+    Knob panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     juce::ComboBox irBox; // For IR selection dropdown
     juce::Label irLabel;
@@ -209,7 +210,7 @@ protected:
     void updateMeters() override;
 private:
     MonoReverbStrip& reverbStrip;
-    juce::Slider panSlider;
+    Knob panSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
     juce::ComboBox irBox; // For IR selection dropdown
     juce::Label irLabel;
@@ -230,7 +231,7 @@ protected:
     void updateMeters() override;
 private:
     BusStrip& busStrip;
-    juce::Slider panSlider, wSlider;
+    Knob panSlider, wSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt, wAtt;
     VuMeterComponent meterL, meterR;
 };
@@ -253,7 +254,7 @@ protected:
     void updateMeters() override;
 private:
     MasterStrip& masterStrip;
-    juce::Slider panSlider, wSlider;
+    Knob panSlider, wSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt, wAtt;
     VuMeterComponent meterL, meterR;
 };

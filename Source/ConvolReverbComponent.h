@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "ConvolReverb.h"
+#include "Knob.h"
 
 class ImpulseResponsePlot : public juce::Component
 {
@@ -42,9 +43,9 @@ private:
 
     juce::ComboBox irBox;
     juce::Label irLabel;
-    juce::Slider lengthSlider;
+    Knob lengthSlider;
     juce::Label lengthLabel;
-    juce::Slider startOffsetSlider;
+    Knob startOffsetSlider;
     juce::Label startOffsetLabel;
     juce::ComboBox shapeBox;
     juce::Label shapeLabel;

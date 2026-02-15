@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Equalizer.h"
+#include "Knob.h"
 
 /**
  * @class FrequencyResponseGraph
@@ -92,11 +93,11 @@ private:
     
     // LowShelf, Band1, Band2, Band3, HighShelf
     // LS: F, G. B1: F, Q, G. B2: F, Q, G. B3: F, Q, G. HS: F, G.
-    juce::Slider lsFreq, lsGain;
-    juce::Slider b1Freq, b1Q, b1Gain;
-    juce::Slider b2Freq, b2Q, b2Gain;
-    juce::Slider b3Freq, b3Q, b3Gain;
-    juce::Slider hsFreq, hsGain;
+    Knob lsFreq, lsGain;
+    Knob b1Freq, b1Q, b1Gain;
+    Knob b2Freq, b2Q, b2Gain;
+    Knob b3Freq, b3Q, b3Gain;
+    Knob hsFreq, hsGain;
     juce::Slider postGainSlider;
 
     FrequencyResponseGraph responseGraph;

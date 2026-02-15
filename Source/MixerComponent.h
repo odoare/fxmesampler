@@ -41,6 +41,8 @@ public:
      * @brief Timer callback for updating meters.
      */
     void timerCallback() override;
+    
+    void setStripColor(juce::Colour c);
 
 protected:
     MixerStrip& strip;

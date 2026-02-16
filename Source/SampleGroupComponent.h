@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Sampler.h"
+#include "FxmeSlider.h"
 
 class SampleGroupComponent : public juce::Component
 {
@@ -28,7 +29,7 @@ private:
     juce::ToggleButton oneShotButton;
     
     juce::Label attackLabel, decayLabel, sustainLabel, releaseLabel, detuneLabel;
-    juce::Slider attackSlider, decaySlider, sustainSlider, releaseSlider, detuneSlider;
+    FxmeSlider attackSlider, decaySlider, sustainSlider, releaseSlider, detuneSlider;
 
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;

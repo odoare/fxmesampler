@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Tube.h"
-#include "Knob.h"
+#include "FxmeSlider.h"
 
 /**
  * @class TubeComponent
@@ -40,8 +40,8 @@ private:
     juce::Label titleLabel;
     juce::ImageComponent tubeImage;
     juce::Label driveLabel, biasLabel, outLabel;
-    Knob driveSlider, biasSlider;
-    juce::Slider outSlider;
+    FxmeSlider driveSlider, biasSlider;
+    FxmeSlider outSlider;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modelAtt;

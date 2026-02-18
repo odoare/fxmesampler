@@ -59,6 +59,10 @@ private:
     float currentLengthRatio = 1.0f;
     int currentShapeType = 0;
     float currentStartOffsetMs = 0.0f;
+    float dryGain = 0.0f;
+    float wetGain = 0.0f;
+    float dryGainLinear = 0.0f;
+    float wetGainLinear = 1.0f;
     bool on = true;
 
     // Parameter pointers
@@ -67,18 +71,23 @@ private:
     std::atomic<float>* lengthParam = nullptr;
     std::atomic<float>* shapeParam = nullptr;
     std::atomic<float>* startOffsetParam = nullptr;
+    std::atomic<float>* dryGainParam = nullptr;
+    std::atomic<float>* wetGainParam = nullptr;
 
     // Last values for change detection
     int lastIR = -1;
     float lastLengthRatio = -1.0f;
     int lastShapeType = -1;
     float lastStartOffset = 0.0f;
+    float lastDryGain = -100.0f;
+    float lastWetGain = -100.0f;
     float lastOn = -1.0f;
 
     void loadResource (const juce::String& resourceName);
     void updateModifiedIR(); // Applies length/shape to originalIR and loads into wdlReverb
     void loadImpulseToEngine (const juce::AudioBuffer<float>& buffer);
     void checkParameters();
+    void updateGains();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConvolReverb)
 };

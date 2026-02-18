@@ -49,12 +49,15 @@ private:
     juce::Label startOffsetLabel;
     juce::ComboBox shapeBox;
     juce::Label shapeLabel;
+    FxmeSlider dryGainSlider, wetGainSlider;
+    juce::Label dryGainLabel, wetGainLabel;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lengthAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> startOffsetAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> shapeAtt;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryGainAtt, wetGainAtt;
 
     ImpulseResponsePlot irPlot;
     std::atomic<bool> graphNeedsUpdate { false };
@@ -62,6 +65,7 @@ private:
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
 
     void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
     void setSliderColours (juce::Slider& s, juce::Colour c);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConvolReverbComponent)

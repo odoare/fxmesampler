@@ -33,6 +33,24 @@ void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& labe
     setSliderColours(slider, color);
 }
 
+void ConvolReverbComponent::setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+{
+    juce::Colour color = juce::Colours::yellow;
+
+    addAndMakeVisible (label);
+    label.setText (text, juce::NotificationType::dontSendNotification);
+    label.setJustificationType (juce::Justification::centred);
+
+    addAndMakeVisible (slider);
+    slider.setSliderStyle (juce::Slider::LinearBarVertical);
+    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 50, 15);
+    slider.setRange (min, max);
+    slider.setValue (def);
+    slider.setTooltip (text);
+    slider.setLookAndFeel(&fxmeLookAndFeel);
+    setSliderColours(slider, color);
+}
+
 ImpulseResponsePlot::ImpulseResponsePlot(ConvolReverb& r) : reverb(r)
 {
 }
@@ -212,6 +230,14 @@ ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProces
     shapeBox.addItem ("Slow Log", 3);
     shapeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Rev_Shape", shapeBox);
     shapeBox.onChange = [this] { graphNeedsUpdate = true; };
+
+    setupBarSlider(dryGainSlider, dryGainLabel, "Dry", -60.0, 6.0, -60.0);
+    dryGainSlider.setTextValueSuffix(" dB");
+    dryGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Rev_DryGain", dryGainSlider);
+
+    setupBarSlider(wetGainSlider, wetGainLabel, "Wet", -60.0, 6.0, 0.0);
+    wetGainSlider.setTextValueSuffix(" dB");
+    wetGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Rev_WetGain", wetGainSlider);
     
     addAndMakeVisible(irPlot);
 
@@ -248,12 +274,13 @@ void ConvolReverbComponent::resized()
 {
     auto area = getLocalBounds().reduced (5);
     using fi = juce::FlexItem;
-    juce::FlexBox fMain, fTop, fSliders, fBoxes, fSl1, fSl2;
+    juce::FlexBox fMain, fTop, fSliders, fBoxes, fSl1, fSl2, fGains;
     fMain.flexDirection = juce::FlexBox::Direction::column;
     fTop.flexDirection = juce::FlexBox::Direction::row;
     fSliders.flexDirection = juce::FlexBox::Direction::row;
     fSl1.flexDirection = juce::FlexBox::Direction::column;
     fSl2.flexDirection = juce::FlexBox::Direction::column;
+    fGains.flexDirection = juce::FlexBox::Direction::column;
     fBoxes.flexDirection = juce::FlexBox::Direction::column;
 
     fTop.items.add(fi(onButton).withFlex(0.2f));
@@ -270,6 +297,16 @@ void ConvolReverbComponent::resized()
     fSliders.items.add(fi(fBoxes).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 0)));
     fSliders.items.add(fi(fSl1).withFlex(1.f));
     fSliders.items.add(fi(fSl2).withFlex(1.f));
+    
+    fGains.items.add(fi(dryGainLabel).withFlex(0.2f));
+    fGains.items.add(fi(dryGainSlider).withFlex(0.8f));
+    fSliders.items.add(fi(fGains).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, 0.f, 0.f, 5.f)));
+    fSliders.items.add(fi(wetGainLabel).withFlex(0.2f)); // Reusing label height logic implicitly by structure, but need separate container if vertical
+    // Actually let's just add wet gain as another column
+    juce::FlexBox fWet; fWet.flexDirection = juce::FlexBox::Direction::column;
+    fWet.items.add(fi(wetGainLabel).withFlex(0.2f));
+    fWet.items.add(fi(wetGainSlider).withFlex(0.8f));
+    fSliders.items.add(fi(fWet).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, 0.f, 0.f, 5.f)));
 
     fMain.items.add(fi(fTop).withFlex(0.12f));
     fMain.items.add(fi(fSliders).withFlex(0.35f));

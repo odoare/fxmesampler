@@ -11,6 +11,7 @@
 
 ConvolReverb::ConvolReverb()
 {
+    updateGains();
 }
 
 ConvolReverb::~ConvolReverb()
@@ -67,10 +68,17 @@ void ConvolReverb::process (juce::AudioBuffer<float>& buffer)
         // If the engine has output for this channel
         auto* src = out[c];
         for (int i = 0; i < toCopy; ++i)
-            dst[i] = (float) src[i];
+        {
+            float dry = dst[i];
+            float wet = (float) src[i];
+            dst[i] = dry * dryGainLinear + wet * wetGainLinear;
+        }
 
         if (toCopy < numSamples)
-            juce::FloatVectorOperations::clear (dst + toCopy, numSamples - toCopy);
+        {
+            for (int i = toCopy; i < numSamples; ++i)
+                dst[i] = dst[i] * dryGainLinear;
+        }
     }
 
     engine.Advance (toCopy);
@@ -135,6 +143,8 @@ void ConvolReverb::assignParameters (juce::AudioProcessorValueTreeState& apvts, 
     lengthParam = apvts.getRawParameterValue (prefix + "_Rev_Length");
     shapeParam = apvts.getRawParameterValue (prefix + "_Rev_Shape");
     startOffsetParam = apvts.getRawParameterValue (prefix + "_Rev_StartOffset");
+    dryGainParam = apvts.getRawParameterValue (prefix + "_Rev_DryGain");
+    wetGainParam = apvts.getRawParameterValue (prefix + "_Rev_WetGain");
     onParam = apvts.getRawParameterValue (prefix + "_Rev_On");
 }
 
@@ -152,6 +162,8 @@ void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioP
     shapes.add ("Slow Log");
     params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Rev_Shape", 1 }, prefix + " Rev Shape", shapes, 0));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_StartOffset", 1 }, prefix + " Rev Start Offset", -100.0f, 100.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_DryGain", 1 }, prefix + " Rev Dry Gain", -60.0f, 6.0f, -60.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_WetGain", 1 }, prefix + " Rev Wet Gain", -60.0f, 6.0f, 0.0f));
 }
 
 void ConvolReverb::loadResource (const juce::String& resourceName)
@@ -377,9 +389,28 @@ void ConvolReverb::checkParameters()
         lastStartOffset = *startOffsetParam;
     }
 
+    if (dryGainParam && *dryGainParam != lastDryGain)
+    {
+        dryGain = *dryGainParam;
+        lastDryGain = dryGain;
+        updateGains();
+    }
+    if (wetGainParam && *wetGainParam != lastWetGain)
+    {
+        wetGain = *wetGainParam;
+        lastWetGain = wetGain;
+        updateGains();
+    }
+
     if (onParam && *onParam != lastOn)
     {
         setOn (*onParam > 0.5f);
         lastOn = *onParam;
     }
+}
+
+void ConvolReverb::updateGains()
+{
+    dryGainLinear = juce::Decibels::decibelsToGain(dryGain);
+    wetGainLinear = juce::Decibels::decibelsToGain(wetGain);
 }

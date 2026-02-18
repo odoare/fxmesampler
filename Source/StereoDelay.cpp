@@ -88,7 +88,8 @@ void StereoDelay::addParameters(std::vector<std::unique_ptr<juce::RangedAudioPar
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FdbkL", prefix + " Del Feedback L", -60.0f, 6.0f, -6.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FdbkR", prefix + " Del Feedback R", -60.0f, 6.0f, -6.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_CrossFdbk", prefix + " Del Cross Feedback", -60.0f, 6.0f, -60.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FilterCutoff", prefix + " Del Filter Cutoff", juce::NormalisableRange<float>(20.0f, 20000.0f, 0.0f, 0.25f), 5000.0f));
+    // params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FilterCutoff", prefix + " Del Filter Cutoff", juce::NormalisableRange<float>(20.0f, 20000.0f, 0.0f, 0.25f), 5000.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FilterCutoff", prefix + " Del Filter Cutoff", 20.0f, 20000.0f, 20000.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FilterQ", prefix + " Del Filter Q", 0.1f, 10.0f, 0.707f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_DryGain", prefix + " Del Dry Gain", -60.0f, 6.0f, 0.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_WetGain", prefix + " Del Wet Gain", -60.0f, 6.0f, -6.0f));

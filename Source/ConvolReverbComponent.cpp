@@ -17,7 +17,7 @@ void ConvolReverbComponent::setSliderColours (juce::Slider& s, juce::Colour c)
 
 void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
-    juce::Colour color = juce::Colours::yellow;
+    juce::Colour color = juce::Colours::yellowgreen;
 
     addAndMakeVisible (label);
     label.setText (text, juce::NotificationType::dontSendNotification);
@@ -35,7 +35,7 @@ void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& labe
 
 void ConvolReverbComponent::setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
-    juce::Colour color = juce::Colours::yellow;
+    juce::Colour color = juce::Colours::yellowgreen;
 
     addAndMakeVisible (label);
     label.setText (text, juce::NotificationType::dontSendNotification);
@@ -182,7 +182,7 @@ void ImpulseResponsePlot::paint(juce::Graphics& g)
     if (!irMaxPathR.isEmpty())
         g.fillPath (irMaxPathR);
 
-    g.setColour (juce::Colours::yellow.withAlpha(0.7f));
+    g.setColour (juce::Colours::yellowgreen.withAlpha(0.7f));
     g.strokePath (irPlotPathL, juce::PathStrokeType (1.5f));
     if (!irPlotPathR.isEmpty())
         g.strokePath (irPlotPathR, juce::PathStrokeType (1.5f));
@@ -274,12 +274,15 @@ void ConvolReverbComponent::resized()
 {
     auto area = getLocalBounds().reduced (5);
     using fi = juce::FlexItem;
-    juce::FlexBox fMain, fTop, fSliders, fBoxes, fSl1, fSl2, fGains;
+    juce::FlexBox fMain, fTop, fSliders, fBoxes, fSl1, fSl2,
+                    fDry, fWet, fGains;
     fMain.flexDirection = juce::FlexBox::Direction::column;
     fTop.flexDirection = juce::FlexBox::Direction::row;
     fSliders.flexDirection = juce::FlexBox::Direction::row;
     fSl1.flexDirection = juce::FlexBox::Direction::column;
     fSl2.flexDirection = juce::FlexBox::Direction::column;
+    fDry.flexDirection = juce::FlexBox::Direction::column;
+    fWet.flexDirection = juce::FlexBox::Direction::column;
     fGains.flexDirection = juce::FlexBox::Direction::column;
     fBoxes.flexDirection = juce::FlexBox::Direction::column;
 
@@ -294,19 +297,17 @@ void ConvolReverbComponent::resized()
     fSl1.items.add(fi(lengthSlider).withFlex(0.8f));
     fSl2.items.add(fi(startOffsetLabel).withFlex(0.2f));
     fSl2.items.add(fi(startOffsetSlider).withFlex(0.8f));
+    fDry.items.add(fi(dryGainLabel).withFlex(0.2f));
+    fDry.items.add(fi(dryGainSlider).withFlex(0.8f));
+    fWet.items.add(fi(wetGainLabel).withFlex(0.2f));
+    fWet.items.add(fi(wetGainSlider).withFlex(0.8f));
+
     fSliders.items.add(fi(fBoxes).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 0)));
     fSliders.items.add(fi(fSl1).withFlex(1.f));
     fSliders.items.add(fi(fSl2).withFlex(1.f));
+    fSliders.items.add(fi(fDry).withFlex(.25f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 10.f)));
+    fSliders.items.add(fi(fWet).withFlex(.25f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 5.f)));
     
-    fGains.items.add(fi(dryGainLabel).withFlex(0.2f));
-    fGains.items.add(fi(dryGainSlider).withFlex(0.8f));
-    fSliders.items.add(fi(fGains).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, 0.f, 0.f, 5.f)));
-    fSliders.items.add(fi(wetGainLabel).withFlex(0.2f)); // Reusing label height logic implicitly by structure, but need separate container if vertical
-    // Actually let's just add wet gain as another column
-    juce::FlexBox fWet; fWet.flexDirection = juce::FlexBox::Direction::column;
-    fWet.items.add(fi(wetGainLabel).withFlex(0.2f));
-    fWet.items.add(fi(wetGainSlider).withFlex(0.8f));
-    fSliders.items.add(fi(fWet).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, 0.f, 0.f, 5.f)));
 
     fMain.items.add(fi(fTop).withFlex(0.12f));
     fMain.items.add(fi(fSliders).withFlex(0.35f));

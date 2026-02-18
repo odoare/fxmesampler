@@ -181,6 +181,30 @@ def detect_transients(audio_data, sample_rate, threshold_db=-40, min_silence_ms=
         
     return hits
 
+def find_best_transients(audio_data, sample_rate, expected_count):
+    # Try varying thresholds with default silence first
+    # Scan from -80dB to -6dB
+    thresholds = range(-80, -5, 1)
+    
+    # Silence options to try. 
+    # We prioritize 50ms (default), then try others.
+    silence_options = [50, 20, 10, 5, 100]
+    
+    for silence in silence_options:
+        valid_hits = []
+        for th in thresholds:
+            hits = detect_transients(audio_data, sample_rate, threshold_db=th, min_silence_ms=silence)
+            if len(hits) == expected_count:
+                valid_hits.append(hits)
+            elif len(hits) < expected_count and len(valid_hits) > 0:
+                break
+        
+        if valid_hits:
+            # Return the one from the middle of the valid range (most stable)
+            return valid_hits[len(valid_hits) // 2]
+            
+    return None
+
 def generate_mappings(folder_path):
     wav_files = glob.glob(os.path.join(folder_path, "*.wav"))
     
@@ -198,19 +222,20 @@ def generate_mappings(folder_path):
         name_no_ext = os.path.splitext(filename)[0]
         parts = name_no_ext.split(' ')
         
-        # Naming convention: SampleGroupName SampleFamillyName MuteGroup BasePitch NoteLow NoteHigh.wav
-        if len(parts) < 6:
-            print(f"Skipping {filename}: Does not match naming convention (parts < 6).")
+        # Naming convention: NumberOfSamples SampleGroupName SampleFamillyName MuteGroup BasePitch NoteLow NoteHigh.wav
+        if len(parts) < 7:
+            print(f"Skipping {filename}: Does not match naming convention (parts < 7).")
             continue
             
         try:
+            expected_count = int(parts[0])
             note_high = int(parts[-1])
             note_low = int(parts[-2])
             base_pitch = int(parts[-3])
             mute_group = int(parts[-4])
             
             family_name = parts[-5]
-            group_name = "_".join(parts[:-5]) # Join remaining parts as group name
+            group_name = "_".join(parts[1:-5]) # Join remaining parts as group name
             
             # Analyze audio
             audio_data, n_channels, sample_rate = read_wav_file(file_path)
@@ -231,10 +256,27 @@ def generate_mappings(folder_path):
                 continue
             
             # Detect hits
-            hits = detect_transients(audio_data, sample_rate)
-            if not hits:
-                print(f"Warning: No transients detected in {filename}.")
-                continue
+            if expected_count == 1:
+                if len(audio_data.shape) > 1:
+                    mono = np.mean(audio_data, axis=1)
+                else:
+                    mono = audio_data
+                energy = np.sum(mono**2)
+                hits = [{
+                    'start': 0,
+                    'end': len(audio_data),
+                    'energy': float(energy)
+                }]
+            else:
+                hits = find_best_transients(audio_data, sample_rate, expected_count)
+                
+                if hits is None:
+                     hits = detect_transients(audio_data, sample_rate)
+                     print(f"Warning: {filename}: Expected {expected_count} hits, found {len(hits)}.")
+
+                if not hits:
+                    print(f"Warning: No transients detected in {filename}.")
+                    continue
                 
             # Sort hits by energy (ascending)
             hits.sort(key=lambda x: x['energy'])

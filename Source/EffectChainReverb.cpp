@@ -43,3 +43,8 @@ void EffectChainReverb::process (juce::AudioBuffer<float>& buffer)
     delay.checkParameters();
     delay.process(buffer);
 }
+
+void EffectChainReverb::setBPM(double bpm)
+{
+    delay.setBPM(bpm);
+}

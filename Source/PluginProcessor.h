@@ -91,6 +91,7 @@ private:
     };
     std::vector<Preset> presets;
     int currentProgram = 0;
+    double lastBPM = -1.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSamplerAudioProcessor)
 };

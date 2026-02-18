@@ -132,6 +132,7 @@ void SimpleSamplerAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     sampler.prepareToPlay(sampleRate, samplesPerBlock);
     mixer.prepare(sampleRate, samplesPerBlock);
     samplerOutputBuffer.setSize(sampler.getNumOutputChannels(), samplesPerBlock);
+    lastBPM = -1.0;
 }
 
 void SimpleSamplerAudioProcessor::releaseResources()
@@ -196,7 +197,11 @@ void SimpleSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             if (pos->getBpm().hasValue())
                 bpm = *pos->getBpm();
     }
-    mixer.setBPM(bpm);
+    if (std::abs(bpm - lastBPM) > 0.0001)
+    {
+        lastBPM = bpm;
+        mixer.setBPM(bpm);
+    }
 
     samplerOutputBuffer.clear();
     

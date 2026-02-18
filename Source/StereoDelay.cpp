@@ -29,6 +29,7 @@ void StereoDelay::prepare(double sampleRate, int samplesPerBlock)
     writePos = 0;
     filterL.reset();
     filterR.reset();
+    updateDelayTimes();
 }
 
 void StereoDelay::process(juce::AudioBuffer<float>& buffer)
@@ -66,9 +67,9 @@ void StereoDelay::process(juce::AudioBuffer<float>& buffer)
         delayWriteL[writePos] = juce::jlimit(-1.0f, 1.0f, channelDataL[i] + filteredFeedbackL);
         delayWriteR[writePos] = juce::jlimit(-1.0f, 1.0f, channelDataR[i] + filteredFeedbackR);
 
-        // Calculate output (dry + wet) and apply output gain
-        channelDataL[i] = (channelDataL[i] + delayedL) * outputGainLinear;
-        channelDataR[i] = (channelDataR[i] + delayedR) * outputGainLinear;
+        // Calculate output (dry + wet)
+        channelDataL[i] = channelDataL[i] * dryGainLinear + delayedL * wetGainLinear;
+        channelDataR[i] = channelDataR[i] * dryGainLinear + delayedR * wetGainLinear;
 
         writePos = (writePos + 1) % maxDelaySamples;
     }
@@ -89,7 +90,8 @@ void StereoDelay::addParameters(std::vector<std::unique_ptr<juce::RangedAudioPar
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_CrossFdbk", prefix + " Del Cross Feedback", -60.0f, 6.0f, -60.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FilterCutoff", prefix + " Del Filter Cutoff", juce::NormalisableRange<float>(20.0f, 20000.0f, 0.0f, 0.25f), 5000.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_FilterQ", prefix + " Del Filter Q", 0.1f, 10.0f, 0.707f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_OutGain", prefix + " Del Output Gain", -60.0f, 6.0f, 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_DryGain", prefix + " Del Dry Gain", -60.0f, 6.0f, 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(prefix + "_Del_WetGain", prefix + " Del Wet Gain", -60.0f, 6.0f, -6.0f));
     params.push_back(std::make_unique<juce::AudioParameterBool>(prefix + "_Del_On", prefix + " Del On", true));
 }
 
@@ -102,7 +104,8 @@ void StereoDelay::assignParameters(juce::AudioProcessorValueTreeState& apvts, co
     crossFdbkParam = apvts.getRawParameterValue(prefix + "_Del_CrossFdbk");
     cutoffParam = apvts.getRawParameterValue(prefix + "_Del_FilterCutoff");
     qParam = apvts.getRawParameterValue(prefix + "_Del_FilterQ");
-    outGainParam = apvts.getRawParameterValue(prefix + "_Del_OutGain");
+    dryGainParam = apvts.getRawParameterValue(prefix + "_Del_DryGain");
+    wetGainParam = apvts.getRawParameterValue(prefix + "_Del_WetGain");
     onParam = apvts.getRawParameterValue(prefix + "_Del_On");
 }
 
@@ -150,10 +153,16 @@ void StereoDelay::checkParameters()
         lastQ = filterQ;
         updateFilter();
     }
-    if (outGainParam && *outGainParam != lastOutGain)
+    if (dryGainParam && *dryGainParam != lastDryGain)
     {
-        outputGain = *outGainParam;
-        lastOutGain = outputGain;
+        dryGain = *dryGainParam;
+        lastDryGain = dryGain;
+        updateGains();
+    }
+    if (wetGainParam && *wetGainParam != lastWetGain)
+    {
+        wetGain = *wetGainParam;
+        lastWetGain = wetGain;
         updateGains();
     }
     if (onParam && *onParam != lastOn)
@@ -165,6 +174,7 @@ void StereoDelay::checkParameters()
 
 void StereoDelay::setBPM(double bpm)
 {
+    std::cout << "BPM: " << bpm << std::endl;
     if (currentBPM != bpm)
     {
         currentBPM = bpm;
@@ -191,7 +201,8 @@ void StereoDelay::updateGains()
     feedbackLGain = juce::Decibels::decibelsToGain(feedbackL);
     feedbackRGain = juce::Decibels::decibelsToGain(feedbackR);
     crossFeedbackGain = juce::Decibels::decibelsToGain(crossFeedback);
-    outputGainLinear = juce::Decibels::decibelsToGain(outputGain);
+    dryGainLinear = juce::Decibels::decibelsToGain(dryGain);
+    wetGainLinear = juce::Decibels::decibelsToGain(wetGain);
 }
 
 void StereoDelay::updateFilter()

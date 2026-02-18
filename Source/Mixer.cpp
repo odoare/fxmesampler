@@ -28,10 +28,8 @@ void MixerStrip::addSend (const juce::String& busName, BusStrip* bus)
 
 void MixerStrip::setBPM(double bpm)
 {
-    if (auto* d = dynamic_cast<EffectChainDelay*>(effectChain.get()))
-    {
-        d->getDelay().setBPM(bpm);
-    }
+    if (effectChain)
+        effectChain->setBPM(bpm);
 }
 
 void MixerStrip::processSends (juce::AudioBuffer<float>& buffer, bool isPre)

@@ -32,3 +32,8 @@ void EffectChainDelay::process (juce::AudioBuffer<float>& buffer)
 {
     delay.process(buffer);
 }
+
+void EffectChainDelay::setBPM(double bpm)
+{
+    delay.setBPM(bpm);
+}

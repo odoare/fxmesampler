@@ -55,14 +55,15 @@ private:
     float feedbackL = -6.0f, feedbackR = -6.0f;
     float crossFeedback = -60.0f;
     float filterCutoff = 5000.0f, filterQ = 1.0f;
-    float outputGain = 0.0f;
+    float dryGain = 0.0f;
+    float wetGain = -6.0f;
     bool on = true;
 
     // Smoothed gains
     double currentBPM = 120.0;
     float feedbackLGain = 0.0f, feedbackRGain = 0.0f;
     float crossFeedbackGain = 0.0f;
-    float outputGainLinear = 1.0f;
+    float dryGainLinear = 1.0f, wetGainLinear = 0.5f;
 
     // Delay times in samples
     int delaySamplesL = 0, delaySamplesR = 0;
@@ -75,7 +76,8 @@ private:
     std::atomic<float>* crossFdbkParam = nullptr;
     std::atomic<float>* cutoffParam = nullptr;
     std::atomic<float>* qParam = nullptr;
-    std::atomic<float>* outGainParam = nullptr;
+    std::atomic<float>* dryGainParam = nullptr;
+    std::atomic<float>* wetGainParam = nullptr;
     std::atomic<float>* onParam = nullptr;
 
     // Last values for change detection
@@ -83,6 +85,7 @@ private:
     float lastFdbkL = -100.0f, lastFdbkR = -100.0f;
     float lastCrossFdbk = -100.0f;
     float lastCutoff = -1.0f, lastQ = -1.0f;
-    float lastOutGain = -100.0f;
+    float lastDryGain = -100.0f;
+    float lastWetGain = -100.0f;
     float lastOn = -1.0f;
 };

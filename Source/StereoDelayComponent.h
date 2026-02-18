@@ -48,13 +48,14 @@ private:
     juce::Label cutoffLabel, qLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> cutoffAtt, qAtt;
 
-    FxmeSlider outGainSlider;
-    juce::Label outGainLabel;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> outGainAtt;
+    FxmeSlider dryGainSlider, wetGainSlider;
+    juce::Label dryGainLabel, wetGainLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryGainAtt, wetGainAtt;
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
 
     void setupSlider(juce::Slider& slider, juce::Label& label, const juce::String& text);
+    void setupBarSlider(juce::Slider& slider, juce::Label& label, const juce::String& text);
     void setSliderColours(juce::Slider& s, juce::Colour c);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StereoDelayComponent)

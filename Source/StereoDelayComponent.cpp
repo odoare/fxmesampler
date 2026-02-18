@@ -31,6 +31,22 @@ void StereoDelayComponent::setupSlider(juce::Slider& slider, juce::Label& label,
     setSliderColours(slider, color);
 }
 
+void StereoDelayComponent::setupBarSlider(juce::Slider& slider, juce::Label& label, const juce::String& text)
+{
+    juce::Colour color = juce::Colours::green;
+
+    addAndMakeVisible(label);
+    label.setText(text, juce::NotificationType::dontSendNotification);
+    label.setJustificationType(juce::Justification::centred);
+
+    addAndMakeVisible(slider);
+    slider.setSliderStyle(juce::Slider::LinearBarVertical);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 15);
+    slider.setTooltip(text);
+    slider.setLookAndFeel(&fxmeLookAndFeel);
+    setSliderColours(slider, color);
+}
+
 StereoDelayComponent::StereoDelayComponent(StereoDelay& d, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
     : delay(d), apvts(state)
 {
@@ -76,9 +92,13 @@ StereoDelayComponent::StereoDelayComponent(StereoDelay& d, juce::AudioProcessorV
     setupSlider(qSlider, qLabel, "Q");
     qAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_FilterQ", qSlider);
 
-    setupSlider(outGainSlider, outGainLabel, "Output");
-    outGainSlider.setTextValueSuffix(" dB");
-    outGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_OutGain", outGainSlider);
+    setupBarSlider(dryGainSlider, dryGainLabel, "Dry");
+    dryGainSlider.setTextValueSuffix(" dB");
+    dryGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_DryGain", dryGainSlider);
+
+    setupBarSlider(wetGainSlider, wetGainLabel, "Wet");
+    wetGainSlider.setTextValueSuffix(" dB");
+    wetGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_WetGain", wetGainSlider);
 }
 
 StereoDelayComponent::~StereoDelayComponent()
@@ -120,7 +140,7 @@ void StereoDelayComponent::resized()
         box.items.add(fi(slider).withFlex(0.8f));
     };
 
-    juce::FlexBox b1, b2, b3, b4, b5, b6, b7, b8;
+    juce::FlexBox b1, b2, b3, b4, b5, b6, b7, b8, b9;
     setupSliderBox(b1, delayLLabel, delayLSlider);
     setupSliderBox(b2, delayRLabel, delayRSlider);
     setupSliderBox(b3, fdbkLLabel, fdbkLSlider);
@@ -128,7 +148,8 @@ void StereoDelayComponent::resized()
     setupSliderBox(b5, crossFdbkLabel, crossFdbkSlider);
     setupSliderBox(b6, cutoffLabel, cutoffSlider);
     setupSliderBox(b7, qLabel, qSlider);
-    setupSliderBox(b8, outGainLabel, outGainSlider);
+    setupSliderBox(b8, dryGainLabel, dryGainSlider);
+    setupSliderBox(b9, wetGainLabel, wetGainSlider);
 
     fSliders1.items.add(fi(b1).withFlex(1.f));
     fSliders1.items.add(fi(b2).withFlex(1.f));
@@ -137,7 +158,8 @@ void StereoDelayComponent::resized()
     fSliders2.items.add(fi(b5).withFlex(1.f));
     fSliders2.items.add(fi(b6).withFlex(1.f));
     fSliders2.items.add(fi(b7).withFlex(1.f));
-    fSliders2.items.add(fi(b8).withFlex(1.f));
+    fSliders2.items.add(fi(b8).withFlex(0.25f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 5.f)));
+    fSliders2.items.add(fi(b9).withFlex(0.25f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 5.f)));
 
     fMain.items.add(fi(fTop).withFlex(0.28f));
     fMain.items.add(fi(fSliders1).withFlex(0.85f));

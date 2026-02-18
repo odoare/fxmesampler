@@ -13,40 +13,48 @@
 #include <cmath>
 
 //==============================================================================
-void Sound::load (juce::AudioFormatManager& formatManager)
+void Sampler::loadSound (Sound& sound)
 {
-    if (data == nullptr || dataSize <= 0)
+    if (sound.audioBuffer)
         return;
 
-    auto stream = std::make_unique<juce::MemoryInputStream> (data, (size_t) dataSize, false);
+    // Check cache first
+    if (sound.resourceName.isNotEmpty())
+    {
+        auto it = sampleCache.find (sound.resourceName);
+        if (it != sampleCache.end())
+        {
+            sound.audioBuffer = it->second.first;
+            sound.sourceSampleRate = it->second.second;
+            return;
+        }
+    }
+
+    if (sound.data == nullptr || sound.dataSize <= 0)
+        return;
+
+    auto stream = std::make_unique<juce::MemoryInputStream> (sound.data, (size_t) sound.dataSize, false);
     std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor (std::move (stream)));
 
     if (reader != nullptr)
     {
-        audioBuffer.setSize ((int) reader->numChannels, (int) reader->lengthInSamples);
-        reader->read (&audioBuffer, 0, (int) reader->lengthInSamples, 0, true, true);
-        sourceSampleRate = reader->sampleRate;
-
-        // Resolve defaults for end points if they were -1 or invalid
-        int numSamples = audioBuffer.getNumSamples();
-        if (sampleEnd == -1 || sampleEnd >= numSamples) sampleEnd = numSamples - 1;
-        if (sampleStart < 0) sampleStart = 0;
-        if (sampleStart > sampleEnd) sampleStart = sampleEnd;
-
-        if (loopEnd == -1 || loopEnd >= numSamples) loopEnd = sampleEnd;
-        if (loopStart < 0) loopStart = 0;
-        if (loopStart > loopEnd) loopStart = loopEnd;
+        auto buffer = std::make_shared<juce::AudioBuffer<float>> ((int) reader->numChannels, (int) reader->lengthInSamples);
+        reader->read (buffer.get(), 0, (int) reader->lengthInSamples, 0, true, true);
         
-        // Safety clamp
-        if (sampleEnd < 0) sampleEnd = 0;
-        if (loopEnd < 0) loopEnd = 0;
+        sound.audioBuffer = buffer;
+        sound.sourceSampleRate = reader->sampleRate;
+
+        if (sound.resourceName.isNotEmpty())
+        {
+            sampleCache[sound.resourceName] = { buffer, sound.sourceSampleRate };
+        }
     }
 }
 
 //==============================================================================
 void Voice::start (const Sound* sound, int note, float velocity, double sampleRate)
 {
-    //std::cout << "Start a sound on note " << note << std::endl;
+    std::cout << "Start a sound on note " << note << std::endl;
     activeSound = sound;
     currentNote = note;
     currentPosition = (sound ? (double)sound->sampleStart : 0.0);
@@ -56,7 +64,7 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
     envelopeVal = 0.0f;
     state = State::Attack;
 
-    if (activeSound)
+    if (activeSound && activeSound->audioBuffer)
     {
         double detune = 0.0;
         double attack = activeSound->attack;
@@ -121,10 +129,10 @@ bool Voice::isActive() const
 
 void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-    if (state == State::Idle || activeSound == nullptr)
+    if (state == State::Idle || activeSound == nullptr || activeSound->audioBuffer == nullptr)
         return;
 
-    const auto& sourceBuffer = activeSound->audioBuffer;
+    const auto& sourceBuffer = *activeSound->audioBuffer;
     int numSourceChannels = sourceBuffer.getNumChannels();
     int numOutputChannels = outputBuffer.getNumChannels();
     const auto& targetChannels = activeSound->outputChannels;
@@ -255,7 +263,7 @@ void Sampler::addSound (const Sound& sound)
     juce::ScopedLock sl (lock);
     sounds.push_back (sound);
     // Load the audio data into the buffer for the newly added sound
-    sounds.back().load (formatManager);
+    loadSound (sounds.back());
 }
 
 void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
@@ -269,6 +277,10 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
     if (root == nullptr || ! root->hasTagName ("Mappings"))
         return;
 
+    {
+        juce::ScopedLock sl (lock);
+        sampleCache.clear(); // Clear cache when loading new mapping
+    }
     std::vector<Sound> newSounds;
     std::vector<std::unique_ptr<SampleGroup>> newSampleGroups;
     int newNumOutputChannels = 2;
@@ -340,7 +352,12 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             Sound sound;
             sound.name = child->getStringAttribute ("name");
             
+            sound.resourceName = child->getStringAttribute ("resource");
             juce::String resourceName = child->getStringAttribute ("resource").replaceCharacter ('.', '_').replaceCharacter (' ', '_');
+            
+            if (resourceName.isNotEmpty() && juce::CharacterFunctions::isDigit(resourceName[0]))
+                resourceName = "_" + resourceName;
+
             sound.data = BinaryData::getNamedResource (resourceName.toRawUTF8(), sound.dataSize);
 
             if (sound.data == nullptr)
@@ -353,6 +370,11 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
                         break;
                     }
                 }
+            }
+            
+            if (sound.data == nullptr)
+            {
+                std::cout << "Warning: Could not find resource for sound: " << sound.name << " (resource: " << resourceName << ")" << std::endl;
             }
 
             sound.midiNoteRange = juce::Range<int> (child->getIntAttribute ("noteLow"), child->getIntAttribute ("noteHigh") + 1);
@@ -384,10 +406,26 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
                 sound.outputChannels = { -1, 0, -1, 1 };
             }
 
-            sound.load (formatManager);
+            loadSound (sound);
+
+            // Resolve defaults for end points if they were -1 or invalid
+            if (sound.audioBuffer)
+            {
+                int numSamples = sound.audioBuffer->getNumSamples();
+                if (sound.sampleEnd == -1 || sound.sampleEnd > numSamples) sound.sampleEnd = numSamples;
+                if (sound.sampleStart < 0) sound.sampleStart = 0;
+                if (sound.sampleStart > sound.sampleEnd) sound.sampleStart = sound.sampleEnd;
+
+                if (sound.loopEnd == -1 || sound.loopEnd >= numSamples) sound.loopEnd = sound.sampleEnd - 1;
+                if (sound.loopStart < 0) sound.loopStart = 0;
+                if (sound.loopStart > sound.loopEnd) sound.loopStart = sound.loopEnd;
+                
+                if (sound.sampleEnd < 0) sound.sampleEnd = 0;
+                if (sound.loopEnd < 0) sound.loopEnd = 0;
+            }
 
             // Resolve auto-source channels (-1)
-            int numSourceChannels = sound.audioBuffer.getNumChannels();
+            int numSourceChannels = sound.audioBuffer ? sound.audioBuffer->getNumChannels() : 2;
             for (size_t i = 0; i < sound.outputChannels.size(); i += 2)
             {
                 if (sound.outputChannels[i] == -1)
@@ -492,6 +530,8 @@ void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& 
                 {
                     if (sound.group && sound.group->midiChannel != 0 && sound.group->midiChannel != channel)
                         continue;
+
+                    std::cout << "Play a note?" << std::endl;
 
                     // Handle Mute Groups
                     if (sound.muteGroup > 0) // Choke group 0 corresponds to no mute behaviour

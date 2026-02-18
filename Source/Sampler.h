@@ -57,6 +57,7 @@ struct SampleGroup
 struct Sound
 {
     juce::String name;
+    juce::String resourceName;
     const char* data = nullptr;
     int dataSize = 0;
     juce::Range<int> midiNoteRange { 0, 127 };
@@ -77,14 +78,8 @@ struct Sound
     SampleGroup* group = nullptr;
 
     // Internal audio data
-    juce::AudioBuffer<float> audioBuffer;
+    std::shared_ptr<juce::AudioBuffer<float>> audioBuffer;
     double sourceSampleRate = 44100.0;
-
-    /**
-     * @brief Loads the audio data from the binary resource.
-     * @param formatManager The format manager to use for reading.
-     */
-    void load (juce::AudioFormatManager& formatManager);
 };
 
 //==============================================================================
@@ -245,7 +240,11 @@ private:
     
     int numOutputChannels = 2;
     std::vector<std::unique_ptr<SampleGroup>> sampleGroups;
+    
+    // Cache to share audio buffers among sounds using the same resource
+    std::map<juce::String, std::pair<std::shared_ptr<juce::AudioBuffer<float>>, double>> sampleCache;
 
     Voice* findFreeVoice();
+    void loadSound (Sound& sound);
     juce::CriticalSection lock;
 };

@@ -11,6 +11,12 @@ except ImportError:
     print("Error: numpy is required for this script. Please install it via 'pip install numpy'.")
     sys.exit(1)
 
+try:
+    import matplotlib.pyplot as plt
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
+
 # Try to import scipy for better wav support
 try:
     from scipy.io import wavfile as scipy_wav
@@ -119,7 +125,7 @@ def read_wav_file(filepath):
         print(f"Error reading {filepath}: {e}")
         return None, None, None
 
-def detect_transients(audio_data, sample_rate, threshold_db=-40, min_silence_ms=50):
+def detect_transients(audio_data, sample_rate, threshold_db=-60, release_threshold_db=-100, min_silence_ms=200):
     """
     Detects transients in the audio data.
     Returns a list of dictionaries containing start, end, and energy of each hit.
@@ -130,14 +136,18 @@ def detect_transients(audio_data, sample_rate, threshold_db=-40, min_silence_ms=
     else:
         mono = audio_data
         
-    # Rectify
-    abs_signal = np.abs(mono)
+    # Calculate RMS envelope for detection
+    window_size = 128
+    squared = mono ** 2
+    window = np.ones(window_size) / window_size
+    mean_sq = np.convolve(squared, window, mode='same')
+    rms_envelope = np.sqrt(mean_sq)
     
     # Calculate linear threshold
     threshold_linear = 10 ** (threshold_db / 20.0)
     
     # Boolean array where signal is above threshold
-    is_above = abs_signal > threshold_linear
+    is_above = rms_envelope > threshold_linear
     
     # Find state changes (rising and falling edges)
     # Pad with False to detect edges at the very beginning or end
@@ -145,50 +155,57 @@ def detect_transients(audio_data, sample_rate, threshold_db=-40, min_silence_ms=
     diff = np.diff(padded.astype(int))
     
     starts = np.where(diff == 1)[0]
-    ends = np.where(diff == -1)[0]
     
     if len(starts) == 0:
         return []
         
-    # Merge regions separated by less than min_silence_ms
+    # Filter starts based on min_silence_ms
     min_silence_samples = int(min_silence_ms * sample_rate / 1000.0)
+    valid_starts = []
     
-    merged_starts = [starts[0]]
-    merged_ends = []
+    for s in starts:
+        # Check distance from last valid start
+        if len(valid_starts) > 0 and s - valid_starts[-1] < min_silence_samples:
+            continue
+            
+        # Check energy in the preceding window (must be silence)
+        win_start = max(0, s - min_silence_samples)
+        if s > win_start:
+            prev_window = mono[win_start:s]
+            rms = np.sqrt(np.mean(prev_window**2))
+            if rms < threshold_linear:
+                valid_starts.append(s)
+        else:
+            valid_starts.append(s)
     
-    for i in range(len(starts) - 1):
-        # Check gap between current end and next start
-        gap = starts[i+1] - ends[i]
-        if gap > min_silence_samples:
-            # Gap is large enough, close current hit and start new one
-            merged_ends.append(ends[i])
-            merged_starts.append(starts[i+1])
-        # else: ignore this end and next start, effectively merging them
-        
-    merged_ends.append(ends[-1])
+    # Adjust starts back by 0.5ms
+    offset_samples = int(0.5 * sample_rate / 1000.0)
+    adjusted_starts = [max(0, s - offset_samples) for s in valid_starts]
     
     hits = []
-    for s, e in zip(merged_starts, merged_ends):
+    for i in range(len(adjusted_starts)):
+        start = adjusted_starts[i]
+        if i < len(adjusted_starts) - 1:
+            end = adjusted_starts[i+1]
+        else:
+            end = len(audio_data)
+            
         # Calculate energy (sum of squared samples) for the region
-        segment = mono[s:e]
-        energy = np.sum(segment**2)
+        segment = mono[start:end]
+        energy = float(np.sum(segment**2))
         
-        hits.append({
-            'start': int(s),
-            'end': int(e),
-            'energy': float(energy)
-        })
+        hits.append({'start': start, 'end': end, 'energy': energy})
         
     return hits
 
 def find_best_transients(audio_data, sample_rate, expected_count):
     # Try varying thresholds with default silence first
     # Scan from -80dB to -6dB
-    thresholds = range(-80, -5, 1)
+    thresholds = range(-40, -5, 1)
     
     # Silence options to try. 
-    # We prioritize 50ms (default), then try others.
-    silence_options = [50, 20, 10, 5, 100]
+    # We prioritize 500ms (default), then try others.
+    silence_options = [500, 200, 50, 20, 10, 5, 100]
     
     for silence in silence_options:
         valid_hits = []
@@ -277,6 +294,24 @@ def generate_mappings(folder_path):
                 if not hits:
                     print(f"Warning: No transients detected in {filename}.")
                     continue
+            
+            if HAS_MATPLOTLIB:
+                plt.figure(figsize=(12, 6))
+                if len(audio_data.shape) > 1:
+                    plot_data = np.mean(audio_data, axis=1)
+                else:
+                    plot_data = audio_data
+                
+                plt.plot(plot_data, color='lightgray', label='Waveform')
+                
+                for i, hit in enumerate(hits):
+                    plt.axvline(x=hit['start'], color='r', linestyle='-', alpha=0.8, label='Start' if i==0 else "")
+                    plt.axvline(x=hit['end'], color='b', linestyle='--', alpha=0.6, label='End' if i==0 else "")
+                
+                plt.title(f"File: {filename} | Detected: {len(hits)} | Expected: {expected_count}")
+                plt.legend()
+                print(f"Displaying {filename}. Close plot window to continue...")
+                plt.show()
                 
             # Sort hits by energy (ascending)
             hits.sort(key=lambda x: x['energy'])

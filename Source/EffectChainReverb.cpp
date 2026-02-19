@@ -28,7 +28,7 @@ void EffectChainReverb::assignParameters (juce::AudioProcessorValueTreeState& ap
 
 void EffectChainReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
 {
-    reverb.addParameters (params, prefix);
+    ConvolReverb::addParameters (params, prefix, reverb.getImpulseNames().size());
     eq.addParameters (params, prefix);
     delay.addParameters (params,prefix);
 }

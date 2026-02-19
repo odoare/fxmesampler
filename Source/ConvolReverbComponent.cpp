@@ -208,7 +208,7 @@ ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProces
     addAndMakeVisible (irBox);
     const auto& names = reverb.getImpulseNames();
     for (int i = 0; i < names.size(); ++i)
-        irBox.addItem (names[i], i + 1);
+        irBox.addItem (juce::File (names[i]).getFileNameWithoutExtension(), i + 1);
     irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Rev_IR", irBox);
     irBox.onChange = [this] { graphNeedsUpdate = true; };
 

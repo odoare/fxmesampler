@@ -38,7 +38,7 @@ public:
 
     // APVTS integration
     void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
-    static void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix);
+    static void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix, int numIRs = 0);
 
 private:
     // WDL Engine

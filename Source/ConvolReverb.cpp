@@ -148,11 +148,12 @@ void ConvolReverb::assignParameters (juce::AudioProcessorValueTreeState& apvts, 
     onParam = apvts.getRawParameterValue (prefix + "_Rev_On");
 }
 
-void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
+void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix, int numIRs)
 {
     // IR selection: range depends on the number of loaded IRs, but we need a fixed range for APVTS
-    // Max 100 IRs for parameter definition, UI will limit to actual count.
-    params.push_back (std::make_unique<juce::AudioParameterInt> (juce::ParameterID { prefix + "_Rev_IR", 1 }, prefix + " Rev IR", 0, 100, 0));
+    // We set the range to [1, numIRs] so it matches the 1-based IDs of the ComboBox.
+    int maxVal = (numIRs > 0) ? numIRs : 1;
+    params.push_back (std::make_unique<juce::AudioParameterInt> (juce::ParameterID { prefix + "_Rev_IR", 1 }, prefix + " Rev IR", 1, maxVal, 1));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_Length", 1 }, prefix + " Rev Length", 0.0f, 1.0f, 1.0f));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "_Rev_On", 1 }, prefix + " Rev On", true));
     
@@ -190,7 +191,6 @@ void ConvolReverb::loadResource (const juce::String& resourceName)
         {
             if (currentSampleRate > 0 && reader->sampleRate > 0 && std::abs(reader->sampleRate - currentSampleRate) > 1.0)
             {
-                std::cout << "Resampling IR from " << reader->sampleRate << " to " << currentSampleRate << " Hz\n" << std::flush;
                 WDL_Resampler resampler;
                 resampler.SetMode(true, 0, true); // Sinc interpolation
                 resampler.SetRates(reader->sampleRate, currentSampleRate);
@@ -367,8 +367,14 @@ void ConvolReverb::checkParameters()
 {
     if (irParam && (int)*irParam != lastIR)
     {
-        selectImpulse ((int)*irParam);
-        lastIR = (int)*irParam;
+        // Parameter is 1-based (to match ComboBox IDs), selectImpulse is 0-based
+        int val = (int)*irParam;
+        int index = val - 1;
+
+        if (index >= 0 && index < irResources.size())
+            selectImpulse (index);
+            
+        lastIR = val;
     }
 
     if (lengthParam && *lengthParam != lastLengthRatio)

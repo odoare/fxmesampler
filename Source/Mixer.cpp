@@ -551,7 +551,7 @@ void StereoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& ap
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    irParam = apvts.getRawParameterValue (name + "_IR");
+    reverb.assignParameters(apvts, name);
     
     if (effectChain) effectChain->assignParameters (apvts, name);
 
@@ -576,7 +576,7 @@ void StereoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedA
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Pan", 1 }, name + " Pan", -1.0f, 1.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Mute", 1 }, name + " Mute", false));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Solo", 1 }, name + " Solo", false));
-    ConvolReverb::addParameters (params, name);
+    ConvolReverb::addParameters (params, name, reverb.getImpulseNames().size());
 
     if (effectChain) effectChain->addParameters (params, name);
 
@@ -671,7 +671,7 @@ void MonoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvt
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     soloParam = apvts.getRawParameterValue (name + "_Solo");
-    irParam = apvts.getRawParameterValue (name + "_IR");
+    reverb.assignParameters(apvts, name);
     
     if (effectChain) effectChain->assignParameters (apvts, name);
 
@@ -696,7 +696,7 @@ void MonoReverbStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAud
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Pan", 1 }, name + " Pan", -1.0f, 1.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Mute", 1 }, name + " Mute", false));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Solo", 1 }, name + " Solo", false));
-    ConvolReverb::addParameters (params, name);
+    ConvolReverb::addParameters (params, name, reverb.getImpulseNames().size());
 
     if (effectChain) effectChain->addParameters (params, name);
 

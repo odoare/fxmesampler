@@ -11,6 +11,7 @@
 #include "EffectChainDelay.h"
 #include "EffectChainDelayComponent.h"
 #include "EffectChainDynamicsComponent.h"
+#include "WelcomeTabComponent.h"
 //==============================================================================
 // StripComponent Base
 StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeState& apvts)
@@ -497,9 +498,9 @@ StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, ju
         addAndMakeVisible (irBox);
         const auto& names = s.reverb.getImpulseNames();
         for (int i = 0; i < names.size(); ++i)
-            irBox.addItem (names[i], i + 1);
+            irBox.addItem (juce::File (names[i]).getFileNameWithoutExtension(), i + 1);
         
-        irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, s.getName() + "_IR", irBox);
+        irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, s.getName() + "_Rev_IR", irBox);
     }
 
     setStripColor(c);
@@ -593,9 +594,9 @@ MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::Au
         addAndMakeVisible (irBox);
         const auto& names = s.reverb.getImpulseNames();
         for (int i = 0; i < names.size(); ++i)
-            irBox.addItem (names[i], i + 1);
+            irBox.addItem (juce::File (names[i]).getFileNameWithoutExtension(), i + 1);
         
-        irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, s.getName() + "_IR", irBox);
+        irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, s.getName() + "_Rev_IR", irBox);
     }
 
     setStripColor(c);
@@ -906,7 +907,7 @@ MixerComponent::MixerComponent (Mixer& m, Sampler& s, juce::AudioProcessorValueT
 {
     welcomeComp.setText(mixer.getWelcomeText());
     welcomeComp.setImage(mixer.getWelcomeImage());
-    tabs.addTab("Welcome", juce::Colours::black, &welcomeComp, false);
+    tabs.addTab("Welcome", juce::Colours::black, new WelcomeTabComponent(welcomeComp, apvts), true);
 
     tabs.addTab ("Levels", juce::Colours::black, &levelsComp, false);
     

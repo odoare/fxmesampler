@@ -8,11 +8,9 @@
 
 #include "WelcomeTabComponent.h"
 
-WelcomeTabComponent::WelcomeTabComponent(juce::Component& content, juce::AudioProcessorValueTreeState& apvts)
-    : content(content), apvts(apvts)
+WelcomeTabComponent::WelcomeTabComponent(const juce::String& text, const juce::Image& image, juce::AudioProcessorValueTreeState& apvts)
+    : text(text), img(image), apvts(apvts)
 {
-    addAndMakeVisible(content);
-    
     addAndMakeVisible(saveButton);
     saveButton.setButtonText("Save Preset");
     saveButton.onClick = [this] { savePreset(); };
@@ -26,6 +24,24 @@ WelcomeTabComponent::~WelcomeTabComponent()
 {
 }
 
+void WelcomeTabComponent::paint(juce::Graphics& g)
+{
+    g.setColour(juce::Colours::black);
+    g.fillAll();
+
+    auto area = getLocalBounds().toFloat().reduced(10);
+    
+    if (img.isValid())
+    {
+        auto imgArea = area.removeFromTop(area.getHeight() * 0.8f);
+        g.drawImage(img, imgArea, juce::RectanglePlacement::centred);
+    }
+    
+    g.setColour(juce::Colours::white);
+    g.setFont(24.0f);
+    g.drawFittedText(text, area.toNearestInt(), juce::Justification::centred, 10);
+}
+
 void WelcomeTabComponent::resized()
 {
     auto area = getLocalBounds();
@@ -34,8 +50,6 @@ void WelcomeTabComponent::resized()
     saveButton.setBounds(buttonArea.removeFromLeft(100));
     buttonArea.removeFromLeft(10);
     loadButton.setBounds(buttonArea.removeFromLeft(100));
-    
-    content.setBounds(area);
 }
 
 void WelcomeTabComponent::savePreset()

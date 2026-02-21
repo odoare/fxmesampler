@@ -13,13 +13,15 @@
 class WelcomeTabComponent : public juce::Component
 {
 public:
-    WelcomeTabComponent(juce::Component& content, juce::AudioProcessorValueTreeState& apvts);
+    WelcomeTabComponent(const juce::String& text, const juce::Image& image, juce::AudioProcessorValueTreeState& apvts);
     ~WelcomeTabComponent() override;
 
+    void paint (juce::Graphics& g) override;
     void resized() override;
 
 private:
-    juce::Component& content;
+    juce::String text;
+    juce::Image img;
     juce::AudioProcessorValueTreeState& apvts;
     juce::TextButton saveButton;
     juce::TextButton loadButton;

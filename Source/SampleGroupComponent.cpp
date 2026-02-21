@@ -26,7 +26,7 @@ SampleGroupComponent::SampleGroupComponent (SampleGroup& g, juce::AudioProcessor
     addAndMakeVisible (oneShotButton);
     oneShotButton.setButtonText ("One Shot");
     oneShotButton.setLookAndFeel (&fxmeLookAndFeel);
-    oneShotButton.setColour (juce::ToggleButton::tickColourId, juce::Colours::cyan);
+    oneShotButton.setColour (juce::ToggleButton::tickColourId, juce::Colours::purple);
     
     // Assuming parameter naming convention: GroupName_Parameter
     juce::String prefix = group.getName() + "_";
@@ -69,7 +69,7 @@ void SampleGroupComponent::setupSlider (juce::Slider& slider, juce::Label& label
     slider.setTooltip (text);
     slider.setLookAndFeel (&fxmeLookAndFeel);
     
-    setSliderColours (slider, juce::Colours::cyan);
+    setSliderColours (slider, juce::Colours::purple);
 }
 
 void SampleGroupComponent::paint (juce::Graphics& g)

@@ -13,25 +13,25 @@
 #include "MixerComponent.h"
 
 /**
- * @class SimpleSamplerAudioProcessorEditor
- * @brief The editor (GUI) for the SimpleSampler plugin.
+ * @class FxmeSamplerAudioProcessorEditor
+ * @brief The editor (GUI) for the FxmeSampler plugin.
  */
-class SimpleSamplerAudioProcessorEditor : public juce::AudioProcessorEditor
+class FxmeSamplerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
     /**
      * @brief Constructor.
      * @param p The AudioProcessor to edit.
      */
-    SimpleSamplerAudioProcessorEditor (SimpleSamplerAudioProcessor&);
-    ~SimpleSamplerAudioProcessorEditor() override;
+    FxmeSamplerAudioProcessorEditor (FxmeSamplerAudioProcessor&);
+    ~FxmeSamplerAudioProcessorEditor() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
 private:
-    SimpleSamplerAudioProcessor& audioProcessor;
+    FxmeSamplerAudioProcessor& audioProcessor;
     MixerComponent mixerComponent;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSamplerAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FxmeSamplerAudioProcessorEditor)
 };

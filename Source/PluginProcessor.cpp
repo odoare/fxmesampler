@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
+FxmeSamplerAudioProcessor::FxmeSamplerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                        .withOutput ("Main Output", juce::AudioChannelSet::stereo(), true)
@@ -45,17 +45,17 @@ SimpleSamplerAudioProcessor::SimpleSamplerAudioProcessor()
     }
 }
 
-SimpleSamplerAudioProcessor::~SimpleSamplerAudioProcessor()
+FxmeSamplerAudioProcessor::~FxmeSamplerAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String SimpleSamplerAudioProcessor::getName() const
+const juce::String FxmeSamplerAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool SimpleSamplerAudioProcessor::acceptsMidi() const
+bool FxmeSamplerAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -64,7 +64,7 @@ bool SimpleSamplerAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool SimpleSamplerAudioProcessor::producesMidi() const
+bool FxmeSamplerAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -73,7 +73,7 @@ bool SimpleSamplerAudioProcessor::producesMidi() const
    #endif
 }
 
-bool SimpleSamplerAudioProcessor::isMidiEffect() const
+bool FxmeSamplerAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -82,22 +82,22 @@ bool SimpleSamplerAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double SimpleSamplerAudioProcessor::getTailLengthSeconds() const
+double FxmeSamplerAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int SimpleSamplerAudioProcessor::getNumPrograms()
+int FxmeSamplerAudioProcessor::getNumPrograms()
 {
     return juce::jmax(1, (int)presets.size());
 }
 
-int SimpleSamplerAudioProcessor::getCurrentProgram()
+int FxmeSamplerAudioProcessor::getCurrentProgram()
 {
     return currentProgram;
 }
 
-void SimpleSamplerAudioProcessor::setCurrentProgram (int index)
+void FxmeSamplerAudioProcessor::setCurrentProgram (int index)
 {
     if (index >= 0 && index < (int)presets.size())
     {
@@ -111,21 +111,21 @@ void SimpleSamplerAudioProcessor::setCurrentProgram (int index)
     }
 }
 
-const juce::String SimpleSamplerAudioProcessor::getProgramName (int index)
+const juce::String FxmeSamplerAudioProcessor::getProgramName (int index)
 {
     if (index >= 0 && index < (int)presets.size())
         return presets[index].name;
     return "Default";
 }
 
-void SimpleSamplerAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void FxmeSamplerAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
     if (index >= 0 && index < (int)presets.size())
         presets[index].name = newName;
 }
 
 //==============================================================================
-void SimpleSamplerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void FxmeSamplerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -135,14 +135,14 @@ void SimpleSamplerAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     lastBPM = -1.0;
 }
 
-void SimpleSamplerAudioProcessor::releaseResources()
+void FxmeSamplerAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool SimpleSamplerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool FxmeSamplerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -167,7 +167,7 @@ bool SimpleSamplerAudioProcessor::isBusesLayoutSupported (const BusesLayout& lay
 }
 #endif
 
-void SimpleSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void FxmeSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -211,18 +211,18 @@ void SimpleSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 }
 
 //==============================================================================
-bool SimpleSamplerAudioProcessor::hasEditor() const
+bool FxmeSamplerAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* SimpleSamplerAudioProcessor::createEditor()
+juce::AudioProcessorEditor* FxmeSamplerAudioProcessor::createEditor()
 {
-    return new SimpleSamplerAudioProcessorEditor (*this);
+    return new FxmeSamplerAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void SimpleSamplerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void FxmeSamplerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
@@ -245,7 +245,7 @@ void SimpleSamplerAudioProcessor::getStateInformation (juce::MemoryBlock& destDa
     }
 }
 
-void SimpleSamplerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void FxmeSamplerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xmlState (juce::XmlDocument::parse (juce::String::createStringFromData (data, sizeInBytes)));
 
@@ -258,10 +258,10 @@ void SimpleSamplerAudioProcessor::setStateInformation (const void* data, int siz
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new SimpleSamplerAudioProcessor();
+    return new FxmeSamplerAudioProcessor();
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout SimpleSamplerAudioProcessor::createParameterLayout()
+juce::AudioProcessorValueTreeState::ParameterLayout FxmeSamplerAudioProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 

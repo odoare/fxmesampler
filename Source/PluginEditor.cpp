@@ -9,7 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-SimpleSamplerAudioProcessorEditor::SimpleSamplerAudioProcessorEditor (SimpleSamplerAudioProcessor& p)
+FxmeSamplerAudioProcessorEditor::FxmeSamplerAudioProcessorEditor (FxmeSamplerAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), 
       mixerComponent (p.getMixer(), p.getSampler(), p.getAPVTS())
 {
@@ -18,11 +18,11 @@ SimpleSamplerAudioProcessorEditor::SimpleSamplerAudioProcessorEditor (SimpleSamp
     setSize (juce::jmax<int>(n*150,1024), 640);
 }
 
-SimpleSamplerAudioProcessorEditor::~SimpleSamplerAudioProcessorEditor()
+FxmeSamplerAudioProcessorEditor::~FxmeSamplerAudioProcessorEditor()
 {
 }
 
-void SimpleSamplerAudioProcessorEditor::paint (juce::Graphics& g)
+void FxmeSamplerAudioProcessorEditor::paint (juce::Graphics& g)
 {
     auto diagonale = (getLocalBounds().getTopLeft() - getLocalBounds().getBottomRight()).toFloat();
     auto length = diagonale.getDistanceFromOrigin();
@@ -35,7 +35,7 @@ void SimpleSamplerAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll();
 }
 
-void SimpleSamplerAudioProcessorEditor::resized()
+void FxmeSamplerAudioProcessorEditor::resized()
 {
     mixerComponent.setBounds (getLocalBounds());
 }

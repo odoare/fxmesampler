@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="VTY3rl" name="PurpleStudioDrums" projectType="audioplug"
+              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
+              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
+              companyName="Fx-Mechanics" pluginFormats="buildStandalone,buildVST3"
+              pluginManufacturerCode="FXME" pluginCode="PSDR">
+  <MAINGROUP id="zBzLwc" name="PurpleStudioDrums">
+    <GROUP id="{FF688968-8994-8F17-EA35-A592FD880C2A}" name="Presets"/>
+    <GROUP id="{F522994C-CC30-8876-8F29-3721025CCD03}" name="WDL">
+      <FILE id="Nxvmml" name="convoengine.cpp" compile="1" resource="0" file="../../WDL/WDL/convoengine.cpp"/>
+      <FILE id="e4Zgsv" name="convoengine.h" compile="0" resource="0" file="../../WDL/WDL/convoengine.h"/>
+      <FILE id="QnZf5A" name="fft.c" compile="1" resource="0" file="../../WDL/WDL/fft.c"/>
+      <FILE id="FZluac" name="fft.h" compile="0" resource="0" file="../../WDL/WDL/fft.h"/>
+      <FILE id="QPdAnM" name="resample.cpp" compile="1" resource="0" file="../../WDL/WDL/resample.cpp"/>
+      <FILE id="c49qe8" name="resample.h" compile="0" resource="0" file="../../WDL/WDL/resample.h"/>
+    </GROUP>
+    <GROUP id="{E2914C61-1288-C5F6-6256-9DDC03E6D731}" name="Img">
+      <FILE id="nOcs5E" name="Cymb.jpg" compile="0" resource="1" file="Data/img/Cymb.jpg"/>
+      <FILE id="e0YX1j" name="drums.jpg" compile="0" resource="1" file="Data/img/drums.jpg"/>
+      <FILE id="YgZfax" name="HH.jpg" compile="0" resource="1" file="Data/img/HH.jpg"/>
+      <FILE id="mV9nx5" name="Kick.jpg" compile="0" resource="1" file="Data/img/Kick.jpg"/>
+      <FILE id="WLp3za" name="logo686.png" compile="0" resource="1" file="../../img/logo686.png"/>
+      <FILE id="Qp3XK8" name="Room.jpg" compile="0" resource="1" file="Data/img/Room.jpg"/>
+      <FILE id="pcg4wQ" name="Snare.jpg" compile="0" resource="1" file="Data/img/Snare.jpg"/>
+      <FILE id="trudcT" name="TomH.jpg" compile="0" resource="1" file="Data/img/TomH.jpg"/>
+      <FILE id="m4PjY3" name="tube.png" compile="0" resource="1" file="../../img/tube.png"/>
+      <FILE id="PMnn71" name="tube_bw.png" compile="0" resource="1" file="../../img/tube_bw.png"/>
+      <FILE id="pGdyqK" name="whitedrums.jpg" compile="0" resource="1" file="Data/img/whitedrums.jpg"/>
+    </GROUP>
+    <GROUP id="{AC82C2F8-19E7-6905-EBEF-3BA5D7E86B11}" name="Sounds">
+      <FILE id="yF4FHb" name="1 HH Foot1 1 44 44 44.wav" compile="0" resource="1"
+            file="Data/wav/1 HH Foot1 1 44 44 44.wav"/>
+      <FILE id="I7bIkO" name="1 HH Open 1 46 46 46.wav" compile="0" resource="1"
+            file="Data/wav/1 HH Open 1 46 46 46.wav"/>
+      <FILE id="SsMed4" name="2 CYMB CYMB 0 48 48 48.wav" compile="0" resource="1"
+            file="Data/wav/2 CYMB CYMB 0 48 48 48.wav"/>
+      <FILE id="YDMnDj" name="5 TOML TOML 0 45 45 45.wav" compile="0" resource="1"
+            file="Data/wav/5 TOML TOML 0 45 45 45.wav"/>
+      <FILE id="VTTFj2" name="6 KICK KICK 0 36 36 36.wav" compile="0" resource="1"
+            file="Data/wav/6 KICK KICK 0 36 36 36.wav"/>
+      <FILE id="puHm75" name="6 TOMH TOMH 0 47 47 47.wav" compile="0" resource="1"
+            file="Data/wav/6 TOMH TOMH 0 47 47 47.wav"/>
+      <FILE id="LnrJin" name="7 HH Closed2 1 43 43 43.wav" compile="0" resource="1"
+            file="Data/wav/7 HH Closed2 1 43 43 43.wav"/>
+      <FILE id="ETM5My" name="8 HH Closed1 1 42 42 42.wav" compile="0" resource="1"
+            file="Data/wav/8 HH Closed1 1 42 42 42.wav"/>
+      <FILE id="JyA61Y" name="16 SNARE SNARE 0 38 38 38.wav" compile="0"
+            resource="1" file="Data/wav/16 SNARE SNARE 0 38 38 38.wav"/>
+      <FILE id="mtJ1lJ" name="birr_L.wav" compile="0" resource="1" file="Data/wav/birr_L.wav"/>
+      <FILE id="yr7bm5" name="birr_R.wav" compile="0" resource="1" file="Data/wav/birr_R.wav"/>
+      <FILE id="m4Vg28" name="mapping.xml" compile="0" resource="1" file="Data/wav/mapping.xml"/>
+    </GROUP>
+    <GROUP id="{81A13946-40E6-2C1D-D0EA-A6C5479467E3}" name="Source">
+      <FILE id="rF7z07" name="AmbixToMS.cpp" compile="1" resource="0" file="../../Source/AmbixToMS.cpp"/>
+      <FILE id="WeD5Bb" name="AmbixToMS.h" compile="0" resource="0" file="../../Source/AmbixToMS.h"/>
+      <FILE id="BDkACb" name="Compressor.cpp" compile="1" resource="0" file="../../Source/Compressor.cpp"/>
+      <FILE id="meBdA5" name="Compressor.h" compile="0" resource="0" file="../../Source/Compressor.h"/>
+      <FILE id="gPfBys" name="CompressorComponent.cpp" compile="1" resource="0"
+            file="../../Source/CompressorComponent.cpp"/>
+      <FILE id="lKnTGl" name="CompressorComponent.h" compile="0" resource="0"
+            file="../../Source/CompressorComponent.h"/>
+      <FILE id="bm62k7" name="ConvolReverb.cpp" compile="1" resource="0"
+            file="../../Source/ConvolReverb.cpp"/>
+      <FILE id="m5Nk2c" name="ConvolReverb.h" compile="0" resource="0" file="../../Source/ConvolReverb.h"/>
+      <FILE id="io9OkA" name="ConvolReverbComponent.cpp" compile="1" resource="0"
+            file="../../Source/ConvolReverbComponent.cpp"/>
+      <FILE id="QpnVXv" name="ConvolReverbComponent.h" compile="0" resource="0"
+            file="../../Source/ConvolReverbComponent.h"/>
+      <FILE id="P69WwT" name="EffectChain.cpp" compile="1" resource="0" file="../../Source/EffectChain.cpp"/>
+      <FILE id="Dx9tDG" name="EffectChain.h" compile="0" resource="0" file="../../Source/EffectChain.h"/>
+      <FILE id="UYHxfK" name="EffectChainComponent.cpp" compile="1" resource="0"
+            file="../../Source/EffectChainComponent.cpp"/>
+      <FILE id="LKZzgA" name="EffectChainComponent.h" compile="0" resource="0"
+            file="../../Source/EffectChainComponent.h"/>
+      <FILE id="OGPSQF" name="EffectChainDelay.cpp" compile="1" resource="0"
+            file="../../Source/EffectChainDelay.cpp"/>
+      <FILE id="bXzJxS" name="EffectChainDelay.h" compile="0" resource="0"
+            file="../../Source/EffectChainDelay.h"/>
+      <FILE id="OSFNUw" name="EffectChainDelayComponent.cpp" compile="1"
+            resource="0" file="../../Source/EffectChainDelayComponent.cpp"/>
+      <FILE id="zrBMAf" name="EffectChainDelayComponent.h" compile="0" resource="0"
+            file="../../Source/EffectChainDelayComponent.h"/>
+      <FILE id="bCCtdh" name="EffectChainDynamics.cpp" compile="1" resource="0"
+            file="../../Source/EffectChainDynamics.cpp"/>
+      <FILE id="pQ1WnJ" name="EffectChainDynamics.h" compile="0" resource="0"
+            file="../../Source/EffectChainDynamics.h"/>
+      <FILE id="SaxkF1" name="EffectChainDynamicsComponent.cpp" compile="1"
+            resource="0" file="../../Source/EffectChainDynamicsComponent.cpp"/>
+      <FILE id="lnt4Gw" name="EffectChainDynamicsComponent.h" compile="0"
+            resource="0" file="../../Source/EffectChainDynamicsComponent.h"/>
+      <FILE id="h9W9J2" name="EffectChainReverb.cpp" compile="1" resource="0"
+            file="../../Source/EffectChainReverb.cpp"/>
+      <FILE id="CnzH2v" name="EffectChainReverb.h" compile="0" resource="0"
+            file="../../Source/EffectChainReverb.h"/>
+      <FILE id="wGSODw" name="EffectChainReverbComponent.cpp" compile="1"
+            resource="0" file="../../Source/EffectChainReverbComponent.cpp"/>
+      <FILE id="OKKRNU" name="EffectChainReverbComponent.h" compile="0" resource="0"
+            file="../../Source/EffectChainReverbComponent.h"/>
+      <FILE id="Hn65yH" name="Equalizer.cpp" compile="1" resource="0" file="../../Source/Equalizer.cpp"/>
+      <FILE id="eBJJZQ" name="Equalizer.h" compile="0" resource="0" file="../../Source/Equalizer.h"/>
+      <FILE id="yWdM52" name="EqualizerComponent.cpp" compile="1" resource="0"
+            file="../../Source/EqualizerComponent.cpp"/>
+      <FILE id="aFSEmp" name="EqualizerComponent.h" compile="0" resource="0"
+            file="../../Source/EqualizerComponent.h"/>
+      <FILE id="WXnrtr" name="FxmeSlider.cpp" compile="1" resource="0" file="../../Source/FxmeSlider.cpp"/>
+      <FILE id="Q8JZj8" name="FxmeSlider.h" compile="0" resource="0" file="../../Source/FxmeSlider.h"/>
+      <FILE id="lnbq4P" name="Mixer.cpp" compile="1" resource="0" file="../../Source/Mixer.cpp"/>
+      <FILE id="yA9pHh" name="Mixer.h" compile="0" resource="0" file="../../Source/Mixer.h"/>
+      <FILE id="f0uMOy" name="MixerComponent.cpp" compile="1" resource="0"
+            file="../../Source/MixerComponent.cpp"/>
+      <FILE id="jFTvLy" name="MixerComponent.h" compile="0" resource="0"
+            file="../../Source/MixerComponent.h"/>
+      <FILE id="fUnszD" name="PluginEditor.cpp" compile="1" resource="0"
+            file="../../Source/PluginEditor.cpp"/>
+      <FILE id="tjgp6x" name="PluginEditor.h" compile="0" resource="0" file="../../Source/PluginEditor.h"/>
+      <FILE id="SeRfSY" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="../../Source/PluginProcessor.cpp"/>
+      <FILE id="P1f3OX" name="PluginProcessor.h" compile="0" resource="0"
+            file="../../Source/PluginProcessor.h"/>
+      <FILE id="A0ZUwH" name="SampleGroupComponent.cpp" compile="1" resource="0"
+            file="../../Source/SampleGroupComponent.cpp"/>
+      <FILE id="ChOKE9" name="SampleGroupComponent.h" compile="0" resource="0"
+            file="../../Source/SampleGroupComponent.h"/>
+      <FILE id="bgOy2Z" name="Sampler.cpp" compile="1" resource="0" file="../../Source/Sampler.cpp"/>
+      <FILE id="rYGFgR" name="Sampler.h" compile="0" resource="0" file="../../Source/Sampler.h"/>
+      <FILE id="ETvsZx" name="SamplerComponent.cpp" compile="1" resource="0"
+            file="../../Source/SamplerComponent.cpp"/>
+      <FILE id="h7HHSR" name="SamplerComponent.h" compile="0" resource="0"
+            file="../../Source/SamplerComponent.h"/>
+      <FILE id="zU5Jmy" name="StereoDelay.cpp" compile="1" resource="0" file="../../Source/StereoDelay.cpp"/>
+      <FILE id="S3EmlS" name="StereoDelay.h" compile="0" resource="0" file="../../Source/StereoDelay.h"/>
+      <FILE id="TkCafo" name="StereoDelayComponent.cpp" compile="1" resource="0"
+            file="../../Source/StereoDelayComponent.cpp"/>
+      <FILE id="Tlnchm" name="StereoDelayComponent.h" compile="0" resource="0"
+            file="../../Source/StereoDelayComponent.h"/>
+      <FILE id="coWbev" name="Tube.cpp" compile="1" resource="0" file="../../Source/Tube.cpp"/>
+      <FILE id="vuLJZ0" name="Tube.h" compile="0" resource="0" file="../../Source/Tube.h"/>
+      <FILE id="JUrnHs" name="TubeComponent.cpp" compile="1" resource="0"
+            file="../../Source/TubeComponent.cpp"/>
+      <FILE id="FFmiZF" name="TubeComponent.h" compile="0" resource="0" file="../../Source/TubeComponent.h"/>
+      <FILE id="KJIxiM" name="VuMeter.cpp" compile="1" resource="0" file="../../Source/VuMeter.cpp"/>
+      <FILE id="ElhgSz" name="VuMeter.h" compile="0" resource="0" file="../../Source/VuMeter.h"/>
+      <FILE id="EBduyj" name="VuMeterComponent.cpp" compile="1" resource="0"
+            file="../../Source/VuMeterComponent.cpp"/>
+      <FILE id="j6vMYf" name="VuMeterComponent.h" compile="0" resource="0"
+            file="../../Source/VuMeterComponent.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="fxme_juce_tools" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="0" name="Release" targetName="PurpleStudioDrums"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="fxme_juce_tools" path="../JUCE/usermodules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+</JUCERPROJECT>

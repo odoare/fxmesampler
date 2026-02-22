@@ -1,6 +1,6 @@
-# SimpleSampler
+# FxmeSampler
 
-SimpleSampler is a JUCE-based sampling instrument plugin featuring a flexible mixer, built-in effects (Dynamics, EQ, Reverb, Delay, Tube Saturation), and XML-based mapping configuration.
+FxmeSampler is a JUCE-based sampling instrument plugin featuring a flexible mixer, built-in effects (Dynamics, EQ, Reverb, Delay, Tube Saturation), and XML-based mapping configuration.
 
 ## Overview
 
@@ -18,7 +18,7 @@ This project is built using the JUCE framework.
 1.  Open the `.jucer` file in the Projucer.
 2.  Ensure all audio samples and images referenced in `mapping.xml` are added to the **Binary Data** section in Projucer.
 3.  Save the project to generate build files for your IDE (Xcode, Visual Studio, Makefile, etc.).
-4.  Build the `SimpleSampler` target.
+4.  Build the `FxmeSampler` target.
 
 ## Configuration: `mapping.xml`
 

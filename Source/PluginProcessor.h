@@ -14,17 +14,17 @@
 
 //==============================================================================
 /**
- * @class SimpleSamplerAudioProcessor
- * @brief The main AudioProcessor class for the SimpleSampler plugin.
+ * @class FxmeSamplerAudioProcessor
+ * @brief The main AudioProcessor class for the FxmeSampler plugin.
 */
-class SimpleSamplerAudioProcessor  : public juce::AudioProcessor
+class FxmeSamplerAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
     /** Constructor. */
-    SimpleSamplerAudioProcessor();
+    FxmeSamplerAudioProcessor();
     /** Destructor. */
-    ~SimpleSamplerAudioProcessor() override;
+    ~FxmeSamplerAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -93,5 +93,5 @@ private:
     int currentProgram = 0;
     double lastBPM = -1.0;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSamplerAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FxmeSamplerAudioProcessor)
 };

@@ -52,99 +52,109 @@
       <FILE id="m4Vg28" name="mapping.xml" compile="0" resource="1" file="Data/wav/mapping.xml"/>
     </GROUP>
     <GROUP id="{81A13946-40E6-2C1D-D0EA-A6C5479467E3}" name="Source">
-      <FILE id="rF7z07" name="AmbixToMS.cpp" compile="1" resource="0" file="../../Source/AmbixToMS.cpp"/>
-      <FILE id="WeD5Bb" name="AmbixToMS.h" compile="0" resource="0" file="../../Source/AmbixToMS.h"/>
-      <FILE id="BDkACb" name="Compressor.cpp" compile="1" resource="0" file="../../Source/Compressor.cpp"/>
-      <FILE id="meBdA5" name="Compressor.h" compile="0" resource="0" file="../../Source/Compressor.h"/>
-      <FILE id="gPfBys" name="CompressorComponent.cpp" compile="1" resource="0"
+      <FILE id="RJCqAc" name="AmbixToMS.cpp" compile="1" resource="0" file="../../Source/AmbixToMS.cpp"/>
+      <FILE id="DbqG7W" name="AmbixToMS.h" compile="0" resource="0" file="../../Source/AmbixToMS.h"/>
+      <FILE id="uVtlTQ" name="Compressor.cpp" compile="1" resource="0" file="../../Source/Compressor.cpp"/>
+      <FILE id="PEiKxC" name="Compressor.h" compile="0" resource="0" file="../../Source/Compressor.h"/>
+      <FILE id="Ca2Rde" name="CompressorComponent.cpp" compile="1" resource="0"
             file="../../Source/CompressorComponent.cpp"/>
-      <FILE id="lKnTGl" name="CompressorComponent.h" compile="0" resource="0"
+      <FILE id="i5UIU5" name="CompressorComponent.h" compile="0" resource="0"
             file="../../Source/CompressorComponent.h"/>
-      <FILE id="bm62k7" name="ConvolReverb.cpp" compile="1" resource="0"
+      <FILE id="zEivZ7" name="ConvolReverb.cpp" compile="1" resource="0"
             file="../../Source/ConvolReverb.cpp"/>
-      <FILE id="m5Nk2c" name="ConvolReverb.h" compile="0" resource="0" file="../../Source/ConvolReverb.h"/>
-      <FILE id="io9OkA" name="ConvolReverbComponent.cpp" compile="1" resource="0"
+      <FILE id="FMvpgF" name="ConvolReverb.h" compile="0" resource="0" file="../../Source/ConvolReverb.h"/>
+      <FILE id="npzojs" name="ConvolReverbComponent.cpp" compile="1" resource="0"
             file="../../Source/ConvolReverbComponent.cpp"/>
-      <FILE id="QpnVXv" name="ConvolReverbComponent.h" compile="0" resource="0"
+      <FILE id="wwGouV" name="ConvolReverbComponent.h" compile="0" resource="0"
             file="../../Source/ConvolReverbComponent.h"/>
-      <FILE id="P69WwT" name="EffectChain.cpp" compile="1" resource="0" file="../../Source/EffectChain.cpp"/>
-      <FILE id="Dx9tDG" name="EffectChain.h" compile="0" resource="0" file="../../Source/EffectChain.h"/>
-      <FILE id="UYHxfK" name="EffectChainComponent.cpp" compile="1" resource="0"
+      <FILE id="Z3TjqA" name="EffectChain.cpp" compile="1" resource="0" file="../../Source/EffectChain.cpp"/>
+      <FILE id="yeUeWw" name="EffectChain.h" compile="0" resource="0" file="../../Source/EffectChain.h"/>
+      <FILE id="qKZykw" name="EffectChainComponent.cpp" compile="1" resource="0"
             file="../../Source/EffectChainComponent.cpp"/>
-      <FILE id="LKZzgA" name="EffectChainComponent.h" compile="0" resource="0"
+      <FILE id="VHfu6F" name="EffectChainComponent.h" compile="0" resource="0"
             file="../../Source/EffectChainComponent.h"/>
-      <FILE id="OGPSQF" name="EffectChainDelay.cpp" compile="1" resource="0"
+      <FILE id="zoeSep" name="EffectChainDelay.cpp" compile="1" resource="0"
             file="../../Source/EffectChainDelay.cpp"/>
-      <FILE id="bXzJxS" name="EffectChainDelay.h" compile="0" resource="0"
+      <FILE id="lquF0u" name="EffectChainDelay.h" compile="0" resource="0"
             file="../../Source/EffectChainDelay.h"/>
-      <FILE id="OSFNUw" name="EffectChainDelayComponent.cpp" compile="1"
+      <FILE id="Lt3Rmv" name="EffectChainDelayComponent.cpp" compile="1"
             resource="0" file="../../Source/EffectChainDelayComponent.cpp"/>
-      <FILE id="zrBMAf" name="EffectChainDelayComponent.h" compile="0" resource="0"
+      <FILE id="nbrFNa" name="EffectChainDelayComponent.h" compile="0" resource="0"
             file="../../Source/EffectChainDelayComponent.h"/>
-      <FILE id="bCCtdh" name="EffectChainDynamics.cpp" compile="1" resource="0"
+      <FILE id="yCkOWA" name="EffectChainDynamics.cpp" compile="1" resource="0"
             file="../../Source/EffectChainDynamics.cpp"/>
-      <FILE id="pQ1WnJ" name="EffectChainDynamics.h" compile="0" resource="0"
+      <FILE id="EuzOgX" name="EffectChainDynamics.h" compile="0" resource="0"
             file="../../Source/EffectChainDynamics.h"/>
-      <FILE id="SaxkF1" name="EffectChainDynamicsComponent.cpp" compile="1"
+      <FILE id="agHyAm" name="EffectChainDynamicsComponent.cpp" compile="1"
             resource="0" file="../../Source/EffectChainDynamicsComponent.cpp"/>
-      <FILE id="lnt4Gw" name="EffectChainDynamicsComponent.h" compile="0"
+      <FILE id="cI3fRb" name="EffectChainDynamicsComponent.h" compile="0"
             resource="0" file="../../Source/EffectChainDynamicsComponent.h"/>
-      <FILE id="h9W9J2" name="EffectChainReverb.cpp" compile="1" resource="0"
+      <FILE id="ECs7uV" name="EffectChainReverb.cpp" compile="1" resource="0"
             file="../../Source/EffectChainReverb.cpp"/>
-      <FILE id="CnzH2v" name="EffectChainReverb.h" compile="0" resource="0"
+      <FILE id="OFzfKa" name="EffectChainReverb.h" compile="0" resource="0"
             file="../../Source/EffectChainReverb.h"/>
-      <FILE id="wGSODw" name="EffectChainReverbComponent.cpp" compile="1"
+      <FILE id="gTEoPX" name="EffectChainReverbComponent.cpp" compile="1"
             resource="0" file="../../Source/EffectChainReverbComponent.cpp"/>
-      <FILE id="OKKRNU" name="EffectChainReverbComponent.h" compile="0" resource="0"
+      <FILE id="kbJw9s" name="EffectChainReverbComponent.h" compile="0" resource="0"
             file="../../Source/EffectChainReverbComponent.h"/>
-      <FILE id="Hn65yH" name="Equalizer.cpp" compile="1" resource="0" file="../../Source/Equalizer.cpp"/>
-      <FILE id="eBJJZQ" name="Equalizer.h" compile="0" resource="0" file="../../Source/Equalizer.h"/>
-      <FILE id="yWdM52" name="EqualizerComponent.cpp" compile="1" resource="0"
+      <FILE id="kzhyb5" name="Equalizer.cpp" compile="1" resource="0" file="../../Source/Equalizer.cpp"/>
+      <FILE id="BvHwe9" name="Equalizer.h" compile="0" resource="0" file="../../Source/Equalizer.h"/>
+      <FILE id="eMcO5F" name="EqualizerComponent.cpp" compile="1" resource="0"
             file="../../Source/EqualizerComponent.cpp"/>
-      <FILE id="aFSEmp" name="EqualizerComponent.h" compile="0" resource="0"
+      <FILE id="uy0Y2Z" name="EqualizerComponent.h" compile="0" resource="0"
             file="../../Source/EqualizerComponent.h"/>
-      <FILE id="WXnrtr" name="FxmeSlider.cpp" compile="1" resource="0" file="../../Source/FxmeSlider.cpp"/>
-      <FILE id="Q8JZj8" name="FxmeSlider.h" compile="0" resource="0" file="../../Source/FxmeSlider.h"/>
-      <FILE id="lnbq4P" name="Mixer.cpp" compile="1" resource="0" file="../../Source/Mixer.cpp"/>
-      <FILE id="yA9pHh" name="Mixer.h" compile="0" resource="0" file="../../Source/Mixer.h"/>
-      <FILE id="f0uMOy" name="MixerComponent.cpp" compile="1" resource="0"
+      <FILE id="htFGIc" name="FxmeSlider.cpp" compile="1" resource="0" file="../../Source/FxmeSlider.cpp"/>
+      <FILE id="iWd7fC" name="FxmeSlider.h" compile="0" resource="0" file="../../Source/FxmeSlider.h"/>
+      <FILE id="iMoBtL" name="Mixer.cpp" compile="1" resource="0" file="../../Source/Mixer.cpp"/>
+      <FILE id="tmgaze" name="Mixer.h" compile="0" resource="0" file="../../Source/Mixer.h"/>
+      <FILE id="ShdmeM" name="MixerComponent.cpp" compile="1" resource="0"
             file="../../Source/MixerComponent.cpp"/>
-      <FILE id="jFTvLy" name="MixerComponent.h" compile="0" resource="0"
+      <FILE id="LXL0lz" name="MixerComponent.h" compile="0" resource="0"
             file="../../Source/MixerComponent.h"/>
-      <FILE id="fUnszD" name="PluginEditor.cpp" compile="1" resource="0"
+      <FILE id="rXZm2N" name="MixerStripComponents.cpp" compile="1" resource="0"
+            file="../../Source/MixerStripComponents.cpp"/>
+      <FILE id="be8XlA" name="MixerStripComponents.h" compile="0" resource="0"
+            file="../../Source/MixerStripComponents.h"/>
+      <FILE id="cFIDdd" name="MixerStrips.cpp" compile="1" resource="0" file="../../Source/MixerStrips.cpp"/>
+      <FILE id="OQr9vn" name="MixerStrips.h" compile="0" resource="0" file="../../Source/MixerStrips.h"/>
+      <FILE id="RPA30Z" name="PluginEditor.cpp" compile="1" resource="0"
             file="../../Source/PluginEditor.cpp"/>
-      <FILE id="tjgp6x" name="PluginEditor.h" compile="0" resource="0" file="../../Source/PluginEditor.h"/>
-      <FILE id="SeRfSY" name="PluginProcessor.cpp" compile="1" resource="0"
+      <FILE id="IB1fhs" name="PluginEditor.h" compile="0" resource="0" file="../../Source/PluginEditor.h"/>
+      <FILE id="noSTd7" name="PluginProcessor.cpp" compile="1" resource="0"
             file="../../Source/PluginProcessor.cpp"/>
-      <FILE id="P1f3OX" name="PluginProcessor.h" compile="0" resource="0"
+      <FILE id="uRl8ow" name="PluginProcessor.h" compile="0" resource="0"
             file="../../Source/PluginProcessor.h"/>
-      <FILE id="A0ZUwH" name="SampleGroupComponent.cpp" compile="1" resource="0"
+      <FILE id="QsAZBD" name="SampleGroupComponent.cpp" compile="1" resource="0"
             file="../../Source/SampleGroupComponent.cpp"/>
-      <FILE id="ChOKE9" name="SampleGroupComponent.h" compile="0" resource="0"
+      <FILE id="WABJyV" name="SampleGroupComponent.h" compile="0" resource="0"
             file="../../Source/SampleGroupComponent.h"/>
-      <FILE id="bgOy2Z" name="Sampler.cpp" compile="1" resource="0" file="../../Source/Sampler.cpp"/>
-      <FILE id="rYGFgR" name="Sampler.h" compile="0" resource="0" file="../../Source/Sampler.h"/>
-      <FILE id="ETvsZx" name="SamplerComponent.cpp" compile="1" resource="0"
+      <FILE id="Z5RgQZ" name="Sampler.cpp" compile="1" resource="0" file="../../Source/Sampler.cpp"/>
+      <FILE id="TSwhX2" name="Sampler.h" compile="0" resource="0" file="../../Source/Sampler.h"/>
+      <FILE id="fjHm4b" name="SamplerComponent.cpp" compile="1" resource="0"
             file="../../Source/SamplerComponent.cpp"/>
-      <FILE id="h7HHSR" name="SamplerComponent.h" compile="0" resource="0"
+      <FILE id="E599ts" name="SamplerComponent.h" compile="0" resource="0"
             file="../../Source/SamplerComponent.h"/>
-      <FILE id="zU5Jmy" name="StereoDelay.cpp" compile="1" resource="0" file="../../Source/StereoDelay.cpp"/>
-      <FILE id="S3EmlS" name="StereoDelay.h" compile="0" resource="0" file="../../Source/StereoDelay.h"/>
-      <FILE id="TkCafo" name="StereoDelayComponent.cpp" compile="1" resource="0"
+      <FILE id="TEk8LR" name="StereoDelay.cpp" compile="1" resource="0" file="../../Source/StereoDelay.cpp"/>
+      <FILE id="KjTIvD" name="StereoDelay.h" compile="0" resource="0" file="../../Source/StereoDelay.h"/>
+      <FILE id="TcMGVu" name="StereoDelayComponent.cpp" compile="1" resource="0"
             file="../../Source/StereoDelayComponent.cpp"/>
-      <FILE id="Tlnchm" name="StereoDelayComponent.h" compile="0" resource="0"
+      <FILE id="jLV6gj" name="StereoDelayComponent.h" compile="0" resource="0"
             file="../../Source/StereoDelayComponent.h"/>
-      <FILE id="coWbev" name="Tube.cpp" compile="1" resource="0" file="../../Source/Tube.cpp"/>
-      <FILE id="vuLJZ0" name="Tube.h" compile="0" resource="0" file="../../Source/Tube.h"/>
-      <FILE id="JUrnHs" name="TubeComponent.cpp" compile="1" resource="0"
+      <FILE id="uAwmo4" name="Tube.cpp" compile="1" resource="0" file="../../Source/Tube.cpp"/>
+      <FILE id="KED1yv" name="Tube.h" compile="0" resource="0" file="../../Source/Tube.h"/>
+      <FILE id="To793J" name="TubeComponent.cpp" compile="1" resource="0"
             file="../../Source/TubeComponent.cpp"/>
-      <FILE id="FFmiZF" name="TubeComponent.h" compile="0" resource="0" file="../../Source/TubeComponent.h"/>
-      <FILE id="KJIxiM" name="VuMeter.cpp" compile="1" resource="0" file="../../Source/VuMeter.cpp"/>
-      <FILE id="ElhgSz" name="VuMeter.h" compile="0" resource="0" file="../../Source/VuMeter.h"/>
-      <FILE id="EBduyj" name="VuMeterComponent.cpp" compile="1" resource="0"
+      <FILE id="iQEo8q" name="TubeComponent.h" compile="0" resource="0" file="../../Source/TubeComponent.h"/>
+      <FILE id="BMU2ez" name="VuMeter.cpp" compile="1" resource="0" file="../../Source/VuMeter.cpp"/>
+      <FILE id="IHh9mF" name="VuMeter.h" compile="0" resource="0" file="../../Source/VuMeter.h"/>
+      <FILE id="Upo3nm" name="VuMeterComponent.cpp" compile="1" resource="0"
             file="../../Source/VuMeterComponent.cpp"/>
-      <FILE id="j6vMYf" name="VuMeterComponent.h" compile="0" resource="0"
+      <FILE id="Tsu0iV" name="VuMeterComponent.h" compile="0" resource="0"
             file="../../Source/VuMeterComponent.h"/>
+      <FILE id="kob1hm" name="WelcomeTabComponent.cpp" compile="1" resource="0"
+            file="../../Source/WelcomeTabComponent.cpp"/>
+      <FILE id="qWKQnU" name="WelcomeTabComponent.h" compile="0" resource="0"
+            file="../../Source/WelcomeTabComponent.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

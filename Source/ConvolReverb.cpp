@@ -281,7 +281,7 @@ void ConvolReverb::updateModifiedIR()
         }
         
         // Fade out last few samples to avoid clicks
-        int fadeLen = std::min(100, newLength);
+        int fadeLen = juce::jmin(100, newLength);
         if (newLength > fadeLen)
             shapedIR.applyGainRamp (ch, newLength - fadeLen, fadeLen, 1.0f, 0.0f);
     }

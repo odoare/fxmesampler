@@ -24,10 +24,10 @@ void AmbixToMS::process (const juce::AudioBuffer<float>& inputBuffer, juce::Audi
     float azRad = juce::degreesToRadians (azimuth);
     float elRad = juce::degreesToRadians (elevation);
 
-    float ca = std::cos (azRad);
-    float sa = std::sin (azRad);
-    float ce = std::cos (elRad);
-    float se = std::sin (elRad);
+    float ca = juce::dsp::FastMathApproximations::cos (azRad);
+    float sa = juce::dsp::FastMathApproximations::sin (azRad);
+    float ce = juce::dsp::FastMathApproximations::cos (elRad);
+    float se = juce::dsp::FastMathApproximations::sin (elRad);
 
     // Pointers to input channels
     // ACN: 0=W, 1=Y, 2=Z, 3=X

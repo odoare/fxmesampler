@@ -24,8 +24,8 @@ void Compressor::prepare (double sampleRate, int numChannels)
 
 void Compressor::updateCoefficients()
 {
-    attackCoef = std::exp (-1.0f / (attackTimeMs * 0.001f * (float) currentSampleRate));
-    releaseCoef = std::exp (-1.0f / (releaseTimeMs * 0.001f * (float) currentSampleRate));
+    attackCoef = juce::dsp::FastMathApproximations::exp (-1.0f / (attackTimeMs * 0.001f * (float) currentSampleRate));
+    releaseCoef = juce::dsp::FastMathApproximations::exp (-1.0f / (releaseTimeMs * 0.001f * (float) currentSampleRate));
     makeUpGain = juce::Decibels::decibelsToGain (postGaindB);
 }
 

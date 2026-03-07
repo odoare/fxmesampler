@@ -31,6 +31,7 @@ struct SampleGroup
     double sustain = 1.0;
     double release = 0.1;
     double detune = 0.0;
+    double randomDetune = 0.0;
     std::vector<int> outputChannels;
 
     // Parameter pointers
@@ -41,6 +42,7 @@ struct SampleGroup
     std::atomic<float>* sustainParam = nullptr;
     std::atomic<float>* releaseParam = nullptr;
     std::atomic<float>* detuneParam = nullptr;
+    std::atomic<float>* randomDetuneParam = nullptr;
 
     /**
      * @brief Gets the name of the sample group.
@@ -160,6 +162,7 @@ private:
     double decayRate = 0.0;
     double sustainLevel = 0.0;
     double releaseRate = 0.0;
+    juce::Random random;
 };
 
 //==============================================================================

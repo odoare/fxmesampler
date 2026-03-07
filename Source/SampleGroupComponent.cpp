@@ -48,6 +48,10 @@ SampleGroupComponent::SampleGroupComponent (SampleGroup& g, juce::AudioProcessor
     setupSlider (detuneSlider, detuneLabel, "Detune", -12.0, 12.0, 0.0);
     detuneSlider.setTextValueSuffix (" st");
     detuneAtt = std::make_unique<SliderAttachment> (apvts, prefix + "Detune", detuneSlider);
+
+    setupSlider (randomDetuneSlider, randomDetuneLabel, "Rnd Detune", 0.0, 10.0, 0.0);
+    randomDetuneSlider.setTextValueSuffix (" ct");
+    randomDetuneAtt = std::make_unique<SliderAttachment> (apvts, prefix + "RandomDetune", randomDetuneSlider);
 }
 
 SampleGroupComponent::~SampleGroupComponent()
@@ -89,8 +93,9 @@ void SampleGroupComponent::resized()
 {
     auto area = getLocalBounds().reduced (5);
     using fi = juce::FlexItem;
-    juce::FlexBox fbMain,fbDetune,fbAttack, fbDecay, fbSustain, fbRelease;
+    juce::FlexBox fbMain,fbDetune,fbRandomDetune,fbAttack, fbDecay, fbSustain, fbRelease;
     fbDetune.flexDirection = juce::FlexBox::Direction::column;
+    fbRandomDetune.flexDirection = juce::FlexBox::Direction::column;
     fbAttack.flexDirection = juce::FlexBox::Direction::column;
     fbDecay.flexDirection = juce::FlexBox::Direction::column;
     fbSustain.flexDirection = juce::FlexBox::Direction::column;
@@ -99,6 +104,9 @@ void SampleGroupComponent::resized()
 
     fbDetune.items.add(fi(detuneLabel).withFlex(0.2f));
     fbDetune.items.add(fi(detuneSlider).withFlex(1.f));
+
+    fbRandomDetune.items.add(fi(randomDetuneLabel).withFlex(0.2f));
+    fbRandomDetune.items.add(fi(randomDetuneSlider).withFlex(1.f));
 
     fbAttack.items.add(fi(attackLabel).withFlex(0.2f));
     fbAttack.items.add(fi(attackSlider).withFlex(1.f));
@@ -114,6 +122,7 @@ void SampleGroupComponent::resized()
 
     fbMain.items.add(fi(nameLabel).withFlex(1.f));
     fbMain.items.add(fi(fbDetune).withFlex(.6f));
+    fbMain.items.add(fi(fbRandomDetune).withFlex(.6f));
     fbMain.items.add(fi(oneShotButton).withFlex(.5f));
     fbMain.items.add(fi(fbAttack).withFlex(0.6f));    
     fbMain.items.add(fi(fbDecay).withFlex(0.6f));

@@ -76,6 +76,12 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
         {
             auto* g = activeSound->group;
             detune = g->detune;
+
+            if (g->randomDetune > 0.0)
+            {
+                detune += (random.nextDouble() * 2.0 - 1.0) * g->randomDetune / 100.0;
+            }
+
             attack = g->attack;
             decay = g->decay;
             sustain = g->sustain;
@@ -313,6 +319,7 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             group->sustain = child->getDoubleAttribute ("sustain", 1.0);
             group->release = child->getDoubleAttribute ("release", 0.1);
             group->detune = child->getDoubleAttribute ("detune", 0.0);
+            group->randomDetune = child->getDoubleAttribute ("randomDetune", 0.0);
 
             // Parse output channels for the group
             group->outputChannels.clear();
@@ -462,6 +469,7 @@ void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         group->sustainParam = apvts.getRawParameterValue (prefix + "Sustain");
         group->releaseParam = apvts.getRawParameterValue (prefix + "Release");
         group->detuneParam = apvts.getRawParameterValue (prefix + "Detune");
+        group->randomDetuneParam = apvts.getRawParameterValue (prefix + "RandomDetune");
     }
 }
 
@@ -481,6 +489,7 @@ void SampleGroup::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Sustain", 1 }, name + " Sustain", 0.0f, 1.0f, (float)sustain));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Release", 1 }, name + " Release", 0.0f, 5.0f, (float)release));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Detune", 1 }, name + " Detune", -12.0f, 12.0f, (float)detune));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "RandomDetune", 1 }, name + " Random Detune", 0.0f, 10.0f, (float)randomDetune));
 }
 
 void Sampler::updateParams()
@@ -495,6 +504,7 @@ void Sampler::updateParams()
         if (group->sustainParam) group->sustain = *group->sustainParam;
         if (group->releaseParam) group->release = *group->releaseParam;
         if (group->detuneParam) group->detune = *group->detuneParam;
+        if (group->randomDetuneParam) group->randomDetune = *group->randomDetuneParam;
     }
 }
 

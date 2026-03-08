@@ -533,12 +533,12 @@ void StereoReverbStripComponent::resized()
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     
     if (irBox.isVisible())
-        fbMain.items.add(fi(icon).withFlex(0.2f));
+        fbMain.items.add(fi(icon).withFlex(0.24f));
     else
         fbMain.items.add(fi(icon).withFlex(0.3f));
 
     if (irBox.isVisible())
-        fbMain.items.add(fi(irBox).withFlex(0.1f).withMargin(2));
+        fbMain.items.add(fi(irBox).withFlex(0.06f).withMargin(2));
 
     // Add sends
     juce::FlexBox fbSends, fbOutputs;
@@ -623,12 +623,12 @@ void MonoReverbStripComponent::resized()
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
 
     if (irBox.isVisible())
-        fbMain.items.add(fi(icon).withFlex(0.2f));
+        fbMain.items.add(fi(icon).withFlex(0.24f));
     else
         fbMain.items.add(fi(icon).withFlex(0.3f));
 
     if (irBox.isVisible())
-        fbMain.items.add(fi(irBox).withFlex(0.1f).withMargin(2));
+        fbMain.items.add(fi(irBox).withFlex(0.06f).withMargin(2));
 
     // Add sends
     juce::FlexBox fbSends, fbOutputs;

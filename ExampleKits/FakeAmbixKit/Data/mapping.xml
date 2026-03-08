@@ -8,7 +8,7 @@
     <Strip type="mono" name="Kick" img="kick.jpg" color="67,136,189"/>
     <Strip type="mono" name="Snare" img="snare.jpg" color="67,136,189"/>
     <Strip type="mono" name="HH" img="hh.jpg" color="255,255,0"/>
-    <Strip type="reverb" name="Room reverb" img="room.jpg" resource="ImpRoom 1.wav" color="148,153,77"/>
+    <Strip type="reverb" name="Room reverb" img="room.jpg" resource="ImpRoom 1.wav,ImpRoom 2.wav" color="148,153,77"/>
     <Bus type="stereo" effectChain="Reverb" name="PlateReverbBus" img="drums.jpg" resource="Rectangular room large.wav" color="100,100,100"/>
   </Mixer>
 

@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "StereoDelay.h"
-#include "ConvolReverbComponent.h" // For FxmeLookAndFeel
+// #include "ConvolReverbComponent.h" // For FxmeLookAndFeel
 #include "FxmeSlider.h"
 
 class StereoDelayComponent : public juce::Component, public juce::Timer

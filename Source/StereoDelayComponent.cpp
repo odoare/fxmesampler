@@ -67,38 +67,38 @@ StereoDelayComponent::StereoDelayComponent(StereoDelay& d, juce::AudioProcessorV
 
     setupSlider(delayLSlider, delayLLabel, "Delay L");
     delayLSlider.setTextValueSuffix(" bt");
-    delayLAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_DelayL", delayLSlider);
+    delayLSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_DelayL", delayLSlider));
 
     setupSlider(delayRSlider, delayRLabel, "Delay R");
     delayRSlider.setTextValueSuffix(" bt");
-    delayRAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_DelayR", delayRSlider);
+    delayRSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_DelayR", delayRSlider));
 
     setupSlider(fdbkLSlider, fdbkLLabel, "Fdbk L");
     fdbkLSlider.setTextValueSuffix(" dB");
-    fdbkLAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_FdbkL", fdbkLSlider);
+    fdbkLSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_FdbkL", fdbkLSlider));
 
     setupSlider(fdbkRSlider, fdbkRLabel, "Fdbk R");
     fdbkRSlider.setTextValueSuffix(" dB");
-    fdbkRAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_FdbkR", fdbkRSlider);
+    fdbkRSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_FdbkR", fdbkRSlider));
 
     setupSlider(crossFdbkSlider, crossFdbkLabel, "Cross");
     crossFdbkSlider.setTextValueSuffix(" dB");
-    crossFdbkAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_CrossFdbk", crossFdbkSlider);
+    crossFdbkSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_CrossFdbk", crossFdbkSlider));
 
     setupSlider(cutoffSlider, cutoffLabel, "Cutoff");
     cutoffSlider.setTextValueSuffix(" Hz");
-    cutoffAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_FilterCutoff", cutoffSlider);
+    cutoffSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_FilterCutoff", cutoffSlider));
 
     setupSlider(qSlider, qLabel, "Q");
-    qAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_FilterQ", qSlider);
+    qSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_FilterQ", qSlider));
 
     setupBarSlider(dryGainSlider, dryGainLabel, "Dry");
     dryGainSlider.setTextValueSuffix(" dB");
-    dryGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_DryGain", dryGainSlider);
+    dryGainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_DryGain", dryGainSlider));
 
     setupBarSlider(wetGainSlider, wetGainLabel, "Wet");
     wetGainSlider.setTextValueSuffix(" dB");
-    wetGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Del_WetGain", wetGainSlider);
+    wetGainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Del_WetGain", wetGainSlider));
 }
 
 StereoDelayComponent::~StereoDelayComponent()

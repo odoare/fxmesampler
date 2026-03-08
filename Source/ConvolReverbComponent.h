@@ -10,7 +10,6 @@
 
 #include <JuceHeader.h>
 #include "ConvolReverb.h"
-#include "FxmeSlider.h"
 
 class ImpulseResponsePlot : public juce::Component
 {
@@ -43,21 +42,18 @@ private:
 
     juce::ComboBox irBox;
     juce::Label irLabel;
-    FxmeSlider lengthSlider;
+    fxme::FxmeSlider lengthSlider;
     juce::Label lengthLabel;
-    FxmeSlider startOffsetSlider;
+    fxme::FxmeSlider startOffsetSlider;
     juce::Label startOffsetLabel;
     juce::ComboBox shapeBox;
     juce::Label shapeLabel;
-    FxmeSlider dryGainSlider, wetGainSlider;
+    fxme::FxmeSlider dryGainSlider, wetGainSlider;
     juce::Label dryGainLabel, wetGainLabel;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lengthAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> startOffsetAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> shapeAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryGainAtt, wetGainAtt;
 
     ImpulseResponsePlot irPlot;
     std::atomic<bool> graphNeedsUpdate { false };

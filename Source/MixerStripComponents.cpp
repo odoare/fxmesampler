@@ -24,7 +24,7 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
     levelSlider.setValue (0.0);
     levelSlider.setTextValueSuffix ("dB");
     levelSlider.setLookAndFeel(&fxmeLookAndFeel);
-    levelAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, strip.getName() + "_Level", levelSlider);
+    levelSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, strip.getName() + "_Level", levelSlider));
 
     addAndMakeVisible (muteButton);
     muteButton.setButtonText ("M");
@@ -44,15 +44,15 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
     // Create Send Sliders
     for (const auto& send : strip.getSends())
     {
-        auto slider = std::make_unique<FxmeSlider>();
+        auto slider = std::make_unique<fxme::FxmeSlider>();
         slider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
         slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
         slider->setRange (-60.0, 6.0);
         slider->setTooltip ("Send to " + send.busName);
         slider->setLookAndFeel(&fxmeLookAndFeel);
         setSliderColours (*slider, juce::Colours::cyan); // Use a distinct color for sends
+        slider->setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, strip.getName() + "_Send_" + send.busName, *slider));
         addAndMakeVisible (*slider);
-        sendAtts.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, strip.getName() + "_Send_" + send.busName, *slider));
         sendSliders.push_back (std::move (slider));
 
         auto button = std::make_unique<juce::ToggleButton>();
@@ -96,7 +96,7 @@ void StripComponent::timerCallback()
     updateMeters();
 }
 
-void StripComponent::setupKnob (juce::Slider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts)
+void StripComponent::setupKnob (fxme::FxmeSlider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts)
 {
     addAndMakeVisible (s);
     s.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -106,6 +106,7 @@ void StripComponent::setupKnob (juce::Slider& s, const juce::String& paramID, ju
     s.setRange (-1.0, 1.0); 
     // Store attachment in subclass
     s.setLookAndFeel (&fxmeLookAndFeel);
+    s.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, paramID, s));
 }
 
 void StripComponent::setSliderColours (juce::Slider& s, juce::Colour c)
@@ -153,15 +154,12 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
     : StripComponent (s, apvts), ambStrip (s)
 {
     setupKnob (azSlider, s.getName() + "_Azimuth", apvts);
-    azAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Azimuth", azSlider);
     azSlider.setTooltip ("Azimuth");
     
     setupKnob (elSlider, s.getName() + "_Elevation", apvts);
-    elAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Elevation", elSlider);
     elSlider.setTooltip ("Elevation");
     
     setupKnob (wSlider, s.getName() + "_Width", apvts);
-    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
     wSlider.setTooltip ("Width");
 
     juce::Colour c = s.getColor();
@@ -247,10 +245,8 @@ MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeSta
     : StripComponent (s, apvts), msStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
-    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -329,10 +325,8 @@ StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessor
     : StripComponent (s, apvts), stereoStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
-    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -412,7 +406,6 @@ MonoStripComponent::MonoStripComponent (MonoStrip& s, juce::AudioProcessorValueT
     : StripComponent (s, apvts), monoStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::green;
@@ -484,7 +477,6 @@ StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, ju
     : StripComponent (s, apvts), reverbStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -580,7 +572,6 @@ MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::Au
     : StripComponent (s, apvts), reverbStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -669,10 +660,8 @@ BusStripComponent::BusStripComponent (BusStrip& s, juce::AudioProcessorValueTree
     : StripComponent (s, apvts), busStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
-    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::purple;
@@ -751,10 +740,8 @@ MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessor
     : StripComponent (s, apvts), masterStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-    panAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Pan", panSlider);
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
-    wAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, s.getName() + "_Width", wSlider);
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::red;

@@ -53,15 +53,15 @@ TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state
     setupSlider (driveSlider, driveLabel, "Drive (dB)", 0.0, 40.0, 0.0);
     setupSlider (biasSlider, biasLabel, "Bias", 0.0, 0.5, 0.0);
     setupBarSlider (outSlider, outLabel, "Output (dB)", -20.0, 20.0, 0.0);
-
-    driveAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Tube_Drive", driveSlider);
-    biasAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Tube_Bias", biasSlider);
-    outAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Tube_Out", outSlider);
+    
+    driveSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Drive", driveSlider));
+    biasSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Bias", biasSlider));
+    outSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Out", outSlider));
 }
 
 TubeComponent::~TubeComponent() {}
 
-void TubeComponent::setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+void TubeComponent::setupSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
     juce::Colour color = juce::Colours::orange;
 
@@ -80,7 +80,7 @@ void TubeComponent::setupSlider (juce::Slider& slider, juce::Label& label, const
     setSliderColours(slider, color);
 }
 
-void TubeComponent::setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+void TubeComponent::setupBarSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
     juce::Colour color = juce::Colours::orange;
 

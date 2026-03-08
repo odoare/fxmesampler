@@ -11,7 +11,6 @@
 #include <JuceHeader.h>
 #include "MixerStrips.h"
 #include "VuMeterComponent.h"
-#include "FxmeSlider.h"
 #include "ConvolReverbComponent.h" // For irBox
 
 //==============================================================================
@@ -43,13 +42,11 @@ public:
 protected:
     MixerStrip& strip;
     juce::Label nameLabel;
-    FxmeSlider levelSlider;
+    fxme::FxmeSlider levelSlider;
     juce::ToggleButton muteButton, soloButton;
     juce::ImageComponent icon;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> levelAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> muteAtt, soloAtt;
     std::vector<std::unique_ptr<juce::Slider>> sendSliders;
-    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sendAtts;
 
     std::vector<std::unique_ptr<juce::ToggleButton>> prePostButtons;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> prePostAtts;
@@ -59,7 +56,7 @@ protected:
     void createRouteButtons(juce::AudioProcessorValueTreeState& apvts);
 
     virtual void updateMeters() = 0;
-    void setupKnob (juce::Slider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts);
+    void setupKnob (fxme::FxmeSlider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts);
     void setSliderColours (juce::Slider& s, juce::Colour c);
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
@@ -78,8 +75,7 @@ protected:
     void updateMeters() override;
 private:
     AmbisonicStrip& ambStrip;
-    FxmeSlider azSlider, elSlider, wSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> azAtt, elAtt, wAtt;
+    fxme::FxmeSlider azSlider, elSlider, wSlider;
     VuMeterComponent meterL, meterR;
 };
 
@@ -96,10 +92,8 @@ protected:
     void updateMeters() override;
 private:
     MSStrip& msStrip;
-    FxmeSlider panSlider;
-    FxmeSlider wSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wAtt;
+    fxme::FxmeSlider panSlider;
+    fxme::FxmeSlider wSlider;
     VuMeterComponent meterL, meterR;
 };
 
@@ -116,10 +110,8 @@ protected:
     void updateMeters() override;
 private:
     StereoStrip& stereoStrip;
-    FxmeSlider panSlider;
-    FxmeSlider wSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wAtt;
+    fxme::FxmeSlider panSlider;
+    fxme::FxmeSlider wSlider;
     VuMeterComponent meterL, meterR;
 };
 
@@ -136,8 +128,7 @@ protected:
     void updateMeters() override;
 private:
     MonoStrip& monoStrip;
-    FxmeSlider panSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    fxme::FxmeSlider panSlider;
     VuMeterComponent meter;
 };
 
@@ -154,8 +145,7 @@ protected:
     void updateMeters() override;
 private:
     StereoReverbStrip& reverbStrip;
-    FxmeSlider panSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    fxme::FxmeSlider panSlider;
     juce::ComboBox irBox; // For IR selection dropdown
     juce::Label irLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
@@ -175,8 +165,7 @@ protected:
     void updateMeters() override;
 private:
     MonoReverbStrip& reverbStrip;
-    FxmeSlider panSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt;
+    fxme::FxmeSlider panSlider;
     juce::ComboBox irBox; // For IR selection dropdown
     juce::Label irLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
@@ -196,8 +185,7 @@ protected:
     void updateMeters() override;
 private:
     BusStrip& busStrip;
-    FxmeSlider panSlider, wSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt, wAtt;
+    fxme::FxmeSlider panSlider, wSlider;
     VuMeterComponent meterL, meterR;
 };
 
@@ -214,7 +202,6 @@ protected:
     void updateMeters() override;
 private:
     MasterStrip& masterStrip;
-    FxmeSlider panSlider, wSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAtt, wAtt;
+    fxme::FxmeSlider panSlider, wSlider;
     VuMeterComponent meterL, meterR;
 };

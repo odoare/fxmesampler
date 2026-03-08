@@ -11,7 +11,6 @@
 #include <JuceHeader.h>
 #include "Compressor.h"
 #include "VuMeterComponent.h"
-#include "FxmeSlider.h"
 
 class CompressorComponent : public juce::Component,
                             public juce::Timer
@@ -32,16 +31,14 @@ private:
     juce::Label titleLabel;
     VuMeterComponent grMeter;
     juce::Label preGainLabel, attackLabel, releaseLabel, threshLabel, ratioLabel, gainLabel;
-    FxmeSlider preGainSlider, attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
+    fxme::FxmeSlider preGainSlider, attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
 
-    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
     std::unique_ptr<ButtonAttachment> onAtt;
-    std::unique_ptr<SliderAttachment> preGainAtt, attackAtt, releaseAtt, threshAtt, ratioAtt, gainAtt;
 
-    void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
-    void setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setupSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setupBarSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
     void setSliderColours (juce::Slider& s, juce::Colour c);
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;

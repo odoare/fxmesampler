@@ -11,7 +11,6 @@
 #include <JuceHeader.h>
 #include "StereoDelay.h"
 // #include "ConvolReverbComponent.h" // For FxmeLookAndFeel
-#include "FxmeSlider.h"
 
 class StereoDelayComponent : public juce::Component, public juce::Timer
 {
@@ -32,25 +31,20 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
 
     juce::Label bpmLabel;
-    FxmeSlider delayLSlider, delayRSlider;
+    fxme::FxmeSlider delayLSlider, delayRSlider;
     juce::Label delayLLabel, delayRLabel;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> delayLAtt, delayRAtt;
 
-    FxmeSlider fdbkLSlider, fdbkRSlider;
+    fxme::FxmeSlider fdbkLSlider, fdbkRSlider;
     juce::Label fdbkLLabel, fdbkRLabel;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> fdbkLAtt, fdbkRAtt;
 
-    FxmeSlider crossFdbkSlider;
+    fxme::FxmeSlider crossFdbkSlider;
     juce::Label crossFdbkLabel;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> crossFdbkAtt;
 
-    FxmeSlider cutoffSlider, qSlider;
+    fxme::FxmeSlider cutoffSlider, qSlider;
     juce::Label cutoffLabel, qLabel;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> cutoffAtt, qAtt;
 
-    FxmeSlider dryGainSlider, wetGainSlider;
+    fxme::FxmeSlider dryGainSlider, wetGainSlider;
     juce::Label dryGainLabel, wetGainLabel;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryGainAtt, wetGainAtt;
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
 

@@ -489,7 +489,7 @@ void SampleGroup::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Sustain", 1 }, name + " Sustain", 0.0f, 1.0f, (float)sustain));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Release", 1 }, name + " Release", 0.0f, 5.0f, (float)release));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Detune", 1 }, name + " Detune", -12.0f, 12.0f, (float)detune));
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "RandomDetune", 1 }, name + " Random Detune", 0.0f, 10.0f, (float)randomDetune));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "RandomDetune", 1 }, name + " Random Detune", 0.0f, 100.0f, (float)randomDetune));
 }
 
 void Sampler::updateParams()

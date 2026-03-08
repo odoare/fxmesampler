@@ -269,8 +269,6 @@
             file="../../Source/EqualizerComponent.cpp"/>
       <FILE id="aFSEmp" name="EqualizerComponent.h" compile="0" resource="0"
             file="../../Source/EqualizerComponent.h"/>
-      <FILE id="WXnrtr" name="FxmeSlider.cpp" compile="1" resource="0" file="../../Source/FxmeSlider.cpp"/>
-      <FILE id="Q8JZj8" name="FxmeSlider.h" compile="0" resource="0" file="../../Source/FxmeSlider.h"/>
       <FILE id="lnbq4P" name="Mixer.cpp" compile="1" resource="0" file="../../Source/Mixer.cpp"/>
       <FILE id="yA9pHh" name="Mixer.h" compile="0" resource="0" file="../../Source/Mixer.h"/>
       <FILE id="f0uMOy" name="MixerComponent.cpp" compile="1" resource="0"

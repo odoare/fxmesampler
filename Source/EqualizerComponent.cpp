@@ -194,7 +194,7 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
 
     juce::Colour color = juce::Colours::cyan;
 
-    auto setup = [&](juce::Slider& s, double min, double max, double def, const juce::String& tooltip) {
+    auto setup = [&](fxme::FxmeSlider& s, double min, double max, double def, const juce::String& tooltip) {
         addAndMakeVisible (s);
         s.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
         s.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
@@ -209,38 +209,38 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     // Low Shelf
     setup (lsFreq, 20.0, 1000.0, 100.0, "LS Freq");
     setup (lsGain, -15.0, 15.0, 0.0, "LS Gain");
-    lsFreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_LS_Freq", lsFreq);
-    lsGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_LS_Gain", lsGain);
+    lsFreq.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_LS_Freq", lsFreq));
+    lsGain.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_LS_Gain", lsGain));
 
     // Band 1
     setup (b1Freq, 100.0, 5000.0, 500.0, "Peak 1 Freq");
     setup (b1Q, 0.1, 10.0, 1.0, "Peak 1 Q");
     setup (b1Gain, -15.0, 15.0, 0.0, "Peak 1 Gain");
-    b1FreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B1_Freq", b1Freq);
-    b1QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B1_Q", b1Q);
-    b1GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B1_Gain", b1Gain);
+    b1Freq.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B1_Freq", b1Freq));
+    b1Q.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B1_Q", b1Q));
+    b1Gain.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B1_Gain", b1Gain));
 
     // Band 2
     setup (b2Freq, 500.0, 10000.0, 2000.0, "Peak 2 Freq");
     setup (b2Q, 0.1, 10.0, 1.0, "Peak 2 Q");
     setup (b2Gain, -15.0, 15.0, 0.0, "Peak 2 Gain");
-    b2FreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Freq", b2Freq);
-    b2QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Q", b2Q);
-    b2GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B2_Gain", b2Gain);
+    b2Freq.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B2_Freq", b2Freq));
+    b2Q.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B2_Q", b2Q));
+    b2Gain.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B2_Gain", b2Gain));
 
     // Band 3
     setup (b3Freq, 500.0, 15000.0, 3500.0, "Peak 3 Freq");
     setup (b3Q, 0.1, 10.0, 1.0, "Peak 3 Q");
     setup (b3Gain, -15.0, 15.0, 0.0, "Peak 3 Gain");
-    b3FreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B3_Freq", b3Freq);
-    b3QAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B3_Q", b3Q);
-    b3GainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_B3_Gain", b3Gain);
+    b3Freq.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B3_Freq", b3Freq));
+    b3Q.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B3_Q", b3Q));
+    b3Gain.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_B3_Gain", b3Gain));
 
     // High Shelf
     setup (hsFreq, 1000.0, 20000.0, 5000.0, "HS Freq");
     setup (hsGain, -15.0, 15.0, 0.0, "HS Gain");
-    hsFreqAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Freq", hsFreq);
-    hsGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_HS_Gain", hsGain);
+    hsFreq.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_HS_Freq", hsFreq));
+    hsGain.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_HS_Gain", hsGain));
 
     addAndMakeVisible (postGainSlider);
     postGainSlider.setSliderStyle (juce::Slider::LinearBarVertical);
@@ -252,7 +252,7 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
     postGainSlider.setLookAndFeel(&fxmeLookAndFeel);
     setSliderColours(postGainSlider, color);
     postGainSlider.onValueChange = [this] { responseGraph.updateCurve(); };
-    postGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_EQ_PostGain", postGainSlider);
+    postGainSlider.setAttachment(new SliderAttachment (apvts, prefix + "_EQ_PostGain", postGainSlider));
 
     addAndMakeVisible (responseGraph);
     responseGraph.setReferences (lsFreq, lsGain,

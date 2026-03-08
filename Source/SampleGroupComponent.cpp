@@ -34,24 +34,24 @@ SampleGroupComponent::SampleGroupComponent (SampleGroup& g, juce::AudioProcessor
     oneShotAtt = std::make_unique<ButtonAttachment> (apvts, prefix + "OneShot", oneShotButton);
 
     setupSlider (attackSlider, attackLabel, "Attack", 0.0, 5.0, 0.0);
-    attackAtt = std::make_unique<SliderAttachment> (apvts, prefix + "Attack", attackSlider);
+    attackSlider.setAttachment(new SliderAttachment (apvts, prefix + "Attack", attackSlider));
 
     setupSlider (decaySlider, decayLabel, "Decay", 0.0, 5.0, 0.0);
-    decayAtt = std::make_unique<SliderAttachment> (apvts, prefix + "Decay", decaySlider);
+    decaySlider.setAttachment(new SliderAttachment (apvts, prefix + "Decay", decaySlider));
 
     setupSlider (sustainSlider, sustainLabel, "Sustain", 0.0, 1.0, 1.0);
-    sustainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "Sustain", sustainSlider);
+    sustainSlider.setAttachment(new SliderAttachment (apvts, prefix + "Sustain", sustainSlider));
 
     setupSlider (releaseSlider, releaseLabel, "Release", 0.0, 5.0, 0.1);
-    releaseAtt = std::make_unique<SliderAttachment> (apvts, prefix + "Release", releaseSlider);
+    releaseSlider.setAttachment(new SliderAttachment (apvts, prefix + "Release", releaseSlider));
 
     setupSlider (detuneSlider, detuneLabel, "Detune", -12.0, 12.0, 0.0);
     detuneSlider.setTextValueSuffix (" st");
-    detuneAtt = std::make_unique<SliderAttachment> (apvts, prefix + "Detune", detuneSlider);
+    detuneSlider.setAttachment(new SliderAttachment (apvts, prefix + "Detune", detuneSlider));
 
     setupSlider (randomDetuneSlider, randomDetuneLabel, "Rnd Detune", 0.0, 10.0, 0.0);
     randomDetuneSlider.setTextValueSuffix (" ct");
-    randomDetuneAtt = std::make_unique<SliderAttachment> (apvts, prefix + "RandomDetune", randomDetuneSlider);
+    randomDetuneSlider.setAttachment(new SliderAttachment (apvts, prefix + "RandomDetune", randomDetuneSlider));
 }
 
 SampleGroupComponent::~SampleGroupComponent()

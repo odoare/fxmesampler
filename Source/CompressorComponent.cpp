@@ -36,12 +36,12 @@ CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessor
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
     setupBarSlider (gainSlider, gainLabel, "Gain (dB)", -24.0, 24.0, 0.0);
 
-    preGainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_PreGain", preGainSlider);
-    attackAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Attack", attackSlider);
-    releaseAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Release", releaseSlider);
-    threshAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Thresh", threshSlider);
-    ratioAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Ratio", ratioSlider);
-    gainAtt = std::make_unique<SliderAttachment> (apvts, prefix + "_Comp_Gain", gainSlider);
+    preGainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_PreGain", preGainSlider));
+    attackSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Attack", attackSlider));
+    releaseSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Release", releaseSlider));
+    threshSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Thresh", threshSlider));
+    ratioSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Ratio", ratioSlider));
+    gainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Gain", gainSlider));
 
     addAndMakeVisible (grMeter);
     grMeter.setMeterColor (juce::Colours::red);
@@ -54,7 +54,7 @@ CompressorComponent::~CompressorComponent()
 {
 }
 
-void CompressorComponent::setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+void CompressorComponent::setupSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
     juce::Colour color = juce::Colours::red;
 
@@ -72,7 +72,7 @@ void CompressorComponent::setupSlider (juce::Slider& slider, juce::Label& label,
     setSliderColours(slider, color);
 }
 
-void CompressorComponent::setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
+void CompressorComponent::setupBarSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def)
 {
     juce::Colour color = juce::Colours::red;
 

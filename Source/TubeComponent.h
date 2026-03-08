@@ -10,7 +10,6 @@
 
 #include <JuceHeader.h>
 #include "Tube.h"
-#include "FxmeSlider.h"
 
 /**
  * @class TubeComponent
@@ -40,15 +39,14 @@ private:
     juce::Label titleLabel;
     juce::ImageComponent tubeImage;
     juce::Label driveLabel, biasLabel, outLabel;
-    FxmeSlider driveSlider, biasSlider;
-    FxmeSlider outSlider;
+    fxme::FxmeSlider driveSlider, biasSlider;
+    fxme::FxmeSlider outSlider;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modelAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> driveAtt, biasAtt, outAtt;
 
-    void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
-    void setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setupSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
+    void setupBarSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
     void setSliderColours (juce::Slider& s, juce::Colour c);
 
     fxme::FxmeLookAndFeel fxmeLookAndFeel;

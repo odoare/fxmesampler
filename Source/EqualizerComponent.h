@@ -10,7 +10,6 @@
 
 #include <JuceHeader.h>
 #include "Equalizer.h"
-#include "FxmeSlider.h"
 
 /**
  * @class FrequencyResponseGraph
@@ -93,12 +92,12 @@ private:
     
     // LowShelf, Band1, Band2, Band3, HighShelf
     // LS: F, G. B1: F, Q, G. B2: F, Q, G. B3: F, Q, G. HS: F, G.
-    FxmeSlider lsFreq, lsGain;
-    FxmeSlider b1Freq, b1Q, b1Gain;
-    FxmeSlider b2Freq, b2Q, b2Gain;
-    FxmeSlider b3Freq, b3Q, b3Gain;
-    FxmeSlider hsFreq, hsGain;
-    FxmeSlider postGainSlider;
+    fxme::FxmeSlider lsFreq, lsGain;
+    fxme::FxmeSlider b1Freq, b1Q, b1Gain;
+    fxme::FxmeSlider b2Freq, b2Q, b2Gain;
+    fxme::FxmeSlider b3Freq, b3Q, b3Gain;
+    fxme::FxmeSlider hsFreq, hsGain;
+    fxme::FxmeSlider postGainSlider;
 
     FrequencyResponseGraph responseGraph;
 
@@ -106,12 +105,6 @@ private:
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
     std::unique_ptr<ButtonAttachment> onAtt;
-    std::unique_ptr<SliderAttachment> postGainAtt;
-    std::unique_ptr<SliderAttachment> lsFreqAtt, lsGainAtt;
-    std::unique_ptr<SliderAttachment> b1FreqAtt, b1QAtt, b1GainAtt;
-    std::unique_ptr<SliderAttachment> b2FreqAtt, b2QAtt, b2GainAtt;
-    std::unique_ptr<SliderAttachment> b3FreqAtt, b3QAtt, b3GainAtt;
-    std::unique_ptr<SliderAttachment> hsFreqAtt, hsGainAtt;
 
     void setSliderColours (juce::Slider& s, juce::Colour c);
     fxme::FxmeLookAndFeel fxmeLookAndFeel;

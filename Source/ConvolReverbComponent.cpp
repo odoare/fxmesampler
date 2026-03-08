@@ -213,12 +213,12 @@ ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProces
     irBox.onChange = [this] { graphNeedsUpdate = true; };
 
     setupSlider (lengthSlider, lengthLabel, "Length", 0.0, 1.0, 1.0);
-    lengthAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Rev_Length", lengthSlider);
+    lengthSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Rev_Length", lengthSlider));
     lengthSlider.onValueChange = [this] { graphNeedsUpdate = true; };
 
     setupSlider (startOffsetSlider, startOffsetLabel, "Offset", -100.0, 100.0, 0.0);
     startOffsetSlider.setTextValueSuffix (" ms");
-    startOffsetAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, prefix + "_Rev_StartOffset", startOffsetSlider);
+    startOffsetSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Rev_StartOffset", startOffsetSlider));
     startOffsetSlider.onValueChange = [this] { graphNeedsUpdate = true; };
 
     addAndMakeVisible (shapeLabel);
@@ -233,11 +233,11 @@ ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProces
 
     setupBarSlider(dryGainSlider, dryGainLabel, "Dry", -60.0, 6.0, -60.0);
     dryGainSlider.setTextValueSuffix(" dB");
-    dryGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Rev_DryGain", dryGainSlider);
+    dryGainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Rev_DryGain", dryGainSlider));
 
     setupBarSlider(wetGainSlider, wetGainLabel, "Wet", -60.0, 6.0, 0.0);
     wetGainSlider.setTextValueSuffix(" dB");
-    wetGainAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, prefix + "_Rev_WetGain", wetGainSlider);
+    wetGainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment(apvts, prefix + "_Rev_WetGain", wetGainSlider));
     
     addAndMakeVisible(irPlot);
 

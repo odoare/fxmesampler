@@ -24,6 +24,17 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+try:
+    from atoms_transient_detector import TransientDetector
+    import scipy.signal
+    HAS_ATOMS = True
+except ImportError:
+    print("Warning: atoms_transient_detector.py not found or scipy.signal is missing.")
+    print("Falling back to simple RMS-based transient detector.")
+    HAS_ATOMS = False
+
+HAS_ATOMS = False
+
 def read_wav_file(filepath):
     """
     Reads a wav file and returns the audio data as a normalized float32 numpy array,
@@ -125,19 +136,67 @@ def read_wav_file(filepath):
         print(f"Error reading {filepath}: {e}")
         return None, None, None
 
-def detect_transients(audio_data, sample_rate, threshold_db=-60, release_threshold_db=-100, min_silence_ms=200):
+def detect_transients_atoms(audio_data, sample_rate):
+    """
+    Detects transients using the TransientDetector class from atoms_transient_detector.
+    """
+    if len(audio_data.shape) > 1:
+        # Use only the first channel for transient detection
+        mono_audio = audio_data[:, 0]
+    else:
+        mono_audio = audio_data
+
+    td = TransientDetector(mono_audio, fs=sample_rate)
+    td.master_algorithm()
+    support_signal = td.y
+
+    if len(support_signal) == 0:
+        return []
+
+    max_peak = np.max(np.abs(support_signal))
+    if max_peak == 0:
+        return []
+
+    # Find peaks in the support signal.
+    # Height threshold is 5% of the max peak.
+    # Distance is 20ms to avoid multiple detections for one event.
+    peaks, _ = scipy.signal.find_peaks(np.abs(support_signal),
+                                       height=max_peak * 0.05,
+                                       distance=int(sample_rate * 0.02))
+
+    if len(peaks) == 0:
+        return []
+
+    # Sort peaks by time, just in case find_peaks doesn't guarantee it.
+    peaks.sort()
+
+    hits = []
+    for i in range(len(peaks)):
+        start = peaks[i]
+        end = peaks[i+1] if i < len(peaks) - 1 else len(mono_audio)
+
+        # Calculate energy for the segment
+        segment = mono_audio[start:end]
+        energy = float(np.sum(segment**2))
+
+        hits.append({'start': int(start), 'end': int(end), 'energy': energy})
+
+    return hits
+
+def detect_transients(audio_data, sample_rate, threshold_db=-60, release_threshold_db=-100, min_silence_ms=700):
     """
     Detects transients in the audio data.
     Returns a list of dictionaries containing start, end, and energy of each hit.
     """
     # Convert to mono energy envelope for detection
     if len(audio_data.shape) > 1:
-        mono = np.mean(audio_data, axis=1)
+        # mono = np.mean(audio_data, axis=1)
+        mono = audio_data[:,0]
     else:
         mono = audio_data
         
     # Calculate RMS envelope for detection
-    window_size = 128
+    window_size = 256
     squared = mono ** 2
     window = np.ones(window_size) / window_size
     mean_sq = np.convolve(squared, window, mode='same')
@@ -178,8 +237,8 @@ def detect_transients(audio_data, sample_rate, threshold_db=-60, release_thresho
         else:
             valid_starts.append(s)
     
-    # Adjust starts back by 0.5ms
-    offset_samples = int(0.5 * sample_rate / 1000.0)
+    # Adjust starts back by 1ms
+    offset_samples = int(1. * sample_rate / 1000.0)
     adjusted_starts = [max(0, s - offset_samples) for s in valid_starts]
     
     hits = []
@@ -205,8 +264,9 @@ def find_best_transients(audio_data, sample_rate, expected_count):
     
     # Silence options to try. 
     # We prioritize 500ms (default), then try others.
-    silence_options = [500, 200, 50, 20, 10, 5, 100]
-    
+    silence_options = [1000, 500, 200, 50, 20, 10, 5, 100]
+    silence_options = [1000, 700, 500, 200]
+
     for silence in silence_options:
         valid_hits = []
         for th in thresholds:
@@ -285,15 +345,28 @@ def generate_mappings(folder_path):
                     'energy': float(energy)
                 }]
             else:
-                hits = find_best_transients(audio_data, sample_rate, expected_count)
-                
-                if hits is None:
-                     hits = detect_transients(audio_data, sample_rate)
+                if HAS_ATOMS:
+                    hits = detect_transients_atoms(audio_data, sample_rate)
+                else: # Fallback to old method
+                    hits = find_best_transients(audio_data, sample_rate, expected_count)
+                    if hits is None:
+                         hits = detect_transients(audio_data, sample_rate)
+
+                if len(hits) != expected_count and expected_count > 0:
                      print(f"Warning: {filename}: Expected {expected_count} hits, found {len(hits)}.")
+                     if len(hits) > expected_count:
+                         print(f"Info: Using the {expected_count} most energetic hits.")
+                         hits.sort(key=lambda x: x['energy'], reverse=True)
+                         hits = hits[:expected_count]
+                         hits.sort(key=lambda x: x['start'])
 
                 if not hits:
                     print(f"Warning: No transients detected in {filename}.")
                     continue
+                
+                # Per user request, ensure the first transient starts at sample 0
+                if hits:
+                    hits[0]['start'] = 0
             
             if HAS_MATPLOTLIB:
                 plt.figure(figsize=(12, 6))

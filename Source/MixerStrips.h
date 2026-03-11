@@ -101,6 +101,9 @@ public:
     /** @brief Checks if the strip is soloed. */
     bool isSolo() const { return soloParam && *soloParam > 0.5f; }
 
+    /** @brief Checks if the strip can be soloed. */
+    virtual bool isSoloable() const { return true; }
+
     /** @brief Sets the strip icon image. */
     void setImage (const juce::Image& img) { image = img; }
 
@@ -134,10 +137,12 @@ public:
     void processEffects (juce::AudioBuffer<float>& buffer);
 
     /** @brief Clears meter values (used when strip is not processing). */
-    virtual void clearMeters() {}
+    void clearMeters();
 
     /** @brief Sets the BPM for time-based effects. */
     void setBPM(double bpm);
+
+    VuMeter meterL, meterR;
 
 protected:
     juce::String name;
@@ -164,10 +169,9 @@ public:
     int getNumInputChannels() const override { return 4; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     AmbixToMS ambix;
-    VuMeter meterL, meterR;
 
     std::atomic<float>* azParam = nullptr;
     std::atomic<float>* elParam = nullptr;
@@ -188,7 +192,7 @@ public:
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     float pan = 0.0f;
     float width = 1.0f;
@@ -213,12 +217,12 @@ public:
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     float pan = 0.0f;
     float width = 1.0f;
     float level = 1.0f;
-    VuMeter meterL, meterR;
+    // VuMeter meterL, meterR;
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* wParam = nullptr;
@@ -238,11 +242,11 @@ public:
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     float pan = 0.0f;
     float level = 1.0f;
-    VuMeter meter;
+    // VuMeter meterL, meterR;
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
@@ -261,7 +265,7 @@ public:
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     /**
      * @brief Sets the list of available impulse responses.
@@ -273,7 +277,7 @@ public:
     ConvolReverb reverb;
     float pan = 0.0f;
     float level = 1.0f;
-    VuMeter meterL, meterR;
+    // VuMeter meterL, meterR;
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
@@ -293,7 +297,7 @@ public:
     int getNumInputChannels() const override { return 1; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     /**
      * @brief Sets the list of available impulse responses.
@@ -305,7 +309,7 @@ public:
     ConvolReverb reverb;
     float pan = 0.0f;
     float level = 1.0f;
-    VuMeter meter;
+    // VuMeter meterL, meterR;
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* lvlParam = nullptr;
@@ -324,13 +328,14 @@ public:
     void process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset) override;
     int getNumInputChannels() const override { return 2; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
+    bool isSoloable() const override { return false; }
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     float pan = 0.0f;
     float width = 1.0f;
     float level = 1.0f;
-    VuMeter meterL, meterR;
+    // VuMeter meterL, meterR;
 
     std::atomic<float>* panParam = nullptr;
     std::atomic<float>* wParam = nullptr;
@@ -350,7 +355,7 @@ public:
     int getNumInputChannels() const override { return 0; }
     void assignParameters (juce::AudioProcessorValueTreeState& apvts) override;
     void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params) override;
-    void clearMeters() override;
+    // void clearMeters() override;
 
     /**
      * @brief Adds input to the bus buffer.
@@ -362,7 +367,7 @@ public:
     /** @brief Clears the bus buffer before processing. */
     void clearBusBuffer();
 
-    VuMeter meterL, meterR;
+    // VuMeter meterL, meterR;
 
 private:
     juce::AudioBuffer<float> busBuffer;

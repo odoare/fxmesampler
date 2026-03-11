@@ -56,10 +56,19 @@ protected:
     void createRouteButtons(juce::AudioProcessorValueTreeState& apvts);
 
     virtual void updateMeters() = 0;
+    void layoutBottomRow(juce::FlexBox& bottomBox, juce::FlexBox& metersBox);
     void setupKnob (fxme::FxmeSlider& s, const juce::String& paramID, juce::AudioProcessorValueTreeState& apvts);
     void setSliderColours (juce::Slider& s, juce::Colour c);
 
+    VuMeterComponent meterL, meterR;
+
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
+
+private:
+    // FlexBox members for layout to avoid lifetime issues with local FlexBoxes
+    // inside the layoutBottomRow helper function.
+    juce::FlexBox fbButtonsMeters, fbRoutes, fbSends, fbOutputs;
+
 };
 
 /**
@@ -76,7 +85,7 @@ protected:
 private:
     AmbisonicStrip& ambStrip;
     fxme::FxmeSlider azSlider, elSlider, wSlider;
-    VuMeterComponent meterL, meterR;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -94,7 +103,7 @@ private:
     MSStrip& msStrip;
     fxme::FxmeSlider panSlider;
     fxme::FxmeSlider wSlider;
-    VuMeterComponent meterL, meterR;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -112,7 +121,7 @@ private:
     StereoStrip& stereoStrip;
     fxme::FxmeSlider panSlider;
     fxme::FxmeSlider wSlider;
-    VuMeterComponent meterL, meterR;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -129,7 +138,7 @@ protected:
 private:
     MonoStrip& monoStrip;
     fxme::FxmeSlider panSlider;
-    VuMeterComponent meter;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -149,7 +158,7 @@ private:
     juce::ComboBox irBox; // For IR selection dropdown
     juce::Label irLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
-    VuMeterComponent meterL, meterR;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -169,7 +178,7 @@ private:
     juce::ComboBox irBox; // For IR selection dropdown
     juce::Label irLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAtt;
-    VuMeterComponent meter;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -186,7 +195,7 @@ protected:
 private:
     BusStrip& busStrip;
     fxme::FxmeSlider panSlider, wSlider;
-    VuMeterComponent meterL, meterR;
+    // VuMeterComponent meterL, meterR;
 };
 
 /**
@@ -203,5 +212,5 @@ protected:
 private:
     MasterStrip& masterStrip;
     fxme::FxmeSlider panSlider, wSlider;
-    VuMeterComponent meterL, meterR;
+    // VuMeterComponent meterL, meterR;
 };

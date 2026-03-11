@@ -31,12 +31,15 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
     muteButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::orange);
     muteButton.setLookAndFeel(&fxmeLookAndFeel);
     muteAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, strip.getName() + "_Mute", muteButton);
-
-    addAndMakeVisible (soloButton);
-    soloButton.setButtonText ("S");
-    soloButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::green);
-    soloButton.setLookAndFeel(&fxmeLookAndFeel);
-    soloAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, strip.getName() + "_Solo", soloButton);
+    
+    if (strip.isSoloable())
+    {
+        addAndMakeVisible (soloButton);
+        soloButton.setButtonText ("S");
+        soloButton.setColour(juce::ToggleButton::tickColourId, juce::Colours::green);
+        soloButton.setLookAndFeel(&fxmeLookAndFeel);
+        soloAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, strip.getName() + "_Solo", soloButton);
+    }
 
     addAndMakeVisible (icon);
     icon.setImage (strip.getImage());
@@ -67,6 +70,14 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
 
     createRouteButtons(apvts);
 
+    juce::Colour c = s.getColor();
+    if (c.isTransparent()) c = juce::Colours::orange;
+
+    addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+
     startTimerHz (24);
 }
 
@@ -88,7 +99,51 @@ void StripComponent::paint (juce::Graphics& g)
 
 void StripComponent::resized()
 {
-    // Base resized not used, specific layouts in subclasses
+    // This method is now overridden in all subclasses, which call layoutBottomRow.
+    // This base implementation can be left empty or removed if all subclasses override it.
+}
+
+void StripComponent::layoutBottomRow(juce::FlexBox& bottomBox, juce::FlexBox& metersBox)
+{
+    using fi = juce::FlexItem;
+
+    // Clear items from member flexboxes before re-populating them, as they persist
+    // between calls to resized().
+    fbButtonsMeters.items.clear();
+    fbRoutes.items.clear();
+    fbSends.items.clear();
+    fbOutputs.items.clear();
+
+    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
+    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
+    fbSends.flexDirection = juce::FlexBox::Direction::column;
+    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
+
+    // Add sends
+    for (size_t i = 0; i < sendSliders.size(); ++i)
+    {
+        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
+        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
+    }
+    fbSends.items.add(fi().withFlex(1.f));
+
+    // Add routing buttons
+    for (auto& b : routeButtons)
+        fbOutputs.items.add(fi(*b).withFlex(1.0f));
+
+    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
+    fbRoutes.items.add(fi(fbOutputs).withFlex(.7f));
+
+    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
+    if (strip.isSoloable())
+        fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
+    else
+        fbButtonsMeters.items.add(fi().withFlex(0.2f)); // Spacer
+    fbButtonsMeters.items.add(fi(metersBox).withFlex(1.f));
+
+    bottomBox.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
+    bottomBox.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
+    bottomBox.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(2.f));
 }
 
 void StripComponent::timerCallback()
@@ -170,67 +225,38 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
     setSliderColours (elSlider, c);
     setSliderColours (wSlider, c);
 
-    addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void AmbisonicStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs, fbKnobsRow1;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::column;
-
-    juce::FlexBox fbKnobsRow1;
     fbKnobsRow1.flexDirection = juce::FlexBox::Direction::row;
+
     fbKnobsRow1.items.add(fi(azSlider).withFlex(1.f));
     fbKnobsRow1.items.add(fi(elSlider).withFlex(1.f));
-
     fbKnobs.items.add(fi(fbKnobsRow1).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
-    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 0, 0)));
-    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 0, 0, 5.f)));
-
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 0, 0, 1.f)));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.3f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
@@ -255,62 +281,35 @@ MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeSta
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+//     addAndMakeVisible (meterL); meterL.setMeterColor (c);
+//     addAndMakeVisible (meterR); meterR.setMeterColor (c);
+//     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+//     meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void MSStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
-    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
-    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
-
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
@@ -335,63 +334,35 @@ StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessor
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void StereoStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    // fbSends.flexWrap = juce::FlexBox::Wrap::wrap;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-    
-    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
-    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
-
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
@@ -413,63 +384,41 @@ MonoStripComponent::MonoStripComponent (MonoStrip& s, juce::AudioProcessorValueT
     setStripColor(c);
     setSliderColours (panSlider, c);
 
-    addAndMakeVisible (meter); meter.setMeterColor (c);
-    meter.setRange (-60.0f, 6.0f); meter.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void MonoStripComponent::resized()
 {
     auto bounds = getLocalBounds();
     using fi = juce::FlexItem; // Using alias for brevity
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f,0.f,0.f,0.f)));
 
-    fbMeters.items.add(fi(meter).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f,5.f,0.f,5.f)));
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
 void MonoStripComponent::updateMeters()
 {
-    meter.setValue (monoStrip.meter.getRMS());
+    meterL.setValue (monoStrip.meterL.getRMS());
+    meterR.setValue (monoStrip.meterR.getRMS());
 }
 
 //==============================================================================
@@ -494,33 +443,27 @@ StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, ju
     setStripColor(c);
     setSliderColours (panSlider, c);
 
-    addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor(c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor(c);
+    // meterL.setRange(-60.0f, 6.0f); meterL.setZeroLevel(0.0f);
+    // meterR.setRange(-60.0f, 6.0f); meterR.setZeroLevel(0.0f);
 }
 
 void StereoReverbStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
 
-    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 0, 0)));
-    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 0, 0, 5.f)));
-
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 0, 0, 1.f)));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     
@@ -532,32 +475,10 @@ void StereoReverbStripComponent::resized()
     if (irBox.isVisible())
         fbMain.items.add(fi(irBox).withFlex(0.06f).withMargin(2));
 
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
-
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
@@ -589,28 +510,28 @@ MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::Au
     setStripColor(c);
     setSliderColours (panSlider, c);
 
-    addAndMakeVisible (meter); meter.setMeterColor (c);
-    meter.setRange (-60.0f, 6.0f); meter.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor(c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor(c);
+    // meterL.setRange(-60.0f, 6.0f); meterL.setZeroLevel(0.0f);
+    // meterR.setRange(-60.0f, 6.0f); meterR.setZeroLevel(0.0f);
 }
 
 void MonoReverbStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
 
-    fbMeters.items.add(fi(meter).withFlex(1.f).withMargin(10.f));
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
+
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
 
     if (irBox.isVisible())
@@ -621,38 +542,17 @@ void MonoReverbStripComponent::resized()
     if (irBox.isVisible())
         fbMain.items.add(fi(irBox).withFlex(0.06f).withMargin(2));
 
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
-
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
 void MonoReverbStripComponent::updateMeters()
 {
-    meter.setValue (reverbStrip.meter.getRMS());
+    meterL.setValue(reverbStrip.meterL.getRMS());
+    meterR.setValue(reverbStrip.meterR.getRMS());
 }
 
 //==============================================================================
@@ -670,62 +570,35 @@ BusStripComponent::BusStripComponent (BusStrip& s, juce::AudioProcessorValueTree
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void BusStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
     fbKnobs.items.add(fi(panSlider).withFlex(1.f));
     fbKnobs.items.add(fi(wSlider).withFlex(1.f));
 
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    // Add routing buttons
-    for (auto& b : routeButtons)
-        fbOutputs.items.add(fi(*b).withFlex(1.0f));
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
-
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(soloButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
 
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 
@@ -750,21 +623,20 @@ MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessor
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
+    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
+    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
+    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
+    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void MasterStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain, fbBottom, fbButtonsMeters, fbMeters, fbKnobs;
+    using fi = juce::FlexItem; // Using alias for brevity
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
     fbBottom.flexDirection = juce::FlexBox::Direction::row;
-    fbButtonsMeters.flexDirection = juce::FlexBox::Direction::column;
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
@@ -774,36 +646,12 @@ void MasterStripComponent::resized()
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 0, 0, 2.f)));
 
-    fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
-    fbButtonsMeters.items.add(fi().withFlex(0.2f)); // Spacer for solo button
-    fbButtonsMeters.items.add(fi(fbMeters).withFlex(1.f));
-
-
-    // Add sends
-    juce::FlexBox fbSends, fbOutputs;
-    fbSends.flexDirection = juce::FlexBox::Direction::column;
-    fbOutputs.flexDirection = juce::FlexBox::Direction::column;
-    for (size_t i = 0; i < sendSliders.size(); ++i)
-    {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-    }
-    fbSends.items.add(fi().withFlex(1.f));
-
-    juce::FlexBox fbRoutes;
-    fbRoutes.flexDirection = juce::FlexBox::Direction::column;
-    fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(1.f));
-
-    fbBottom.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    fbBottom.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    fbBottom.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(10.f));
-
     fbMain.items.add(fi(nameLabel).withFlex(0.1f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
+    layoutBottomRow(fbBottom, fbMeters);
     fbMain.performLayout (bounds);
 }
 

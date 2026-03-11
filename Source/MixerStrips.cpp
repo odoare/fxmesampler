@@ -46,6 +46,11 @@ void MixerStrip::processSends (juce::AudioBuffer<float>& buffer, bool isPre)
     }
 }
 
+void MixerStrip::clearMeters(){
+    meterL.clear();
+    meterR.clear();
+}
+
 //==============================================================================
 AmbisonicStrip::AmbisonicStrip (const juce::String& n) : MixerStrip (n) {}
 
@@ -162,11 +167,11 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
             outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
-void AmbisonicStrip::clearMeters()
-{
-    meterL.clear();
-    meterR.clear();
-}
+// void AmbisonicStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }
 
 //==============================================================================
 MSStrip::MSStrip (const juce::String& n) : MixerStrip (n) {}
@@ -287,11 +292,11 @@ void MSStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<
             outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
-void MSStrip::clearMeters()
-{
-    meterL.clear();
-    meterR.clear();
-}
+// void MSStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }
 
 //==============================================================================
 StereoStrip::StereoStrip (const juce::String& n) : MixerStrip (n) {}
@@ -415,11 +420,11 @@ void StereoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
             outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
-void StereoStrip::clearMeters()
-{
-    meterL.clear();
-    meterR.clear();
-}
+// void StereoStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }
 
 //==============================================================================
 MonoStrip::MonoStrip (const juce::String& n) : MixerStrip (n) {}
@@ -427,10 +432,11 @@ MonoStrip::MonoStrip (const juce::String& n) : MixerStrip (n) {}
 void MonoStrip::prepare (double sampleRate, int samplesPerBlock)
 {
     if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
-    effectChain->prepare (sampleRate, samplesPerBlock, 1);
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
 
-    meter.prepare (sampleRate);
-    tempBuffer.setSize (1, samplesPerBlock);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
 }
 
 void MonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
@@ -483,53 +489,53 @@ void MonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffe
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
-    if (tempBuffer.getNumSamples() != input.getNumSamples())
-        tempBuffer.setSize (1, input.getNumSamples(), false, false, true);
+    int numSamples = input.getNumSamples();
+    if (tempBuffer.getNumSamples() != numSamples)
+        tempBuffer.setSize (2, numSamples, false, false, true);
 
-    tempBuffer.clear();
-    tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
-
+    // Create a stereo signal from the mono input
+    tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, numSamples);
+    tempBuffer.copyFrom (1, 0, tempBuffer, 0, 0, numSamples);
+    
     processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
     
     tempBuffer.applyGain (level);
     processSends (tempBuffer, false); // Post FX+Fader
 
-    meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
-
     // float gainL = 0.5f * (1.0f - pan);
     // float gainR = 0.5f * (1.0f + pan);
     float panRad = (1+pan) * juce::MathConstants<float>::halfPi * 0.5f;
     float gainL = juce::dsp::FastMathApproximations::cos (panRad);
     float gainR = juce::dsp::FastMathApproximations::sin (panRad);
+    tempBuffer.applyGain(0, 0, numSamples, gainL);
+    tempBuffer.applyGain(1, 0, numSamples, gainR);
+
+    meterL.process(tempBuffer.getReadPointer(0), numSamples);
+    meterR.process(tempBuffer.getReadPointer(1), numSamples);
 
     // Routing
     if (routeParams[0] && *routeParams[0] > 0.5f)
     {
-        mixBuffer.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        mixBuffer.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        mixBuffer.addFrom (0, 0, tempBuffer, 0, 0, numSamples);
+        mixBuffer.addFrom (1, 0, tempBuffer, 1, 0, numSamples);
     }
 
     if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
     {
-        outputBuffer.addFrom (2, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        outputBuffer.addFrom (3, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        outputBuffer.addFrom (2, 0, tempBuffer, 0, 0, numSamples);
+        outputBuffer.addFrom (3, 0, tempBuffer, 1, 0, numSamples);
     }
     if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
     {
-        outputBuffer.addFrom (4, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        outputBuffer.addFrom (5, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        outputBuffer.addFrom (4, 0, tempBuffer, 0, 0, numSamples);
+        outputBuffer.addFrom (5, 0, tempBuffer, 1, 0, numSamples);
     }
     if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
     {
-        outputBuffer.addFrom (6, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        outputBuffer.addFrom (7, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        outputBuffer.addFrom (6, 0, tempBuffer, 0, 0, numSamples);
+        outputBuffer.addFrom (7, 0, tempBuffer, 1, 0, numSamples);
     }
-}
-
-void MonoStrip::clearMeters()
-{
-    meter.clear();
 }
 
 //==============================================================================
@@ -538,8 +544,9 @@ StereoReverbStrip::StereoReverbStrip (const juce::String& n) : MixerStrip (n) {}
 void StereoReverbStrip::prepare (double sampleRate, int samplesPerBlock)
 {
     if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
-    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+    effectChain->prepare (sampleRate, samplesPerBlock, 2); // Reverb is stereo, so chain is stereo
 
+    reverb.prepare(sampleRate, samplesPerBlock);
     meterL.prepare (sampleRate);
     meterR.prepare (sampleRate);
     tempBuffer.setSize (2, samplesPerBlock);
@@ -646,11 +653,11 @@ void StereoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Au
             outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
-void StereoReverbStrip::clearMeters()
-{
-    meterL.clear();
-    meterR.clear();
-}
+// void StereoReverbStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }
 
 //==============================================================================
 MonoReverbStrip::MonoReverbStrip (const juce::String& n) : MixerStrip (n) {}
@@ -658,11 +665,12 @@ MonoReverbStrip::MonoReverbStrip (const juce::String& n) : MixerStrip (n) {}
 void MonoReverbStrip::prepare (double sampleRate, int samplesPerBlock)
 {
     if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
-    effectChain->prepare (sampleRate, samplesPerBlock, 1);
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
 
     reverb.prepare (sampleRate, samplesPerBlock);
-    meter.prepare (sampleRate);
-    tempBuffer.setSize (1, samplesPerBlock);
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
 }
 
 void MonoReverbStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
@@ -722,54 +730,64 @@ void MonoReverbStrip::process (const juce::AudioBuffer<float>& input, juce::Audi
     if (panParam) pan = *panParam;
     if (lvlParam) level = juce::Decibels::decibelsToGain (lvlParam->load());
 
-    if (tempBuffer.getNumSamples() != input.getNumSamples())
-        tempBuffer.setSize (1, input.getNumSamples(), false, false, true);
+    int numSamples = input.getNumSamples();
+    if (tempBuffer.getNumSamples() != numSamples)
+        tempBuffer.setSize (2, numSamples, false, false, true);
 
-    tempBuffer.clear();
     tempBuffer.copyFrom (0, 0, input, inputChannelOffset, 0, input.getNumSamples());
+    
+    // Reverb is mono, so we process one channel and copy to the other
+    {
+        juce::AudioBuffer<float> monoTemp(tempBuffer.getArrayOfWritePointers(), 1, numSamples);
+        reverb.process(monoTemp);
+        tempBuffer.copyFrom(1, 0, tempBuffer, 0, 0, numSamples);
+    }
 
-    reverb.process (tempBuffer);
     processSends (tempBuffer, true); // Pre FX+Fader
     processEffects (tempBuffer);
     
     tempBuffer.applyGain (level);
     processSends (tempBuffer, false); // Post FX+Fader
 
-    meter.process (tempBuffer.getReadPointer (0), tempBuffer.getNumSamples());
-
     // Balance using constant-power law
     float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
     float gainL = juce::dsp::FastMathApproximations::cos (panRad);
     float gainR = juce::dsp::FastMathApproximations::sin (panRad);
+    tempBuffer.applyGain(0, 0, numSamples, gainL);
+    tempBuffer.applyGain(1, 0, numSamples, gainR);
+
+    meterL.process(tempBuffer.getReadPointer(0), numSamples);
+    meterR.process(tempBuffer.getReadPointer(1), numSamples);
     
     // Routing
     if (routeParams[0] && *routeParams[0] > 0.5f)
     {
-        mixBuffer.addFrom (0, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        mixBuffer.addFrom (1, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        mixBuffer.addFrom (0, 0, tempBuffer, 0, 0, numSamples);
+        mixBuffer.addFrom (1, 0, tempBuffer, 1, 0, numSamples);
     }
 
     if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
     {
-        outputBuffer.addFrom (2, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        outputBuffer.addFrom (3, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        outputBuffer.addFrom (2, 0, tempBuffer, 0, 0, numSamples);
+        outputBuffer.addFrom (3, 0, tempBuffer, 1, 0, numSamples);
     }
     if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
     {
-        outputBuffer.addFrom (4, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        outputBuffer.addFrom (5, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        outputBuffer.addFrom (4, 0, tempBuffer, 0, 0, numSamples);
+        outputBuffer.addFrom (5, 0, tempBuffer, 1, 0, numSamples);
     }
     if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
     {
-        outputBuffer.addFrom (6, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainL);
-        outputBuffer.addFrom (7, 0, tempBuffer, 0, 0, tempBuffer.getNumSamples(), gainR);
+        outputBuffer.addFrom (6, 0, tempBuffer, 0, 0, numSamples);
+        outputBuffer.addFrom (7, 0, tempBuffer, 1, 0, numSamples);
     }
 }
 
-void MonoReverbStrip::clearMeters()
-{
-    meter.clear();
-}
+// void MonoReverbStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }
 
 //==============================================================================
 BusStrip::BusStrip (const juce::String& n) : MixerStrip (n) {}
@@ -926,11 +944,11 @@ void BusStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer
             outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, numSamples);
 }
 
-void BusStrip::clearMeters()
-{
-    meterL.clear();
-    meterR.clear();
-}
+// void BusStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }
 
 //==============================================================================
 MasterStrip::MasterStrip (const juce::String& n) : MixerStrip (n) {}
@@ -952,7 +970,7 @@ void MasterStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
     lvlParam = apvts.getRawParameterValue (name + "_Level");
     muteParam = apvts.getRawParameterValue (name + "_Mute");
     // Master doesn't really need solo, but we keep the pointer null or unused if not needed.
-    // We'll bind it just in case to avoid null checks failing if we added it to params.
+    // We'll bind it just in case to avoid null checks failing if we added it to params, but it won't be used.
     soloParam = apvts.getRawParameterValue (name + "_Solo"); 
     
     if (effectChain) effectChain->assignParameters (apvts, name);
@@ -1020,8 +1038,8 @@ void MasterStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuf
         outputBuffer.addFrom (ch, 0, tempBuffer, ch, 0, tempBuffer.getNumSamples());
 }
 
-void MasterStrip::clearMeters()
-{
-    meterL.clear();
-    meterR.clear();
-}
+// void MasterStrip::clearMeters()
+// {
+//     meterL.clear();
+//     meterR.clear();
+// }

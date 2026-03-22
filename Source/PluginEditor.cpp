@@ -15,7 +15,7 @@ FxmeSamplerAudioProcessorEditor::FxmeSamplerAudioProcessorEditor (FxmeSamplerAud
 {
     addAndMakeVisible (mixerComponent);
     int n = p.getMixer().getStrips().size();
-    setSize (juce::jmax<int>(n*120,1024), 640);
+    setSize (juce::jmax<int>(n*140,1024), 640);
 }
 
 FxmeSamplerAudioProcessorEditor::~FxmeSamplerAudioProcessorEditor()

@@ -32,6 +32,7 @@ struct SampleGroup
     double release = 0.1;
     double detune = 0.0;
     double randomDetune = 0.0;
+    double minVelocityGain = -40.0;
     std::vector<int> outputChannels;
 
     // Parameter pointers
@@ -43,6 +44,7 @@ struct SampleGroup
     std::atomic<float>* releaseParam = nullptr;
     std::atomic<float>* detuneParam = nullptr;
     std::atomic<float>* randomDetuneParam = nullptr;
+    std::atomic<float>* minVelocityGainParam = nullptr;
 
     /**
      * @brief Gets the name of the sample group.
@@ -237,7 +239,7 @@ public:
 private:
     std::vector<Sound> sounds;
     std::vector<std::unique_ptr<Voice>> voices;
-    static const int maxVoices = 32;
+    static const int maxVoices = 64;
     double currentSampleRate = 44100.0;
     juce::AudioFormatManager formatManager;
     
@@ -249,5 +251,6 @@ private:
 
     Voice* findFreeVoice();
     void loadSound (Sound& sound);
+    void handleMidiEvent (const juce::MidiMessage& message);
     juce::CriticalSection lock;
 };

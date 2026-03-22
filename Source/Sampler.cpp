@@ -86,6 +86,10 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
             decay = g->decay;
             sustain = g->sustain;
             release = g->release;
+
+            float minGain = juce::Decibels::decibelsToGain ((float)g->minVelocityGain);
+            // Scale velocity range from [0, 1] to [minGain, 1]
+            currentVelocity = minGain + (1.0f - minGain) * velocity;
         }
 
         double pitchRatio = std::pow (2.0, (note - activeSound->basePitch + detune) / 12.0);
@@ -245,6 +249,64 @@ void Voice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSa
     }
 }
 
+void Sampler::handleMidiEvent (const juce::MidiMessage& message)
+{
+    if (message.isNoteOn())
+    {
+        int note = message.getNoteNumber();
+        int velocity = message.getVelocity();
+        float velocityFloat = message.getFloatVelocity();
+        int channel = message.getChannel();
+
+        for (const auto& sound : sounds)
+        {
+            if (sound.midiNoteRange.contains (note) && sound.velocityRange.contains (velocity))
+            {
+                if (sound.group && sound.group->midiChannel != 0 && sound.group->midiChannel != channel)
+                    continue;
+
+                std::cout << "Play a note?" << std::endl;
+
+                // Handle Mute Groups
+                if (sound.muteGroup > 0) // Choke group 0 corresponds to no mute behaviour
+                {
+                    for (auto& v : voices)
+                    {
+                        if (v->isActive() && v->getSound() && v->getSound()->muteGroup == sound.muteGroup)
+                            v->choke();
+                    }
+                }
+
+                if (auto* voice = findFreeVoice())
+                {
+                    voice->start (&sound, note, velocityFloat, currentSampleRate);
+                }
+            }
+        }
+    }
+    else if (message.isNoteOff())
+    {
+        int note = message.getNoteNumber();
+        int channel = message.getChannel();
+        for (auto& voice : voices)
+        {
+            if (voice->isActive() && voice->getSound())
+            {
+                if (voice->getSound()->group && voice->getSound()->group->midiChannel != 0 && voice->getSound()->group->midiChannel != channel)
+                    continue;
+
+                bool isOneShot = voice->getSound()->isOneShot;
+                if (voice->getSound()->group) isOneShot = voice->getSound()->group->isOneShot;
+                
+                if (!isOneShot && voice->getNote() == note)
+                {
+                    voice->noteOff();
+                }
+            }
+        }
+    }
+}
+
 //==============================================================================
 Sampler::Sampler()
 {
@@ -320,6 +382,7 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             group->release = child->getDoubleAttribute ("release", 0.1);
             group->detune = child->getDoubleAttribute ("detune", 0.0);
             group->randomDetune = child->getDoubleAttribute ("randomDetune", 0.0);
+            group->minVelocityGain = child->getDoubleAttribute ("minVelocityGain", -40.0);
 
             // Parse output channels for the group
             group->outputChannels.clear();
@@ -470,6 +533,7 @@ void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         group->releaseParam = apvts.getRawParameterValue (prefix + "Release");
         group->detuneParam = apvts.getRawParameterValue (prefix + "Detune");
         group->randomDetuneParam = apvts.getRawParameterValue (prefix + "RandomDetune");
+        group->minVelocityGainParam = apvts.getRawParameterValue (prefix + "MinVelGain");
     }
 }
 
@@ -490,6 +554,7 @@ void SampleGroup::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Release", 1 }, name + " Release", 0.0f, 5.0f, (float)release));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Detune", 1 }, name + " Detune", -12.0f, 12.0f, (float)detune));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "RandomDetune", 1 }, name + " Random Detune", 0.0f, 100.0f, (float)randomDetune));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "MinVelGain", 1 }, name + " Min Vel Gain", -40.0f, 0.0f, (float)minVelocityGain));
 }
 
 void Sampler::updateParams()
@@ -505,6 +570,7 @@ void Sampler::updateParams()
         if (group->releaseParam) group->release = *group->releaseParam;
         if (group->detuneParam) group->detune = *group->detuneParam;
         if (group->randomDetuneParam) group->randomDetune = *group->randomDetuneParam;
+        if (group->minVelocityGainParam) group->minVelocityGain = *group->minVelocityGainParam;
     }
 }
 
@@ -521,75 +587,38 @@ Voice* Sampler::findFreeVoice()
 
 void Sampler::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // std::cout << "In process block" << std::endl;
     juce::ScopedLock sl (lock);
-    // Process MIDI events to trigger sounds
-    for (const auto metadata : midiMessages)
+    const int numSamples = buffer.getNumSamples();
+    int currentSample = 0;
+
+    juce::MidiBuffer::Iterator midiIterator (midiMessages);
+    juce::MidiMessage message;
+    int samplePosition;
+
+    while (midiIterator.getNextEvent (message, samplePosition))
     {
-        auto message = metadata.getMessage();
-        if (message.isNoteOn())
+        const int samplesToProcess = samplePosition - currentSample;
+
+        if (samplesToProcess > 0)
         {
-            int note = message.getNoteNumber();
-            int velocity = message.getVelocity();
-            float velocityFloat = message.getFloatVelocity();
-            int channel = message.getChannel();
-
-            for (const auto& sound : sounds)
-            {
-                if (sound.midiNoteRange.contains (note) && sound.velocityRange.contains (velocity))
-                {
-                    if (sound.group && sound.group->midiChannel != 0 && sound.group->midiChannel != channel)
-                        continue;
-
-                    std::cout << "Play a note?" << std::endl;
-
-                    // Handle Mute Groups
-                    if (sound.muteGroup > 0) // Choke group 0 corresponds to no mute behaviour
-                    {
-                        for (auto& v : voices)
-                        {
-                            if (v->isActive() && v->getSound() && v->getSound()->muteGroup == sound.muteGroup)
-                                v->choke();
-                        }
-                    }
-
-                    if (auto* voice = findFreeVoice())
-                    {
-                        voice->start (&sound, note, velocityFloat, currentSampleRate);
-                    }
-                }
-            }
-        }
-        else if (message.isNoteOff())
-        {
-            int note = message.getNoteNumber();
-            int channel = message.getChannel();
             for (auto& voice : voices)
             {
-                if (voice->isActive() && voice->getSound())
-                {
-                    if (voice->getSound()->group && voice->getSound()->group->midiChannel != 0 && voice->getSound()->group->midiChannel != channel)
-                        continue;
-
-                    bool isOneShot = voice->getSound()->isOneShot;
-                    if (voice->getSound()->group) isOneShot = voice->getSound()->group->isOneShot;
-                    
-                    if (!isOneShot && voice->getNote() == note)
-                    {
-                        voice->noteOff();
-                    }
-                }
+                if (voice->isActive())
+                    voice->renderNextBlock (buffer, currentSample, samplesToProcess);
             }
         }
+
+        currentSample = samplePosition;
+        handleMidiEvent (message);
     }
 
-    // Render active voices
-    for (auto& voice : voices)
+    if (currentSample < numSamples)
     {
-        if (voice->isActive())
+        const int samplesToProcess = numSamples - currentSample;
+        for (auto& voice : voices)
         {
-            voice->renderNextBlock (buffer, 0, buffer.getNumSamples());
+            if (voice->isActive())
+                voice->renderNextBlock (buffer, currentSample, samplesToProcess);
         }
     }
-    // std::cout << "Out of process block" << std::endl;
 }

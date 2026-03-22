@@ -27,8 +27,8 @@ private:
     juce::Label nameLabel;
     juce::ToggleButton oneShotButton;
     
-    juce::Label attackLabel, decayLabel, sustainLabel, releaseLabel, detuneLabel, randomDetuneLabel;
-    fxme::FxmeSlider attackSlider, decaySlider, sustainSlider, releaseSlider, detuneSlider, randomDetuneSlider;
+    juce::Label attackLabel, decayLabel, sustainLabel, releaseLabel, detuneLabel, randomDetuneLabel, velGainLabel;
+    fxme::FxmeSlider attackSlider, decaySlider, sustainSlider, releaseSlider, detuneSlider, randomDetuneSlider, velGainSlider;
 
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;

@@ -52,6 +52,10 @@ SampleGroupComponent::SampleGroupComponent (SampleGroup& g, juce::AudioProcessor
     setupSlider (randomDetuneSlider, randomDetuneLabel, "Rnd Detune", 0.0, 10.0, 0.0);
     randomDetuneSlider.setTextValueSuffix (" ct");
     randomDetuneSlider.setAttachment(new SliderAttachment (apvts, prefix + "RandomDetune", randomDetuneSlider));
+
+    setupSlider (velGainSlider, velGainLabel, "Min Vel Gain", -40.0, 0.0, -40.0);
+    velGainSlider.setTextValueSuffix (" dB");
+    velGainSlider.setAttachment(new SliderAttachment (apvts, prefix + "MinVelGain", velGainSlider));
 }
 
 SampleGroupComponent::~SampleGroupComponent()
@@ -93,7 +97,7 @@ void SampleGroupComponent::resized()
 {
     auto area = getLocalBounds().reduced (5);
     using fi = juce::FlexItem;
-    juce::FlexBox fbMain,fbDetune,fbRandomDetune,fbAttack, fbDecay, fbSustain, fbRelease;
+    juce::FlexBox fbMain,fbDetune,fbRandomDetune,fbAttack, fbDecay, fbSustain, fbRelease, fbVelGain;
     fbDetune.flexDirection = juce::FlexBox::Direction::column;
     fbRandomDetune.flexDirection = juce::FlexBox::Direction::column;
     fbAttack.flexDirection = juce::FlexBox::Direction::column;
@@ -107,6 +111,10 @@ void SampleGroupComponent::resized()
 
     fbRandomDetune.items.add(fi(randomDetuneLabel).withFlex(0.2f));
     fbRandomDetune.items.add(fi(randomDetuneSlider).withFlex(1.f));
+
+    fbVelGain.flexDirection = juce::FlexBox::Direction::column;
+    fbVelGain.items.add(fi(velGainLabel).withFlex(0.2f));
+    fbVelGain.items.add(fi(velGainSlider).withFlex(1.f));
 
     fbAttack.items.add(fi(attackLabel).withFlex(0.2f));
     fbAttack.items.add(fi(attackSlider).withFlex(1.f));
@@ -123,6 +131,7 @@ void SampleGroupComponent::resized()
     fbMain.items.add(fi(nameLabel).withFlex(1.f));
     fbMain.items.add(fi(fbDetune).withFlex(.6f));
     fbMain.items.add(fi(fbRandomDetune).withFlex(.6f));
+    fbMain.items.add(fi(fbVelGain).withFlex(.6f));
     fbMain.items.add(fi(oneShotButton).withFlex(.5f));
     fbMain.items.add(fi(fbAttack).withFlex(0.6f));    
     fbMain.items.add(fi(fbDecay).withFlex(0.6f));

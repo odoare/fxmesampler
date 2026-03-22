@@ -42,6 +42,7 @@ public:
 protected:
     MixerStrip& strip;
     juce::Label nameLabel;
+    fxme::TitleBar nameBar;
     fxme::FxmeSlider levelSlider;
     juce::ToggleButton muteButton, soloButton;
     juce::ImageComponent icon;
@@ -86,6 +87,22 @@ private:
     AmbisonicStrip& ambStrip;
     fxme::FxmeSlider azSlider, elSlider, wSlider;
     // VuMeterComponent meterL, meterR;
+};
+
+/**
+ * @class AmbisonicMonoStripComponent
+ * @brief GUI component for an Ambisonic + Mono mixer strip.
+ */
+class AmbisonicMonoStripComponent : public StripComponent
+{
+public:
+    AmbisonicMonoStripComponent (AmbisonicMonoStrip& s, juce::AudioProcessorValueTreeState& apvts);
+    void resized() override;
+protected:
+    void updateMeters() override;
+private:
+    AmbisonicMonoStrip& amStrip;
+    fxme::FxmeSlider azSlider, elSlider, wSlider, panSlider, mixSlider;
 };
 
 /**

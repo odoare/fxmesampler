@@ -174,6 +174,141 @@ void AmbisonicStrip::process (const juce::AudioBuffer<float>& input, juce::Audio
 // }
 
 //==============================================================================
+AmbisonicMonoStrip::AmbisonicMonoStrip (const juce::String& n) : MixerStrip (n) {}
+
+void AmbisonicMonoStrip::prepare (double sampleRate, int samplesPerBlock)
+{
+    if (!effectChain) effectChain = std::make_unique<EffectChainDynamics>();
+    effectChain->prepare (sampleRate, samplesPerBlock, 2);
+
+    meterL.prepare (sampleRate);
+    meterR.prepare (sampleRate);
+    tempBuffer.setSize (2, samplesPerBlock);
+}
+
+void AmbisonicMonoStrip::assignParameters (juce::AudioProcessorValueTreeState& apvts)
+{
+    azParam = apvts.getRawParameterValue (name + "_Azimuth");
+    elParam = apvts.getRawParameterValue (name + "_Elevation");
+    wParam = apvts.getRawParameterValue (name + "_Width");
+    panParam = apvts.getRawParameterValue (name + "_Pan");
+    mixParam = apvts.getRawParameterValue (name + "_Mix");
+    lvlParam = apvts.getRawParameterValue (name + "_Level");
+    muteParam = apvts.getRawParameterValue (name + "_Mute");
+    soloParam = apvts.getRawParameterValue (name + "_Solo");
+    
+    if (effectChain) effectChain->assignParameters (apvts, name);
+
+    for (auto& send : sends)
+    {
+        juce::String paramID = name + "_Send_" + send.busName;
+        send.gainParam = apvts.getRawParameterValue (paramID);
+        juce::String preParamID = name + "_Send_" + send.busName + "_Pre";
+        send.prePostParam = apvts.getRawParameterValue (preParamID);
+    }
+
+    routeParams.resize(4);
+    routeParams[0] = apvts.getRawParameterValue(name + "_Route_Main");
+    routeParams[1] = apvts.getRawParameterValue(name + "_Route_Aux1");
+    routeParams[2] = apvts.getRawParameterValue(name + "_Route_Aux2");
+    routeParams[3] = apvts.getRawParameterValue(name + "_Route_Aux3");
+}
+
+void AmbisonicMonoStrip::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params)
+{
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Azimuth", 1 }, name + " Azimuth", -180.0f, 180.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Elevation", 1 }, name + " Elevation", -90.0f, 90.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Width", 1 }, name + " Width", 0.0f, 2.0f, 1.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Pan", 1 }, name + " Pan", -1.0f, 1.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Mix", 1 }, name + " Mix", -1.0f, 1.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Level", 1 }, name + " Level", -60.0f, 6.0f, 0.0f));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Mute", 1 }, name + " Mute", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Solo", 1 }, name + " Solo", false));
+
+    if (effectChain) effectChain->addParameters (params, name);
+
+    for (auto& send : sends)
+    {
+        params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { name + "_Send_" + send.busName, 1 }, name + " Send " + send.busName, -60.0f, 6.0f, -60.0f));
+        params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Send_" + send.busName + "_Pre", 1 }, name + " Send " + send.busName + " Pre", false));
+    }
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Main", 1 }, name + " Route Main", true));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux1", 1 }, name + " Route Aux 1", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux2", 1 }, name + " Route Aux 2", false));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { name + "_Route_Aux3", 1 }, name + " Route Aux 3", false));
+}
+
+void AmbisonicMonoStrip::process (const juce::AudioBuffer<float>& input, juce::AudioBuffer<float>& mixBuffer, juce::AudioBuffer<float>& outputBuffer, int inputChannelOffset)
+{
+    if (azParam) ambix.setAzimuth (*azParam);
+    if (elParam) ambix.setElevation (*elParam);
+    if (wParam) ambix.setWidth (*wParam);
+    if (panParam) pan = *panParam;
+    if (mixParam) mix = *mixParam;
+    
+    float currentLevel = 1.0f;
+    if (lvlParam) currentLevel = juce::Decibels::decibelsToGain (lvlParam->load());
+
+    // Equal-power crossfade: t from 0 (Ambix) to 1 (Mono)
+    float t = (mix + 1.0f) * 0.5f;
+    float gainAmbix = std::cos (t * juce::MathConstants<float>::halfPi);
+    float gainMono = std::sin (t * juce::MathConstants<float>::halfPi);
+
+    ambix.setLevel(gainAmbix);
+
+    int numSamples = input.getNumSamples();
+    if (tempBuffer.getNumSamples() != numSamples)
+        tempBuffer.setSize (2, numSamples, false, false, true);
+
+    tempBuffer.clear();
+
+    // 1. Process Ambisonic input (channels 0-3)
+    const float* readPointers[4];
+    for (int i = 0; i < 4; ++i)
+        readPointers[i] = input.getReadPointer (inputChannelOffset + i);
+    
+    juce::AudioBuffer<float> inputSubset (const_cast<float**>(readPointers), 4, numSamples);
+    ambix.process (inputSubset, tempBuffer); // Adds to tempBuffer
+    
+    // 2. Process Mono input (channel 4) and add to tempBuffer
+    auto* monoIn = input.getReadPointer (inputChannelOffset + 4);
+    float panRad = (1.0f + pan) * juce::MathConstants<float>::halfPi * 0.5f;
+    float gainL = juce::dsp::FastMathApproximations::cos (panRad);
+    float gainR = juce::dsp::FastMathApproximations::sin (panRad);
+    
+    tempBuffer.addFrom (0, 0, monoIn, numSamples, gainL * gainMono);
+    tempBuffer.addFrom (1, 0, monoIn, numSamples, gainR * gainMono);
+
+    // 3. Processing chain
+    processSends (tempBuffer, true); // Pre FX+Fader
+    processEffects (tempBuffer);
+    
+    tempBuffer.applyGain (currentLevel);
+    processSends (tempBuffer, false); // Post FX+Fader
+
+    meterL.process (tempBuffer.getReadPointer (0), numSamples);
+    meterR.process (tempBuffer.getReadPointer (1), numSamples);
+
+    // Routing
+    if (routeParams[0] && *routeParams[0] > 0.5f)
+        for (int ch = 0; ch < 2; ++ch)
+            mixBuffer.addFrom (ch, 0, tempBuffer, ch, 0, numSamples);
+
+    if (routeParams[1] && *routeParams[1] > 0.5f && outputBuffer.getNumChannels() >= 4)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (2 + ch, 0, tempBuffer, ch, 0, numSamples);
+
+    if (routeParams[2] && *routeParams[2] > 0.5f && outputBuffer.getNumChannels() >= 6)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (4 + ch, 0, tempBuffer, ch, 0, numSamples);
+
+    if (routeParams[3] && *routeParams[3] > 0.5f && outputBuffer.getNumChannels() >= 8)
+        for (int ch = 0; ch < 2; ++ch)
+            outputBuffer.addFrom (6 + ch, 0, tempBuffer, ch, 0, numSamples);
+}
+
+//==============================================================================
 MSStrip::MSStrip (const juce::String& n) : MixerStrip (n) {}
 
 void MSStrip::prepare (double sampleRate, int samplesPerBlock)

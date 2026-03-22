@@ -116,6 +116,8 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
         {
             if (type.equalsIgnoreCase ("ambisonic"))
                 newStrip = std::make_unique<AmbisonicStrip> (name);
+            else if (type.equalsIgnoreCase ("ambisonicmono"))
+                newStrip = std::make_unique<AmbisonicMonoStrip> (name);
             else if (type.equalsIgnoreCase ("stereo"))
                 newStrip = std::make_unique<StereoStrip> (name);
             else if (type.equalsIgnoreCase ("ms"))
@@ -240,9 +242,28 @@ void Mixer::loadFromXml (const void* xmlData, int xmlSize)
 
     for (auto& strip : strips)
     {
-        for (auto* bus : buses)
+        auto* busStrip = dynamic_cast<BusStrip*> (strip.get());
+        int sourceBusIndex = -1;
+
+        // If this strip is a bus, find its index in the bus list
+        if (busStrip != nullptr)
         {
-            if (strip.get() != bus) // Don't send to self
+            for (size_t i = 0; i < buses.size(); ++i)
+                if (buses[i] == busStrip)
+                {
+                    sourceBusIndex = (int)i;
+                    break;
+                }
+        }
+
+        for (size_t i = 0; i < buses.size(); ++i)
+        {
+            auto* bus = buses[i];
+            if (strip.get() == bus)
+                continue; // Don't send to self
+
+            // If current strip is a bus, only add send if destination bus index is greater
+            if (busStrip == nullptr || (int)i > sourceBusIndex)
                 strip->addSend (bus->getName(), bus);
         }
     }

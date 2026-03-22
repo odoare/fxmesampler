@@ -13,9 +13,13 @@
 StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeState& apvts)
     : strip (s)
 {
-    addAndMakeVisible (nameLabel);
-    nameLabel.setText (strip.getName(), juce::NotificationType::dontSendNotification);
-    nameLabel.setJustificationType (juce::Justification::centred);
+
+    juce::Colour c = s.getColor();
+    if (c.isTransparent()) c = juce::Colours::orange;
+
+    addAndMakeVisible (nameBar);
+    nameBar.setTitle(strip.getName());
+    nameBar.setBarColour(c);
 
     addAndMakeVisible (levelSlider);
     levelSlider.setSliderStyle (juce::Slider::LinearBarVertical);
@@ -70,9 +74,6 @@ StripComponent::StripComponent (MixerStrip& s, juce::AudioProcessorValueTreeStat
 
     createRouteButtons(apvts);
 
-    juce::Colour c = s.getColor();
-    if (c.isTransparent()) c = juce::Colours::orange;
-
     addAndMakeVisible (meterL); meterL.setMeterColor (c);
     addAndMakeVisible (meterR); meterR.setMeterColor (c);
     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
@@ -99,16 +100,13 @@ void StripComponent::paint (juce::Graphics& g)
 
 void StripComponent::resized()
 {
-    // This method is now overridden in all subclasses, which call layoutBottomRow.
-    // This base implementation can be left empty or removed if all subclasses override it.
+    // Now overidden
 }
 
 void StripComponent::layoutBottomRow(juce::FlexBox& bottomBox, juce::FlexBox& metersBox)
 {
     using fi = juce::FlexItem;
 
-    // Clear items from member flexboxes before re-populating them, as they persist
-    // between calls to resized().
     fbButtonsMeters.items.clear();
     fbRoutes.items.clear();
     fbSends.items.clear();
@@ -122,8 +120,8 @@ void StripComponent::layoutBottomRow(juce::FlexBox& bottomBox, juce::FlexBox& me
     // Add sends
     for (size_t i = 0; i < sendSliders.size(); ++i)
     {
-        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
-        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.5f).withMargin(juce::FlexItem::Margin(0.f, -10.f, 0.f, -10.f)));
+        fbSends.items.add(fi(*sendSliders[i]).withFlex(1.0f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0.f, -5.f)));
+        fbSends.items.add(fi(*prePostButtons[i]).withFlex(0.3f).withMargin(juce::FlexItem::Margin(0.f, -1.f, 0.f, -1.f)));
     }
     fbSends.items.add(fi().withFlex(1.f));
 
@@ -132,7 +130,7 @@ void StripComponent::layoutBottomRow(juce::FlexBox& bottomBox, juce::FlexBox& me
         fbOutputs.items.add(fi(*b).withFlex(1.0f));
 
     fbRoutes.items.add(fi(fbSends).withFlex(1.f));
-    fbRoutes.items.add(fi(fbOutputs).withFlex(.7f));
+    fbRoutes.items.add(fi(fbOutputs).withFlex(.5f));
 
     fbButtonsMeters.items.add(fi(muteButton).withFlex(0.2f));
     if (strip.isSoloable())
@@ -141,9 +139,9 @@ void StripComponent::layoutBottomRow(juce::FlexBox& bottomBox, juce::FlexBox& me
         fbButtonsMeters.items.add(fi().withFlex(0.2f)); // Spacer
     fbButtonsMeters.items.add(fi(metersBox).withFlex(1.f));
 
-    bottomBox.items.add(fi(levelSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 10.f, 10.f, 10.f)));
-    bottomBox.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(10.f, 3.f, 10.f, 3.f)));
-    bottomBox.items.add(fi(fbButtonsMeters).withFlex(1.f).withMargin(2.f));
+    bottomBox.items.add(fi(levelSlider).withFlex(.6f).withMargin(juce::FlexItem::Margin(2.f, 2.f, 2.f, 2.f)));
+    bottomBox.items.add(fi(fbRoutes).withFlex(1.f).withMargin(juce::FlexItem::Margin(2.f, 1.f, 2.f, 1.f)));
+    bottomBox.items.add(fi(fbButtonsMeters).withFlex(.8f).withMargin(2.f));
 }
 
 void StripComponent::timerCallback()
@@ -209,13 +207,13 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
     : StripComponent (s, apvts), ambStrip (s)
 {
     setupKnob (azSlider, s.getName() + "_Azimuth", apvts);
-    azSlider.setTooltip ("Azimuth");
+    azSlider.setTooltip ("MS microphone Azimuth (=Pan)");
     
     setupKnob (elSlider, s.getName() + "_Elevation", apvts);
-    elSlider.setTooltip ("Elevation");
+    elSlider.setTooltip ("MS microphone elevation");
     
     setupKnob (wSlider, s.getName() + "_Width", apvts);
-    wSlider.setTooltip ("Width");
+    wSlider.setTooltip ("MS mix width");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::orange;
@@ -225,16 +223,12 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
     setSliderColours (elSlider, c);
     setSliderColours (wSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void AmbisonicStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs, fbKnobsRow1;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -243,17 +237,17 @@ void AmbisonicStripComponent::resized()
     fbKnobs.flexDirection = juce::FlexBox::Direction::column;
     fbKnobsRow1.flexDirection = juce::FlexBox::Direction::row;
 
-    fbKnobsRow1.items.add(fi(azSlider).withFlex(1.f));
-    fbKnobsRow1.items.add(fi(elSlider).withFlex(1.f));
+    fbKnobsRow1.items.add(fi(wSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
+    fbKnobsRow1.items.add(fi(elSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
     fbKnobs.items.add(fi(fbKnobsRow1).withFlex(1.f));
-    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(azSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0, 10.f)));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 1.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 0, 0, 1.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
-    fbMain.items.add(fi(fbKnobs).withFlex(0.3f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
+    fbMain.items.add(fi(icon).withFlex(0.2f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.5f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
     layoutBottomRow(fbBottom, fbMeters);
@@ -264,6 +258,83 @@ void AmbisonicStripComponent::updateMeters()
 {
     meterL.setValue (ambStrip.meterL.getRMS());
     meterR.setValue (ambStrip.meterR.getRMS());
+}
+
+//==============================================================================
+AmbisonicMonoStripComponent::AmbisonicMonoStripComponent (AmbisonicMonoStrip& s, juce::AudioProcessorValueTreeState& apvts)
+    : StripComponent (s, apvts), amStrip (s)
+{
+    setupKnob (azSlider, s.getName() + "_Azimuth", apvts);
+    azSlider.setTooltip ("MS microphone Azimuth (=Pan)");
+    
+    setupKnob (elSlider, s.getName() + "_Elevation", apvts);
+    elSlider.setTooltip ("MS microphone Elevation");
+    
+    setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wSlider.setTooltip ("MS mix Width");
+
+    setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setTooltip ("Mono proximity mic Pan");
+
+    setupKnob (mixSlider, s.getName() + "_Mix", apvts);
+    mixSlider.setTooltip ("Mix (Ambix <-> Mono)");
+
+    juce::Colour c = s.getColor();
+    if (c.isTransparent()) c = juce::Colours::orange; // Use same default as Ambisonic
+
+    setStripColor(c);
+    setSliderColours (azSlider, c);
+    setSliderColours (elSlider, c);
+    setSliderColours (wSlider, c);
+    setSliderColours (panSlider, c);
+    setSliderColours (mixSlider, c);
+}
+
+void AmbisonicMonoStripComponent::resized()
+{
+    auto bounds = getLocalBounds();
+    using fi = juce::FlexItem;
+    juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs, fbKnobsRow1, fbKnobsRow2, fbKnobsRow3;
+
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbBottom.flexDirection = juce::FlexBox::Direction::row;
+    fbMeters.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobs.flexDirection = juce::FlexBox::Direction::column;
+    fbKnobsRow1.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobsRow2.flexDirection = juce::FlexBox::Direction::row;
+    fbKnobsRow3.flexDirection = juce::FlexBox::Direction::row;
+
+    // Row 1: Width, Elevation
+    fbKnobsRow1.items.add(fi(wSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(-5.f, -5.f, -5.f, -5.f)));
+    fbKnobsRow1.items.add(fi(elSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(-5.f, -5.f, -5.f, -5.f)));
+    
+    // Row 2: Azimuth, Pan
+    fbKnobsRow2.items.add(fi(azSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(-5.f, -5.f, -5.f, -5.f)));
+    fbKnobsRow2.items.add(fi(panSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(-5.f, -5.f, -5.f, -5.f)));
+
+    // Row 3: Mix
+    fbKnobsRow3.items.add(fi(mixSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(-5.f, 20.f, -5.f, 20.f)));
+
+    fbKnobs.items.add(fi(fbKnobsRow1).withFlex(1.f));
+    fbKnobs.items.add(fi(fbKnobsRow2).withFlex(1.f));
+    fbKnobs.items.add(fi(fbKnobsRow3).withFlex(1.f));
+
+    fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 1.f, 0, 0)));
+    fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 0, 0, 1.f)));
+
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
+    fbMain.items.add(fi(icon).withFlex(0.2f));
+    fbMain.items.add(fi(fbKnobs).withFlex(0.5f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
+    fbMain.items.add(fi(fbBottom).withFlex(0.8f));
+
+    layoutBottomRow(fbBottom, fbMeters);
+    fbMain.performLayout (bounds);
+}
+
+void AmbisonicMonoStripComponent::updateMeters()
+{
+    meterL.setValue (amStrip.meterL.getRMS());
+    meterR.setValue (amStrip.meterR.getRMS());
 }
 
 //==============================================================================
@@ -281,16 +352,12 @@ MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeSta
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-//     addAndMakeVisible (meterL); meterL.setMeterColor (c);
-//     addAndMakeVisible (meterR); meterR.setMeterColor (c);
-//     meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-//     meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void MSStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -298,14 +365,14 @@ void MSStripComponent::resized()
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
-    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
+    fbMain.items.add(fi(icon).withFlex(0.2f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
@@ -334,16 +401,12 @@ StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessor
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void StereoStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -351,14 +414,14 @@ void StereoStripComponent::resized()
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
-    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
+    fbMain.items.add(fi(icon).withFlex(0.2f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
@@ -384,16 +447,12 @@ MonoStripComponent::MonoStripComponent (MonoStrip& s, juce::AudioProcessorValueT
     setStripColor(c);
     setSliderColours (panSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void MonoStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -406,8 +465,8 @@ void MonoStripComponent::resized()
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
-    fbMain.items.add(fi(icon).withFlex(0.3f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
+    fbMain.items.add(fi(icon).withFlex(0.2f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
 
@@ -443,16 +502,12 @@ StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, ju
     setStripColor(c);
     setSliderColours (panSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor(c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor(c);
-    // meterL.setRange(-60.0f, 6.0f); meterL.setZeroLevel(0.0f);
-    // meterR.setRange(-60.0f, 6.0f); meterR.setZeroLevel(0.0f);
 }
 
 void StereoReverbStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -465,7 +520,7 @@ void StereoReverbStripComponent::resized()
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 1.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(1.f, 0, 0, 1.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
     
     if (irBox.isVisible())
         fbMain.items.add(fi(icon).withFlex(0.24f));
@@ -510,16 +565,12 @@ MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::Au
     setStripColor(c);
     setSliderColours (panSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor(c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor(c);
-    // meterL.setRange(-60.0f, 6.0f); meterL.setZeroLevel(0.0f);
-    // meterR.setRange(-60.0f, 6.0f); meterR.setZeroLevel(0.0f);
 }
 
 void MonoReverbStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -532,7 +583,7 @@ void MonoReverbStripComponent::resized()
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 1.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 1.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
 
     if (irBox.isVisible())
         fbMain.items.add(fi(icon).withFlex(0.24f));
@@ -570,16 +621,12 @@ BusStripComponent::BusStripComponent (BusStrip& s, juce::AudioProcessorValueTree
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void BusStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -587,13 +634,13 @@ void BusStripComponent::resized()
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
-    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(0, 0, 0, 2.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));
@@ -623,16 +670,12 @@ MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessor
     setSliderColours (panSlider, c);
     setSliderColours (wSlider, c);
 
-    // addAndMakeVisible (meterL); meterL.setMeterColor (c);
-    // addAndMakeVisible (meterR); meterR.setMeterColor (c);
-    // meterL.setRange (-60.0f, 6.0f); meterL.setZeroLevel (0.0f);
-    // meterR.setRange (-60.0f, 6.0f); meterR.setZeroLevel (0.0f);
 }
 
 void MasterStripComponent::resized()
 {
     auto bounds = getLocalBounds();
-    using fi = juce::FlexItem; // Using alias for brevity
+    using fi = juce::FlexItem;
     juce::FlexBox fbMain, fbBottom, fbMeters, fbKnobs;
 
     fbMain.flexDirection = juce::FlexBox::Direction::column;
@@ -640,13 +683,13 @@ void MasterStripComponent::resized()
     fbMeters.flexDirection = juce::FlexBox::Direction::row;
     fbKnobs.flexDirection = juce::FlexBox::Direction::row;
 
-    fbKnobs.items.add(fi(panSlider).withFlex(1.f));
-    fbKnobs.items.add(fi(wSlider).withFlex(1.f));
+    fbKnobs.items.add(fi(panSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
+    fbKnobs.items.add(fi(wSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, -5.f, 0, -5.f)));
 
     fbMeters.items.add(fi(meterL).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 2.f, 0, 0)));
     fbMeters.items.add(fi(meterR).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 0, 0, 2.f)));
 
-    fbMain.items.add(fi(nameLabel).withFlex(0.1f));
+    fbMain.items.add(fi(nameBar).withFlex(0.05f));
     fbMain.items.add(fi(icon).withFlex(0.3f));
     fbMain.items.add(fi(fbKnobs).withFlex(0.2f).withMargin(juce::FlexItem::Margin(10.f, 0.f, 0.f, 0.f)));
     fbMain.items.add(fi(fbBottom).withFlex(0.8f));

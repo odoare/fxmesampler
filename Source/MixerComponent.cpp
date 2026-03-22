@@ -22,6 +22,8 @@ MixerComponent::LevelsComponent::LevelsComponent (Mixer& m, juce::AudioProcessor
     {
         if (auto* s = dynamic_cast<AmbisonicStrip*>(strip.get()))
             this->strips.push_back (std::make_unique<AmbisonicStripComponent> (*s, state));
+        else if (auto* s = dynamic_cast<AmbisonicMonoStrip*>(strip.get()))
+            this->strips.push_back (std::make_unique<AmbisonicMonoStripComponent> (*s, state));
         else if (auto* s = dynamic_cast<StereoStrip*>(strip.get()))
             this->strips.push_back (std::make_unique<StereoStripComponent> (*s, state));
         else if (auto* s = dynamic_cast<MSStrip*>(strip.get()))

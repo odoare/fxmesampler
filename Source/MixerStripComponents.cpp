@@ -208,6 +208,7 @@ AmbisonicStripComponent::AmbisonicStripComponent (AmbisonicStrip& s, juce::Audio
 {
     setupKnob (azSlider, s.getName() + "_Azimuth", apvts);
     azSlider.setTooltip ("MS microphone Azimuth (=Pan)");
+    azSlider.setCentralValue(0.f);
     
     setupKnob (elSlider, s.getName() + "_Elevation", apvts);
     elSlider.setTooltip ("MS microphone elevation");
@@ -266,6 +267,7 @@ AmbisonicMonoStripComponent::AmbisonicMonoStripComponent (AmbisonicMonoStrip& s,
 {
     setupKnob (azSlider, s.getName() + "_Azimuth", apvts);
     azSlider.setTooltip ("MS microphone Azimuth (=Pan)");
+    azSlider.setCentralValue(0.f);
     
     setupKnob (elSlider, s.getName() + "_Elevation", apvts);
     elSlider.setTooltip ("MS microphone Elevation");
@@ -275,6 +277,7 @@ AmbisonicMonoStripComponent::AmbisonicMonoStripComponent (AmbisonicMonoStrip& s,
 
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
     panSlider.setTooltip ("Mono proximity mic Pan");
+    panSlider.setCentralValue(0.f);
 
     setupKnob (mixSlider, s.getName() + "_Mix", apvts);
     mixSlider.setTooltip ("Mix (Ambix <-> Mono)");

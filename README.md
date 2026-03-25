@@ -1,6 +1,6 @@
 # FxmeSampler
 
-FxmeSampler is a JUCE-based sampling instrument plugin featuring a flexible mixer, built-in effects (Dynamics, EQ, Reverb, Delay, Tube Saturation), and XML-based mapping configuration.
+FxmeSampler is a JUCE-based sampling instrument plugin featuring, a flexible multi-channel mixer, built-in convolution reverb, and advanced velocity mapping. All configurations are defined via a portable `mapping.xml` file embedded in the plugin resources.
 
 ## Overview
 
@@ -65,17 +65,28 @@ The `<Mixer>` element contains definitions for channel strips and buses.
 Defines a mixer channel strip.
 
 ```xml
-<Strip type="stereo" name="Snare" img="snare.jpg" color="100,100,100" effectChain="dynamics"/>
+<Strip type="ambisonicmono" name="Piano_Top" img="piano.jpg" color="148,153,77" effectChain="dynamics"/>
 ```
 
 | Attribute | Type | Description |
 | :--- | :--- | :--- |
-| `type` | String | Strip type: `mono`, `stereo`, `ms` (Mid-Side), `ambisonic` (4-ch), `reverb` (mono), `stereoreverb`. |
+| `type` | String | See Strip Types below. |
 | `name` | String | Display name of the strip. |
 | `img` | String | Icon resource name. |
 | `color` | String | Strip color. |
 | `effectChain` | String | Effect chain type. Default is "dynamics". |
 | `resource` | String | (For reverb strips) Comma-separated list of Impulse Response (IR) filenames. |
+
+##### Strip Types
+| Type | Input Channels | Description |
+| :--- | :--- | :--- |
+| `mono` | 1 | Single-channel input with standard panning to the stereo mix. |
+| `stereo` | 2 | Standard stereo input with balance and M/S-based width control. |
+| `ms` | 2 | Mid-Side encoded input, decoded to stereo with width adjustment. |
+| `ambisonic` | 4 | First-order Ambisonic (B-Format) input decoded to stereo with Azimuth, Elevation, and Width controls. |
+| `ambisonicmono`| 5 | Hybrid strip: 4-ch Ambisonic field + 1-ch Proximity Mono mic. Includes a Mix crossfade between decoded field and mono source. |
+| `reverb` | 1 | Mono input processed through a mono convolution reverb engine. |
+| `stereoreverb` | 1 | Mono input processed through a stereo convolution reverb engine. |
 
 #### `<Bus>`
 Defines an auxiliary bus (always stereo).
@@ -92,12 +103,14 @@ Defines an auxiliary bus (always stereo).
 | `img` | String | Icon resource name. |
 | `color` | String | Bus color. |
 
+**Note:** To prevent feedback loops, a Bus can only send audio to other Buses defined *sequentially after* it in the XML.
+
 ### 4. Sample Groups
 `<SampleGroup>` elements define shared properties for a set of sounds, such as envelopes and routing.
 
 ```xml
 <SampleGroup name="Snare" channels="0:6, 1:7" muteGroup="1" midiChannel="10"
-             oneShot="false" loop="true" 
+             oneShot="false" loop="true" groupLevel="-3.0" minVelocityGain="-20.0"
              attack="0.001" decay="0.2" sustain="0.5" release="0.3" detune="0.0"/>
 ```
 
@@ -114,6 +127,8 @@ Defines an auxiliary bus (always stereo).
 | `sustain` | Float | 1.0 | Sustain level (0.0 to 1.0). |
 | `release` | Float | 0.1 | Release time in seconds. |
 | `detune` | Float | 0.0 | Pitch offset in semitones. |
+| `groupLevel` | Float | 0.0 | Static gain offset for the entire group in dB. |
+| `minVelocityGain` | Float | -40.0 | The gain in dB applied when MIDI velocity is at its minimum (1). This defines the floor of the velocity-to-gain scaling; 0.0 results in fixed volume regardless of velocity. |
 
 ### 5. Sounds
 `<Sound>` elements define individual samples.

@@ -60,7 +60,7 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
     currentPosition = (sound ? (double)sound->sampleStart : 0.0);
     currentVelocity = velocity;
     currentSampleRate = sampleRate;
-
+    
     envelopeVal = 0.0f;
     state = State::Attack;
 
@@ -88,8 +88,8 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
             release = g->release;
 
             float minGain = juce::Decibels::decibelsToGain ((float)g->minVelocityGain);
-            // Scale velocity range from [0, 1] to [minGain, 1]
-            currentVelocity = minGain + (1.0f - minGain) * velocity;
+            // Scale velocity range from [0, 1] to [minGain, 1] and multiply by group level
+            currentVelocity = (minGain + (1.0f - minGain) * velocity) * juce::Decibels::decibelsToGain (g->groupLevel);
         }
 
         double pitchRatio = std::pow (2.0, (note - activeSound->basePitch + detune) / 12.0);
@@ -104,6 +104,7 @@ void Voice::start (const Sound* sound, int note, float velocity, double sampleRa
         attackRate = (attackSamples > 0.0) ? (1.0 / attackSamples) : 1.0;
         decayRate = (decaySamples > 0.0) ? ((1.0 - sustainLevel) / decaySamples) : 1.0;
         releaseRate = (releaseSamples > 0.0) ? (1.0 / releaseSamples) : 1.0;
+
     }
 }
 
@@ -382,6 +383,7 @@ void Sampler::loadSamplesFromXml (const void* xmlData, int xmlSize)
             group->release = child->getDoubleAttribute ("release", 0.1);
             group->detune = child->getDoubleAttribute ("detune", 0.0);
             group->randomDetune = child->getDoubleAttribute ("randomDetune", 0.0);
+            group->groupLevel = child->getDoubleAttribute ("groupLevel", 0.0);
             group->minVelocityGain = child->getDoubleAttribute ("minVelocityGain", -40.0);
 
             // Parse output channels for the group
@@ -534,6 +536,7 @@ void Sampler::assignParameters (juce::AudioProcessorValueTreeState& apvts)
         group->detuneParam = apvts.getRawParameterValue (prefix + "Detune");
         group->randomDetuneParam = apvts.getRawParameterValue (prefix + "RandomDetune");
         group->minVelocityGainParam = apvts.getRawParameterValue (prefix + "MinVelGain");
+        group->groupLevelParam = apvts.getRawParameterValue (prefix + "GroupLevel");
     }
 }
 
@@ -555,6 +558,7 @@ void SampleGroup::addParameters (std::vector<std::unique_ptr<juce::RangedAudioPa
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "Detune", 1 }, name + " Detune", -12.0f, 12.0f, (float)detune));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "RandomDetune", 1 }, name + " Random Detune", 0.0f, 100.0f, (float)randomDetune));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "MinVelGain", 1 }, name + " Min Vel Gain", -40.0f, 0.0f, (float)minVelocityGain));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "GroupLevel", 1 }, name + " Group Level", -12.0f, 6.0f, (float)groupLevel));
 }
 
 void Sampler::updateParams()
@@ -570,6 +574,7 @@ void Sampler::updateParams()
         if (group->releaseParam) group->release = *group->releaseParam;
         if (group->detuneParam) group->detune = *group->detuneParam;
         if (group->randomDetuneParam) group->randomDetune = *group->randomDetuneParam;
+        if (group->groupLevelParam) group->groupLevel = *group->groupLevelParam;
         if (group->minVelocityGainParam) group->minVelocityGain = *group->minVelocityGainParam;
     }
 }

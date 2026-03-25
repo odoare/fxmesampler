@@ -32,6 +32,7 @@ struct SampleGroup
     double release = 0.1;
     double detune = 0.0;
     double randomDetune = 0.0;
+    double groupLevel = 0.0;
     double minVelocityGain = -40.0;
     std::vector<int> outputChannels;
 
@@ -44,6 +45,7 @@ struct SampleGroup
     std::atomic<float>* releaseParam = nullptr;
     std::atomic<float>* detuneParam = nullptr;
     std::atomic<float>* randomDetuneParam = nullptr;
+    std::atomic<float>* groupLevelParam = nullptr;
     std::atomic<float>* minVelocityGainParam = nullptr;
 
     /**

@@ -53,6 +53,10 @@ SampleGroupComponent::SampleGroupComponent (SampleGroup& g, juce::AudioProcessor
     randomDetuneSlider.setTextValueSuffix (" ct");
     randomDetuneSlider.setAttachment(new SliderAttachment (apvts, prefix + "RandomDetune", randomDetuneSlider));
 
+    setupSlider (groupLevelSlider, groupLevelLabel, "Group Level", -12.0, 6.0, 0.0);
+    groupLevelSlider.setTextValueSuffix (" dB");
+    groupLevelSlider.setAttachment(new SliderAttachment (apvts, prefix + "GroupLevel", groupLevelSlider));
+
     setupSlider (velGainSlider, velGainLabel, "Min Vel Gain", -40.0, 0.0, -40.0);
     velGainSlider.setTextValueSuffix (" dB");
     velGainSlider.setAttachment(new SliderAttachment (apvts, prefix + "MinVelGain", velGainSlider));
@@ -96,10 +100,11 @@ void SampleGroupComponent::paint (juce::Graphics& g)
 void SampleGroupComponent::resized()
 {
     auto area = getLocalBounds().reduced (5);
-    using fi = juce::FlexItem;
-    juce::FlexBox fbMain,fbDetune,fbRandomDetune,fbAttack, fbDecay, fbSustain, fbRelease, fbVelGain;
+   using fi = juce::FlexItem;
+    juce::FlexBox fbMain,fbDetune,fbRandomDetune, fbGain, fbAttack, fbDecay, fbSustain, fbRelease, fbVelGain;
     fbDetune.flexDirection = juce::FlexBox::Direction::column;
     fbRandomDetune.flexDirection = juce::FlexBox::Direction::column;
+    fbGain.flexDirection = juce::FlexBox::Direction::column;
     fbAttack.flexDirection = juce::FlexBox::Direction::column;
     fbDecay.flexDirection = juce::FlexBox::Direction::column;
     fbSustain.flexDirection = juce::FlexBox::Direction::column;
@@ -108,6 +113,10 @@ void SampleGroupComponent::resized()
 
     fbDetune.items.add(fi(detuneLabel).withFlex(0.2f));
     fbDetune.items.add(fi(detuneSlider).withFlex(1.f));
+
+    fbGain.flexDirection = juce::FlexBox::Direction::column;
+    fbGain.items.add(fi(groupLevelLabel).withFlex(0.2f));
+    fbGain.items.add(fi(groupLevelSlider).withFlex(1.f));
 
     fbRandomDetune.items.add(fi(randomDetuneLabel).withFlex(0.2f));
     fbRandomDetune.items.add(fi(randomDetuneSlider).withFlex(1.f));
@@ -131,6 +140,7 @@ void SampleGroupComponent::resized()
     fbMain.items.add(fi(nameLabel).withFlex(1.f));
     fbMain.items.add(fi(fbDetune).withFlex(.6f));
     fbMain.items.add(fi(fbRandomDetune).withFlex(.6f));
+    fbMain.items.add(fi(fbGain).withFlex(.6f));
     fbMain.items.add(fi(fbVelGain).withFlex(.6f));
     fbMain.items.add(fi(oneShotButton).withFlex(.5f));
     fbMain.items.add(fi(fbAttack).withFlex(0.6f));    

@@ -159,3 +159,39 @@ Defines an auxiliary bus (always stereo).
 The plugin loads files from JUCE's `BinaryData`.
 1.  **Filenames:** In `mapping.xml`, refer to files by their original filename (e.g., `my sample.wav`).
 2.  **Internal Mapping:** The code automatically converts filenames to valid C++ variable names (replacing spaces and dots with underscores) to locate them in `BinaryData`.
+
+# Made with FxmeSampler
+
+## Examplekits folder
+
+In the ExampleKits folder, there are a few small-size projects to show how to use FxmeSampler. For now there are only drum sampler examples, but more will come in the future.
+
+## Black Widow Drums
+The **Black Widow Drums** project is the flagship showcase for FxmeSampler's advanced spatial and processing features. Recorded on a Gretsch Black Widow kit, it utilizes a sophisticated microphone array and signal processing chain to deliver a professional, studio-ready drum sound.
+
+![image info](./doc/BlackWidowPhoto.png)
+
+### Microphone Configuration
+*   **Overheads:** Rode NT-SF1 First-Order Ambisonic microphone, capturing a full 360° sound field.
+*   **Kick:** Blue Kick Ball.
+*   **Snare/Toms:** Three Shure SM57s (Snare, High Tom, Low Tom).
+
+### Advanced Ambisonic-Mono Routing
+Each drum element leverages the **ambisonicmono** hybrid strip. This routes the 4-channel B-Format overhead signal plus the dedicated proximity microphone into a single channel strip. This allows for:
+*   **Spatial Sculpting:** Precision control over the elevation, azimuth, and width of the overhead "view" for each specific drum.
+*   **The Virtual MS Mic:** The ability to treat the ambisonic field as a virtual Mid-Side pair that can be panned and balanced.
+*   **Hybrid Mixing:** An equal-power mix control to blend between the localized spatial field and the punch of the close-mic proximity signal.
+
+### Intelligent Room Modeling
+To optimize performance and reduce the plugin's memory footprint, the room sound is not played back from raw multi-channel files. Instead, a **transfer function** was calculated between the omnidirectional (W) component of the ambisonic overheads and the physical room microphones. 
+
+This resulted in high-fidelity **Impulse Responses (IRs)**. The Room channel in the mixer functions as a real-time convolution engine, applying these IRs to the dry signals. This provides an authentic room character while saving gigabytes of sample data.
+
+### Processing & Mix Architecture
+*   **Channel Processing:** Every strip features a dedicated effect chain consisting of a **4-band EQ**, **Dynamics (Compressor/Limiter)**, and **Tube Saturation** for harmonic enhancement.
+*   **Parallel Compression Bus:** A dedicated stereo bus for "New York style" parallel compression to add weight and density to the kit.
+*   **Spatial FX Bus:** A secondary bus hosting a combined **Delay and Convolution Reverb** for additional depth and atmosphere.
+
+![image info](./doc/BlackWidowPhoto.png)
+
+*Note: Due to the high-resolution source material, the Black Widow sample library is distributed separately from the core source code.*

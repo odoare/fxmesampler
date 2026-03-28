@@ -345,7 +345,7 @@ MSStripComponent::MSStripComponent (MSStrip& s, juce::AudioProcessorValueTreeSta
     : StripComponent (s, apvts), msStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
-
+    panSlider.setCentralValue(0.f);
     setupKnob (wSlider, s.getName() + "_Width", apvts);
 
     juce::Colour c = s.getColor();
@@ -394,8 +394,11 @@ StereoStripComponent::StereoStripComponent (StereoStrip& s, juce::AudioProcessor
     : StripComponent (s, apvts), stereoStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setCentralValue(0.f);
+    panSlider.setTooltip ("Stereo Pan");
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wSlider.setTooltip ("Stereo Width");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -443,6 +446,8 @@ MonoStripComponent::MonoStripComponent (MonoStrip& s, juce::AudioProcessorValueT
     : StripComponent (s, apvts), monoStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setCentralValue(0.f);
+    panSlider.setTooltip ("Mono Pan");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::green;
@@ -488,6 +493,8 @@ StereoReverbStripComponent::StereoReverbStripComponent (StereoReverbStrip& s, ju
     : StripComponent (s, apvts), reverbStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setCentralValue(0.f);
+    panSlider.setTooltip ("Stereo Pan");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -551,6 +558,8 @@ MonoReverbStripComponent::MonoReverbStripComponent (MonoReverbStrip& s, juce::Au
     : StripComponent (s, apvts), reverbStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setCentralValue(0.f);
+    panSlider.setTooltip ("Mono Pan");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::cyan;
@@ -614,8 +623,11 @@ BusStripComponent::BusStripComponent (BusStrip& s, juce::AudioProcessorValueTree
     : StripComponent (s, apvts), busStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setCentralValue(0.f);
+    panSlider.setTooltip ("Bus Pan");
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wSlider.setTooltip ("Bus Width");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::purple;
@@ -663,8 +675,11 @@ MasterStripComponent::MasterStripComponent (MasterStrip& s, juce::AudioProcessor
     : StripComponent (s, apvts), masterStrip (s)
 {
     setupKnob (panSlider, s.getName() + "_Pan", apvts);
+    panSlider.setCentralValue(0.f);
+    panSlider.setTooltip ("Master Pan");
 
     setupKnob (wSlider, s.getName() + "_Width", apvts);
+    wSlider.setTooltip ("Master Width");
 
     juce::Colour c = s.getColor();
     if (c.isTransparent()) c = juce::Colours::red;

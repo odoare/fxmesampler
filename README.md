@@ -167,7 +167,7 @@ The plugin loads files from JUCE's `BinaryData`.
 In the ExampleKits folder, there are a few small-size projects to show how to use FxmeSampler. For now there are only drum sampler examples, but more will come in the future.
 
 ## Black Widow Drums
-The **Black Widow Drums** project is the flagship showcase for FxmeSampler's advanced spatial and processing features. Recorded on a Gretsch Black Widow kit, it utilizes a sophisticated microphone array and signal processing chain to deliver a professional, studio-ready drum sound.
+The **Black Widow Drums** project is the first published drum sampler showcase for FxmeSampler's advanced spatial and processing features. Recorded on a Gretsch Black Widow kit, it utilizes an original microphone array and signal processing chain to deliver a professional, studio-ready drum sound.
 
 ![image info](./doc/BlackWidowPhoto.png)
 

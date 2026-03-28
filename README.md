@@ -192,6 +192,6 @@ This resulted in high-fidelity **Impulse Responses (IRs)**. The Room channel in 
 *   **Parallel Compression Bus:** A dedicated stereo bus for "New York style" parallel compression to add weight and density to the kit.
 *   **Spatial FX Bus:** A secondary bus hosting a combined **Delay and Convolution Reverb** for additional depth and atmosphere.
 
-![image info](./doc/BlackWidowPhoto.png)
+![image info](./doc/BlackWidowGUI.png)
 
 *Note: Due to the high-resolution source material, the Black Widow sample library is distributed separately from the core source code.*

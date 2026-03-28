@@ -167,7 +167,7 @@ The plugin loads files from JUCE's `BinaryData`.
 In the ExampleKits folder, there are a few small-size projects to show how to use FxmeSampler. For now there are only drum sampler examples, but more will come in the future.
 
 ## Black Widow Drums
-The **Black Widow Drums** project is the first published drum sampler showcase for FxmeSampler's advanced spatial and processing features. Recorded on a Gretsch Black Widow kit, it utilizes an original microphone array and signal processing chain to deliver a professional, studio-ready drum sound.
+The **Black Widow Drums** project is the first published drum sampler showcase for FxmeSampler's advanced spatial and processing features. Recorded on a Gretsch Black Widow kit, it utilizes an original microphone array and signal processing chain to deliver a studio-ready drum sound.
 
 ![image info](./doc/BlackWidowPhoto.png)
 
@@ -182,10 +182,10 @@ Each drum element leverages the **ambisonicmono** hybrid strip. This routes the 
 *   **The Virtual MS Mic:** The ability to treat the ambisonic field as a virtual Mid-Side pair that can be panned and balanced.
 *   **Hybrid Mixing:** An equal-power mix control to blend between the localized spatial field and the punch of the close-mic proximity signal.
 
-### Intelligent Room Modeling
+### Room Modeling
 To optimize performance and reduce the plugin's memory footprint, the room sound is not played back from raw multi-channel files. Instead, a **transfer function** was calculated between the omnidirectional (W) component of the ambisonic overheads and the physical room microphones. 
 
-This resulted in high-fidelity **Impulse Responses (IRs)**. The Room channel in the mixer functions as a real-time convolution engine, applying these IRs to the dry signals. This provides an authentic room character while saving gigabytes of sample data.
+This resulted in **Impulse Responses (IRs)**. The Room channel in the mixer functions as a real-time convolution engine, applying these IRs to the dry signals. This provides an authentic room character while saving gigabytes of sample data.
 
 ### Processing & Mix Architecture
 *   **Channel Processing:** Every strip features a dedicated effect chain consisting of a **4-band EQ**, **Dynamics (Compressor/Limiter)**, and **Tube Saturation** for harmonic enhancement.

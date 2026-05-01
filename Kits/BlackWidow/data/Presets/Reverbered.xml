@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Parameters>
+  <PARAM id="AmbixKick_Attack" value="0.0"/>
+  <PARAM id="AmbixKick_Decay" value="0.9799999594688416"/>
+  <PARAM id="AmbixKick_Detune" value="0.0"/>
+  <PARAM id="AmbixKick_MidiChannel" value="0.0"/>
+  <PARAM id="AmbixKick_MinVelGain" value="0.0"/>
+  <PARAM id="AmbixKick_OneShot" value="1.0"/>
+  <PARAM id="AmbixKick_RandomDetune" value="0.0"/>
+  <PARAM id="AmbixKick_Release" value="0.09999999403953552"/>
+  <PARAM id="AmbixKick_Sustain" value="0.0"/>
+  <PARAM id="AmbixSnare_Attack" value="0.0"/>
+  <PARAM id="AmbixSnare_Decay" value="0.8199999928474426"/>
+  <PARAM id="AmbixSnare_Detune" value="0.0"/>
+  <PARAM id="AmbixSnare_MidiChannel" value="0.0"/>
+  <PARAM id="AmbixSnare_MinVelGain" value="0.0"/>
+  <PARAM id="AmbixSnare_OneShot" value="1.0"/>
+  <PARAM id="AmbixSnare_RandomDetune" value="21.19999885559082"/>
+  <PARAM id="AmbixSnare_Release" value="0.09999999403953552"/>
+  <PARAM id="AmbixSnare_Sustain" value="0.0"/>
+  <PARAM id="AmbixTomH_Attack" value="0.0"/>
+  <PARAM id="AmbixTomH_Decay" value="1.100000023841858"/>
+  <PARAM id="AmbixTomH_Detune" value="0.0"/>
+  <PARAM id="AmbixTomH_MidiChannel" value="0.0"/>
+  <PARAM id="AmbixTomH_MinVelGain" value="-40.0"/>
+  <PARAM id="AmbixTomH_OneShot" value="1.0"/>
+  <PARAM id="AmbixTomH_RandomDetune" value="0.0"/>
+  <PARAM id="AmbixTomH_Release" value="0.09999999403953552"/>
+  <PARAM id="AmbixTomH_Sustain" value="0.0"/>
+  <PARAM id="AmbixTomL_Attack" value="0.0"/>
+  <PARAM id="AmbixTomL_Decay" value="0.0"/>
+  <PARAM id="AmbixTomL_Detune" value="0.0"/>
+  <PARAM id="AmbixTomL_MidiChannel" value="0.0"/>
+  <PARAM id="AmbixTomL_MinVelGain" value="0.0"/>
+  <PARAM id="AmbixTomL_OneShot" value="1.0"/>
+  <PARAM id="AmbixTomL_RandomDetune" value="0.0"/>
+  <PARAM id="AmbixTomL_Release" value="0.09999999403953552"/>
+  <PARAM id="AmbixTomL_Sustain" value="1.0"/>
+  <PARAM id="CYMB_Attack" value="0.0"/>
+  <PARAM id="CYMB_Decay" value="0.0"/>
+  <PARAM id="CYMB_Detune" value="0.0"/>
+  <PARAM id="CYMB_MidiChannel" value="0.0"/>
+  <PARAM id="CYMB_MinVelGain" value="0.0"/>
+  <PARAM id="CYMB_OneShot" value="1.0"/>
+  <PARAM id="CYMB_RandomDetune" value="0.0"/>
+  <PARAM id="CYMB_Release" value="0.09999999403953552"/>
+  <PARAM id="CYMB_Sustain" value="1.0"/>
+  <PARAM id="Cymbals_Azimuth" value="0.0"/>
+  <PARAM id="Cymbals_Comp_Attack" value="10.0"/>
+  <PARAM id="Cymbals_Comp_Gain" value="0.0"/>
+  <PARAM id="Cymbals_Comp_On" value="0.0"/>
+  <PARAM id="Cymbals_Comp_PreGain" value="0.0"/>
+  <PARAM id="Cymbals_Comp_Ratio" value="1.0"/>
+  <PARAM id="Cymbals_Comp_Release" value="100.0"/>
+  <PARAM id="Cymbals_Comp_Thresh" value="0.0"/>
+  <PARAM id="Cymbals_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Cymbals_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Cymbals_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Cymbals_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Cymbals_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Cymbals_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Cymbals_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Cymbals_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Cymbals_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Cymbals_EQ_HS_Freq" value="5000.0"/>
+  <PARAM id="Cymbals_EQ_HS_Gain" value="0.0"/>
+  <PARAM id="Cymbals_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Cymbals_EQ_LS_Gain" value="0.0"/>
+  <PARAM id="Cymbals_EQ_On" value="0.0"/>
+  <PARAM id="Cymbals_EQ_PostGain" value="0.0"/>
+  <PARAM id="Cymbals_Elevation" value="0.0"/>
+  <PARAM id="Cymbals_Level" value="0.0"/>
+  <PARAM id="Cymbals_Mute" value="0.0"/>
+  <PARAM id="Cymbals_Order" value="0.0"/>
+  <PARAM id="Cymbals_Route_Aux1" value="0.0"/>
+  <PARAM id="Cymbals_Route_Aux2" value="0.0"/>
+  <PARAM id="Cymbals_Route_Aux3" value="0.0"/>
+  <PARAM id="Cymbals_Route_Main" value="1.0"/>
+  <PARAM id="Cymbals_Send_Parallel bus" value="-6.0"/>
+  <PARAM id="Cymbals_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Cymbals_Send_Reverb/Delay" value="-5.880001068115234"/>
+  <PARAM id="Cymbals_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Cymbals_Solo" value="0.0"/>
+  <PARAM id="Cymbals_Tube_Bias" value="0.0"/>
+  <PARAM id="Cymbals_Tube_Drive" value="0.0"/>
+  <PARAM id="Cymbals_Tube_Model" value="0.0"/>
+  <PARAM id="Cymbals_Tube_On" value="0.0"/>
+  <PARAM id="Cymbals_Tube_Out" value="0.0"/>
+  <PARAM id="Cymbals_Width" value="1.0"/>
+  <PARAM id="HH_Attack" value="0.0"/>
+  <PARAM id="HH_Decay" value="0.0"/>
+  <PARAM id="HH_Detune" value="0.0"/>
+  <PARAM id="HH_MidiChannel" value="0.0"/>
+  <PARAM id="HH_MinVelGain" value="-16.31999969482422"/>
+  <PARAM id="HH_OneShot" value="1.0"/>
+  <PARAM id="HH_RandomDetune" value="0.0"/>
+  <PARAM id="HH_Release" value="0.09999999403953552"/>
+  <PARAM id="HH_Sustain" value="1.0"/>
+  <PARAM id="Hi Hat_Azimuth" value="0.0"/>
+  <PARAM id="Hi Hat_Comp_Attack" value="10.0"/>
+  <PARAM id="Hi Hat_Comp_Gain" value="0.0"/>
+  <PARAM id="Hi Hat_Comp_On" value="0.0"/>
+  <PARAM id="Hi Hat_Comp_PreGain" value="0.0"/>
+  <PARAM id="Hi Hat_Comp_Ratio" value="1.0"/>
+  <PARAM id="Hi Hat_Comp_Release" value="100.0"/>
+  <PARAM id="Hi Hat_Comp_Thresh" value="0.0"/>
+  <PARAM id="Hi Hat_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Hi Hat_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Hi Hat_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Hi Hat_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Hi Hat_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Hi Hat_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Hi Hat_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Hi Hat_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Hi Hat_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Hi Hat_EQ_HS_Freq" value="1504.0"/>
+  <PARAM id="Hi Hat_EQ_HS_Gain" value="4.19999885559082"/>
+  <PARAM id="Hi Hat_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Hi Hat_EQ_LS_Gain" value="0.0"/>
+  <PARAM id="Hi Hat_EQ_On" value="1.0"/>
+  <PARAM id="Hi Hat_EQ_PostGain" value="0.0"/>
+  <PARAM id="Hi Hat_Elevation" value="0.0"/>
+  <PARAM id="Hi Hat_Level" value="0.0"/>
+  <PARAM id="Hi Hat_Mute" value="0.0"/>
+  <PARAM id="Hi Hat_Order" value="0.0"/>
+  <PARAM id="Hi Hat_Route_Aux1" value="0.0"/>
+  <PARAM id="Hi Hat_Route_Aux2" value="0.0"/>
+  <PARAM id="Hi Hat_Route_Aux3" value="0.0"/>
+  <PARAM id="Hi Hat_Route_Main" value="1.0"/>
+  <PARAM id="Hi Hat_Send_Parallel bus" value="-6.0"/>
+  <PARAM id="Hi Hat_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Hi Hat_Send_Reverb/Delay" value="-7.729999542236328"/>
+  <PARAM id="Hi Hat_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Hi Hat_Solo" value="0.0"/>
+  <PARAM id="Hi Hat_Tube_Bias" value="0.0"/>
+  <PARAM id="Hi Hat_Tube_Drive" value="0.0"/>
+  <PARAM id="Hi Hat_Tube_Model" value="0.0"/>
+  <PARAM id="Hi Hat_Tube_On" value="0.0"/>
+  <PARAM id="Hi Hat_Tube_Out" value="0.0"/>
+  <PARAM id="Hi Hat_Width" value="1.0"/>
+  <PARAM id="Kick_Azimuth" value="0.0"/>
+  <PARAM id="Kick_Comp_Attack" value="0.4999999701976776"/>
+  <PARAM id="Kick_Comp_Gain" value="8.05999755859375"/>
+  <PARAM id="Kick_Comp_On" value="1.0"/>
+  <PARAM id="Kick_Comp_PreGain" value="0.0"/>
+  <PARAM id="Kick_Comp_Ratio" value="4.5"/>
+  <PARAM id="Kick_Comp_Release" value="100.0"/>
+  <PARAM id="Kick_Comp_Thresh" value="-20.40000152587891"/>
+  <PARAM id="Kick_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Kick_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Kick_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Kick_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Kick_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Kick_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Kick_EQ_B3_Freq" value="5066.0"/>
+  <PARAM id="Kick_EQ_B3_Gain" value="15.0"/>
+  <PARAM id="Kick_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Kick_EQ_HS_Freq" value="5000.0"/>
+  <PARAM id="Kick_EQ_HS_Gain" value="0.0"/>
+  <PARAM id="Kick_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Kick_EQ_LS_Gain" value="10.55999946594238"/>
+  <PARAM id="Kick_EQ_On" value="1.0"/>
+  <PARAM id="Kick_EQ_PostGain" value="0.0"/>
+  <PARAM id="Kick_Elevation" value="0.0"/>
+  <PARAM id="Kick_Level" value="0.0"/>
+  <PARAM id="Kick_Mix" value="0.0"/>
+  <PARAM id="Kick_Mute" value="0.0"/>
+  <PARAM id="Kick_Order" value="0.0"/>
+  <PARAM id="Kick_Pan" value="0.0"/>
+  <PARAM id="Kick_Route_Aux1" value="0.0"/>
+  <PARAM id="Kick_Route_Aux2" value="0.0"/>
+  <PARAM id="Kick_Route_Aux3" value="0.0"/>
+  <PARAM id="Kick_Route_Main" value="1.0"/>
+  <PARAM id="Kick_Send_Parallel bus" value="-6.0"/>
+  <PARAM id="Kick_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Kick_Send_Reverb/Delay" value="-12.7400016784668"/>
+  <PARAM id="Kick_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Kick_Solo" value="0.0"/>
+  <PARAM id="Kick_Tube_Bias" value="0.0"/>
+  <PARAM id="Kick_Tube_Drive" value="0.0"/>
+  <PARAM id="Kick_Tube_Model" value="0.0"/>
+  <PARAM id="Kick_Tube_On" value="0.0"/>
+  <PARAM id="Kick_Tube_Out" value="0.0"/>
+  <PARAM id="Kick_Width" value="1.0"/>
+  <PARAM id="Master_Comp_Attack" value="10.0"/>
+  <PARAM id="Master_Comp_Gain" value="0.0"/>
+  <PARAM id="Master_Comp_On" value="0.0"/>
+  <PARAM id="Master_Comp_PreGain" value="0.0"/>
+  <PARAM id="Master_Comp_Ratio" value="1.0"/>
+  <PARAM id="Master_Comp_Release" value="100.0"/>
+  <PARAM id="Master_Comp_Thresh" value="0.0"/>
+  <PARAM id="Master_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Master_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Master_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Master_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Master_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Master_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Master_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Master_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Master_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Master_EQ_HS_Freq" value="5000.0"/>
+  <PARAM id="Master_EQ_HS_Gain" value="0.0"/>
+  <PARAM id="Master_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Master_EQ_LS_Gain" value="0.0"/>
+  <PARAM id="Master_EQ_On" value="0.0"/>
+  <PARAM id="Master_EQ_PostGain" value="0.0"/>
+  <PARAM id="Master_Level" value="-6.510002136230469"/>
+  <PARAM id="Master_Mute" value="0.0"/>
+  <PARAM id="Master_Order" value="0.0"/>
+  <PARAM id="Master_Pan" value="0.0"/>
+  <PARAM id="Master_Tube_Bias" value="0.0"/>
+  <PARAM id="Master_Tube_Drive" value="0.0"/>
+  <PARAM id="Master_Tube_Model" value="0.0"/>
+  <PARAM id="Master_Tube_On" value="0.0"/>
+  <PARAM id="Master_Tube_Out" value="0.0"/>
+  <PARAM id="Master_Width" value="1.0"/>
+  <PARAM id="Parallel bus_Comp_Attack" value="4.409999847412109"/>
+  <PARAM id="Parallel bus_Comp_Gain" value="24.0"/>
+  <PARAM id="Parallel bus_Comp_On" value="1.0"/>
+  <PARAM id="Parallel bus_Comp_PreGain" value="0.0"/>
+  <PARAM id="Parallel bus_Comp_Ratio" value="6.46999979019165"/>
+  <PARAM id="Parallel bus_Comp_Release" value="52.47999954223633"/>
+  <PARAM id="Parallel bus_Comp_Thresh" value="-47.04000091552734"/>
+  <PARAM id="Parallel bus_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Parallel bus_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Parallel bus_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Parallel bus_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Parallel bus_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Parallel bus_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Parallel bus_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Parallel bus_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Parallel bus_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Parallel bus_EQ_HS_Freq" value="8572.0"/>
+  <PARAM id="Parallel bus_EQ_HS_Gain" value="-13.44000053405762"/>
+  <PARAM id="Parallel bus_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Parallel bus_EQ_LS_Gain" value="-15.0"/>
+  <PARAM id="Parallel bus_EQ_On" value="1.0"/>
+  <PARAM id="Parallel bus_EQ_PostGain" value="0.0"/>
+  <PARAM id="Parallel bus_Level" value="0.0"/>
+  <PARAM id="Parallel bus_Mute" value="1.0"/>
+  <PARAM id="Parallel bus_Order" value="2.0"/>
+  <PARAM id="Parallel bus_Pan" value="0.0"/>
+  <PARAM id="Parallel bus_Route_Aux1" value="0.0"/>
+  <PARAM id="Parallel bus_Route_Aux2" value="0.0"/>
+  <PARAM id="Parallel bus_Route_Aux3" value="0.0"/>
+  <PARAM id="Parallel bus_Route_Main" value="1.0"/>
+  <PARAM id="Parallel bus_Solo" value="0.0"/>
+  <PARAM id="Parallel bus_Tube_Bias" value="0.5"/>
+  <PARAM id="Parallel bus_Tube_Drive" value="12.0"/>
+  <PARAM id="Parallel bus_Tube_Model" value="1.0"/>
+  <PARAM id="Parallel bus_Tube_On" value="1.0"/>
+  <PARAM id="Parallel bus_Tube_Out" value="0.0"/>
+  <PARAM id="Parallel bus_Width" value="1.0"/>
+  <PARAM id="ProxKick_Attack" value="0.0"/>
+  <PARAM id="ProxKick_Decay" value="0.9399999976158142"/>
+  <PARAM id="ProxKick_Detune" value="0.0"/>
+  <PARAM id="ProxKick_MidiChannel" value="0.0"/>
+  <PARAM id="ProxKick_MinVelGain" value="0.0"/>
+  <PARAM id="ProxKick_OneShot" value="1.0"/>
+  <PARAM id="ProxKick_RandomDetune" value="0.0"/>
+  <PARAM id="ProxKick_Release" value="0.09999999403953552"/>
+  <PARAM id="ProxKick_Sustain" value="0.0"/>
+  <PARAM id="ProxSnare_Attack" value="0.0"/>
+  <PARAM id="ProxSnare_Decay" value="0.8799999952316284"/>
+  <PARAM id="ProxSnare_Detune" value="0.0"/>
+  <PARAM id="ProxSnare_MidiChannel" value="0.0"/>
+  <PARAM id="ProxSnare_MinVelGain" value="-40.0"/>
+  <PARAM id="ProxSnare_OneShot" value="1.0"/>
+  <PARAM id="ProxSnare_RandomDetune" value="22.39999961853027"/>
+  <PARAM id="ProxSnare_Release" value="0.09999999403953552"/>
+  <PARAM id="ProxSnare_Sustain" value="0.0"/>
+  <PARAM id="ProxTomH_Attack" value="0.0"/>
+  <PARAM id="ProxTomH_Decay" value="1.039999961853027"/>
+  <PARAM id="ProxTomH_Detune" value="0.0"/>
+  <PARAM id="ProxTomH_MidiChannel" value="0.0"/>
+  <PARAM id="ProxTomH_MinVelGain" value="0.0"/>
+  <PARAM id="ProxTomH_OneShot" value="1.0"/>
+  <PARAM id="ProxTomH_RandomDetune" value="0.0"/>
+  <PARAM id="ProxTomH_Release" value="0.09999999403953552"/>
+  <PARAM id="ProxTomH_Sustain" value="0.0"/>
+  <PARAM id="ProxTomL_Attack" value="0.0"/>
+  <PARAM id="ProxTomL_Decay" value="0.0"/>
+  <PARAM id="ProxTomL_Detune" value="0.0"/>
+  <PARAM id="ProxTomL_MidiChannel" value="0.0"/>
+  <PARAM id="ProxTomL_MinVelGain" value="0.0"/>
+  <PARAM id="ProxTomL_OneShot" value="1.0"/>
+  <PARAM id="ProxTomL_RandomDetune" value="0.0"/>
+  <PARAM id="ProxTomL_Release" value="0.09999999403953552"/>
+  <PARAM id="ProxTomL_Sustain" value="1.0"/>
+  <PARAM id="Reverb/Delay_Del_CrossFdbk" value="-60.0"/>
+  <PARAM id="Reverb/Delay_Del_DelayL" value="0.5"/>
+  <PARAM id="Reverb/Delay_Del_DelayR" value="0.75"/>
+  <PARAM id="Reverb/Delay_Del_DryGain" value="0.0"/>
+  <PARAM id="Reverb/Delay_Del_FdbkL" value="-6.0"/>
+  <PARAM id="Reverb/Delay_Del_FdbkR" value="-6.0"/>
+  <PARAM id="Reverb/Delay_Del_FilterCutoff" value="20000.0"/>
+  <PARAM id="Reverb/Delay_Del_FilterQ" value="0.7100000381469727"/>
+  <PARAM id="Reverb/Delay_Del_On" value="0.0"/>
+  <PARAM id="Reverb/Delay_Del_WetGain" value="-6.0"/>
+  <PARAM id="Reverb/Delay_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Reverb/Delay_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Reverb/Delay_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Reverb/Delay_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Reverb/Delay_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Reverb/Delay_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Reverb/Delay_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Reverb/Delay_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Reverb/Delay_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Reverb/Delay_EQ_HS_Freq" value="1000.0"/>
+  <PARAM id="Reverb/Delay_EQ_HS_Gain" value="5.039999008178711"/>
+  <PARAM id="Reverb/Delay_EQ_LS_Freq" value="225.4400024414062"/>
+  <PARAM id="Reverb/Delay_EQ_LS_Gain" value="-12.0"/>
+  <PARAM id="Reverb/Delay_EQ_On" value="1.0"/>
+  <PARAM id="Reverb/Delay_EQ_PostGain" value="0.0"/>
+  <PARAM id="Reverb/Delay_Level" value="0.0"/>
+  <PARAM id="Reverb/Delay_Mute" value="0.0"/>
+  <PARAM id="Reverb/Delay_Pan" value="0.0"/>
+  <PARAM id="Reverb/Delay_Rev_DryGain" value="-60.0"/>
+  <PARAM id="Reverb/Delay_Rev_IR" value="6.0"/>
+  <PARAM id="Reverb/Delay_Rev_Length" value="1.0"/>
+  <PARAM id="Reverb/Delay_Rev_On" value="1.0"/>
+  <PARAM id="Reverb/Delay_Rev_Shape" value="2.0"/>
+  <PARAM id="Reverb/Delay_Rev_StartOffset" value="-30.40000152587891"/>
+  <PARAM id="Reverb/Delay_Rev_WetGain" value="0.0"/>
+  <PARAM id="Reverb/Delay_Route_Aux1" value="0.0"/>
+  <PARAM id="Reverb/Delay_Route_Aux2" value="0.0"/>
+  <PARAM id="Reverb/Delay_Route_Aux3" value="0.0"/>
+  <PARAM id="Reverb/Delay_Route_Main" value="1.0"/>
+  <PARAM id="Reverb/Delay_Send_Parallel bus" value="-60.0"/>
+  <PARAM id="Reverb/Delay_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Reverb/Delay_Solo" value="0.0"/>
+  <PARAM id="Reverb/Delay_Width" value="1.0"/>
+  <PARAM id="Room mics_Comp_Attack" value="10.0"/>
+  <PARAM id="Room mics_Comp_Gain" value="0.0"/>
+  <PARAM id="Room mics_Comp_On" value="0.0"/>
+  <PARAM id="Room mics_Comp_PreGain" value="0.0"/>
+  <PARAM id="Room mics_Comp_Ratio" value="1.0"/>
+  <PARAM id="Room mics_Comp_Release" value="100.0"/>
+  <PARAM id="Room mics_Comp_Thresh" value="0.0"/>
+  <PARAM id="Room mics_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Room mics_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Room mics_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Room mics_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Room mics_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Room mics_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Room mics_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Room mics_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Room mics_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Room mics_EQ_HS_Freq" value="1808.0"/>
+  <PARAM id="Room mics_EQ_HS_Gain" value="-7.559999942779541"/>
+  <PARAM id="Room mics_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Room mics_EQ_LS_Gain" value="6.600000381469727"/>
+  <PARAM id="Room mics_EQ_On" value="1.0"/>
+  <PARAM id="Room mics_EQ_PostGain" value="0.0"/>
+  <PARAM id="Room mics_Level" value="-16.06000137329102"/>
+  <PARAM id="Room mics_Mute" value="0.0"/>
+  <PARAM id="Room mics_Order" value="0.0"/>
+  <PARAM id="Room mics_Pan" value="0.0"/>
+  <PARAM id="Room mics_Rev_DryGain" value="-60.0"/>
+  <PARAM id="Room mics_Rev_IR" value="2.0"/>
+  <PARAM id="Room mics_Rev_Length" value="1.0"/>
+  <PARAM id="Room mics_Rev_On" value="1.0"/>
+  <PARAM id="Room mics_Rev_Shape" value="0.0"/>
+  <PARAM id="Room mics_Rev_StartOffset" value="0.0"/>
+  <PARAM id="Room mics_Rev_WetGain" value="0.0"/>
+  <PARAM id="Room mics_Route_Aux1" value="0.0"/>
+  <PARAM id="Room mics_Route_Aux2" value="0.0"/>
+  <PARAM id="Room mics_Route_Aux3" value="0.0"/>
+  <PARAM id="Room mics_Route_Main" value="1.0"/>
+  <PARAM id="Room mics_Send_Parallel bus" value="-60.0"/>
+  <PARAM id="Room mics_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Room mics_Send_Reverb/Delay" value="-60.0"/>
+  <PARAM id="Room mics_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Room mics_Solo" value="0.0"/>
+  <PARAM id="Room mics_Tube_Bias" value="0.0"/>
+  <PARAM id="Room mics_Tube_Drive" value="0.0"/>
+  <PARAM id="Room mics_Tube_Model" value="0.0"/>
+  <PARAM id="Room mics_Tube_On" value="0.0"/>
+  <PARAM id="Room mics_Tube_Out" value="0.0"/>
+  <PARAM id="Snare_Azimuth" value="0.0"/>
+  <PARAM id="Snare_Comp_Attack" value="4.409999847412109"/>
+  <PARAM id="Snare_Comp_Gain" value="9.959999084472656"/>
+  <PARAM id="Snare_Comp_On" value="1.0"/>
+  <PARAM id="Snare_Comp_PreGain" value="0.0"/>
+  <PARAM id="Snare_Comp_Ratio" value="3.359999895095825"/>
+  <PARAM id="Snare_Comp_Release" value="100.0"/>
+  <PARAM id="Snare_Comp_Thresh" value="-20.40000152587891"/>
+  <PARAM id="Snare_EQ_B1_Freq" value="105.0"/>
+  <PARAM id="Snare_EQ_B1_Gain" value="6.840000152587891"/>
+  <PARAM id="Snare_EQ_B1_Q" value="0.4899999797344208"/>
+  <PARAM id="Snare_EQ_B2_Freq" value="242.7299957275391"/>
+  <PARAM id="Snare_EQ_B2_Gain" value="-15.0"/>
+  <PARAM id="Snare_EQ_B2_Q" value="10.0"/>
+  <PARAM id="Snare_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Snare_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Snare_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Snare_EQ_HS_Freq" value="2112.0"/>
+  <PARAM id="Snare_EQ_HS_Gain" value="4.799999237060547"/>
+  <PARAM id="Snare_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Snare_EQ_LS_Gain" value="0.0"/>
+  <PARAM id="Snare_EQ_On" value="1.0"/>
+  <PARAM id="Snare_EQ_PostGain" value="0.0"/>
+  <PARAM id="Snare_Elevation" value="0.0"/>
+  <PARAM id="Snare_Level" value="0.0"/>
+  <PARAM id="Snare_Mix" value="0.0"/>
+  <PARAM id="Snare_Mute" value="0.0"/>
+  <PARAM id="Snare_Order" value="0.0"/>
+  <PARAM id="Snare_Pan" value="0.0"/>
+  <PARAM id="Snare_Route_Aux1" value="0.0"/>
+  <PARAM id="Snare_Route_Aux2" value="0.0"/>
+  <PARAM id="Snare_Route_Aux3" value="0.0"/>
+  <PARAM id="Snare_Route_Main" value="1.0"/>
+  <PARAM id="Snare_Send_Parallel bus" value="-6.0"/>
+  <PARAM id="Snare_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Snare_Send_Reverb/Delay" value="-8.260002136230469"/>
+  <PARAM id="Snare_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Snare_Solo" value="0.0"/>
+  <PARAM id="Snare_Tube_Bias" value="0.0"/>
+  <PARAM id="Snare_Tube_Drive" value="0.0"/>
+  <PARAM id="Snare_Tube_Model" value="0.0"/>
+  <PARAM id="Snare_Tube_On" value="1.0"/>
+  <PARAM id="Snare_Tube_Out" value="2.369998931884766"/>
+  <PARAM id="Snare_Width" value="1.0"/>
+  <PARAM id="Tom High_Azimuth" value="0.0"/>
+  <PARAM id="Tom High_Comp_Attack" value="10.0"/>
+  <PARAM id="Tom High_Comp_Gain" value="0.0"/>
+  <PARAM id="Tom High_Comp_On" value="0.0"/>
+  <PARAM id="Tom High_Comp_PreGain" value="0.0"/>
+  <PARAM id="Tom High_Comp_Ratio" value="1.0"/>
+  <PARAM id="Tom High_Comp_Release" value="100.0"/>
+  <PARAM id="Tom High_Comp_Thresh" value="0.0"/>
+  <PARAM id="Tom High_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Tom High_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Tom High_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Tom High_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Tom High_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Tom High_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Tom High_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Tom High_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Tom High_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Tom High_EQ_HS_Freq" value="5000.0"/>
+  <PARAM id="Tom High_EQ_HS_Gain" value="0.0"/>
+  <PARAM id="Tom High_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Tom High_EQ_LS_Gain" value="0.0"/>
+  <PARAM id="Tom High_EQ_On" value="0.0"/>
+  <PARAM id="Tom High_EQ_PostGain" value="0.0"/>
+  <PARAM id="Tom High_Elevation" value="0.0"/>
+  <PARAM id="Tom High_Level" value="0.0"/>
+  <PARAM id="Tom High_Mix" value="0.0"/>
+  <PARAM id="Tom High_Mute" value="0.0"/>
+  <PARAM id="Tom High_Order" value="0.0"/>
+  <PARAM id="Tom High_Pan" value="0.0"/>
+  <PARAM id="Tom High_Route_Aux1" value="0.0"/>
+  <PARAM id="Tom High_Route_Aux2" value="0.0"/>
+  <PARAM id="Tom High_Route_Aux3" value="0.0"/>
+  <PARAM id="Tom High_Route_Main" value="1.0"/>
+  <PARAM id="Tom High_Send_Parallel bus" value="-6.0"/>
+  <PARAM id="Tom High_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Tom High_Send_Reverb/Delay" value="-6.94000244140625"/>
+  <PARAM id="Tom High_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Tom High_Solo" value="0.0"/>
+  <PARAM id="Tom High_Tube_Bias" value="0.0"/>
+  <PARAM id="Tom High_Tube_Drive" value="0.0"/>
+  <PARAM id="Tom High_Tube_Model" value="0.0"/>
+  <PARAM id="Tom High_Tube_On" value="0.0"/>
+  <PARAM id="Tom High_Tube_Out" value="0.0"/>
+  <PARAM id="Tom High_Width" value="1.0"/>
+  <PARAM id="Tom Low_Azimuth" value="0.0"/>
+  <PARAM id="Tom Low_Comp_Attack" value="10.0"/>
+  <PARAM id="Tom Low_Comp_Gain" value="0.0"/>
+  <PARAM id="Tom Low_Comp_On" value="0.0"/>
+  <PARAM id="Tom Low_Comp_PreGain" value="0.0"/>
+  <PARAM id="Tom Low_Comp_Ratio" value="1.0"/>
+  <PARAM id="Tom Low_Comp_Release" value="100.0"/>
+  <PARAM id="Tom Low_Comp_Thresh" value="0.0"/>
+  <PARAM id="Tom Low_EQ_B1_Freq" value="500.0"/>
+  <PARAM id="Tom Low_EQ_B1_Gain" value="0.0"/>
+  <PARAM id="Tom Low_EQ_B1_Q" value="1.0"/>
+  <PARAM id="Tom Low_EQ_B2_Freq" value="2000.0"/>
+  <PARAM id="Tom Low_EQ_B2_Gain" value="0.0"/>
+  <PARAM id="Tom Low_EQ_B2_Q" value="1.0"/>
+  <PARAM id="Tom Low_EQ_B3_Freq" value="3500.0"/>
+  <PARAM id="Tom Low_EQ_B3_Gain" value="0.0"/>
+  <PARAM id="Tom Low_EQ_B3_Q" value="1.0"/>
+  <PARAM id="Tom Low_EQ_HS_Freq" value="5000.0"/>
+  <PARAM id="Tom Low_EQ_HS_Gain" value="0.0"/>
+  <PARAM id="Tom Low_EQ_LS_Freq" value="100.0"/>
+  <PARAM id="Tom Low_EQ_LS_Gain" value="0.0"/>
+  <PARAM id="Tom Low_EQ_On" value="0.0"/>
+  <PARAM id="Tom Low_EQ_PostGain" value="0.0"/>
+  <PARAM id="Tom Low_Elevation" value="0.0"/>
+  <PARAM id="Tom Low_Level" value="0.0"/>
+  <PARAM id="Tom Low_Mix" value="0.0"/>
+  <PARAM id="Tom Low_Mute" value="0.0"/>
+  <PARAM id="Tom Low_Order" value="0.0"/>
+  <PARAM id="Tom Low_Pan" value="0.0"/>
+  <PARAM id="Tom Low_Route_Aux1" value="0.0"/>
+  <PARAM id="Tom Low_Route_Aux2" value="0.0"/>
+  <PARAM id="Tom Low_Route_Aux3" value="0.0"/>
+  <PARAM id="Tom Low_Route_Main" value="1.0"/>
+  <PARAM id="Tom Low_Send_Parallel bus" value="-6.0"/>
+  <PARAM id="Tom Low_Send_Parallel bus_Pre" value="0.0"/>
+  <PARAM id="Tom Low_Send_Reverb/Delay" value="-9.049999237060547"/>
+  <PARAM id="Tom Low_Send_Reverb/Delay_Pre" value="0.0"/>
+  <PARAM id="Tom Low_Solo" value="0.0"/>
+  <PARAM id="Tom Low_Tube_Bias" value="0.0"/>
+  <PARAM id="Tom Low_Tube_Drive" value="0.0"/>
+  <PARAM id="Tom Low_Tube_Model" value="0.0"/>
+  <PARAM id="Tom Low_Tube_On" value="0.0"/>
+  <PARAM id="Tom Low_Tube_Out" value="0.0"/>
+  <PARAM id="Tom Low_Width" value="1.0"/>
+</Parameters>

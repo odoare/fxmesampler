@@ -11,14 +11,45 @@ The instrument's architecture is defined by a `mapping.xml` file embedded in the
 *   **Mixer Layout:** Definition of strips, buses, and effect chains.
 *   **UI Customization:** Colors, icons, and welcome screen.
 
+## Installation
+
+Download the latest release from the [Releases](../../releases) page and follow the instructions for your platform.
+
+### macOS
+
+1. Download `SimpleSampler-macOS.pkg`.
+2. Double-click to run the installer — it copies the VST3 to `/Library/Audio/Plug-Ins/VST3/` and the AU to `/Library/Audio/Plug-Ins/Components/`.
+3. Because the plugin is not notarized, macOS will block it on first use. Go to **System Settings → Privacy & Security** and click **Allow Anyway**.
+4. Restart your DAW. Logic Pro users may need to trigger a rescan in **Logic Pro → Plug-in Manager**.
+
+### Windows
+
+1. Download `SimpleSampler-Windows-Setup.exe`.
+2. Right-click and choose **Run as administrator**, then follow the installer steps — it copies the VST3 to `C:\Program Files\Common Files\VST3\`.
+3. In Reaper, go to **Options → Preferences → Plug-ins → VST** and click **Re-scan** to detect the new plugin.
+
+### Linux
+
+1. Download `SimpleSampler-VST3-Linux-x86_64.zip` (or `-arm64` for ARM systems).
+2. Unzip and copy the `.vst3` bundle to `~/.vst3/`:
+   ```bash
+   unzip SimpleSampler-VST3-Linux-x86_64.zip
+   cp -r VST3/SimpleSampler.vst3 ~/.vst3/
+   ```
+3. In Reaper, go to **Options → Preferences → Plug-ins → VST** and click **Re-scan**.
+
 ## Building
 
-This project is built using the JUCE framework.
+This project uses CMake and requires JUCE 8 as a sibling directory (`../JUCE`) and the [FxmeJuceTools](https://github.com/odoare/FxmeJuceTools) module installed at `../JUCE/usermodules/FxmeJuceTools`.
 
-1.  Open the `.jucer` file in the Projucer.
-2.  Ensure all audio samples and images referenced in `mapping.xml` are added to the **Binary Data** section in Projucer.
-3.  Save the project to generate build files for your IDE (Xcode, Visual Studio, Makefile, etc.).
-4.  Build the `FxmeSampler` target.
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --parallel
+```
+
+Artefacts are written to `build/SimpleSampler_artefacts/Release/`.
+
+> **Note:** The embedded demo kit files (wav samples and mapping.xml) currently live under `MyKits/FakeAmbixKit/Data/`, which is gitignored. Move them to a tracked location and update the paths in `CMakeLists.txt` before running CI builds.
 
 ## Configuration: `mapping.xml`
 

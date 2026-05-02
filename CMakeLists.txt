@@ -17,5 +17,20 @@ add_subdirectory(../JUCE JUCE)
 juce_add_module(../JUCE/usermodules/FxmeJuceTools)
 
 # ── Kit plugins ────────────────────────────────────────────────────────────
-add_subdirectory(Kits/BlackWidow)
-add_subdirectory(Kits/Century)
+# Build all kits by default. To build a single kit:
+#   cmake -B build -DKIT=BlackWidow
+#   cmake -B build -DKIT=Century
+set(KIT "" CACHE STRING "Build only this kit (leave empty to build all)")
+
+set(_all_kits BlackWidow Century)
+
+if(KIT STREQUAL "")
+    foreach(_kit IN LISTS _all_kits)
+        add_subdirectory(Kits/${_kit})
+    endforeach()
+else()
+    if(NOT "${KIT}" IN_LIST _all_kits)
+        message(FATAL_ERROR "Unknown KIT '${KIT}'. Valid values: ${_all_kits}")
+    endif()
+    add_subdirectory(Kits/${KIT})
+endif()

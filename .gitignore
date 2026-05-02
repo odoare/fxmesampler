@@ -5,3 +5,8 @@
 **/wav/reaper_testproject/reaper_testplug/Backups
 **/wav/reaper_testproject/Backups
 **/MyKits
+/build/
+/packaging/windows/SimpleSampler.vst3
+/packaging/windows/SimpleSampler-Windows-Setup.exe
+/JUCE
+/CMakeFiles

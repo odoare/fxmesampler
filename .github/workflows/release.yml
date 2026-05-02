@@ -1,0 +1,274 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  # ── Linux x86_64 ──────────────────────────────────────────────────────────
+  build-linux-x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libasound2-dev libx11-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libfreetype-dev libfontconfig1-dev libgl1-mesa-dev
+
+      - uses: actions/checkout@v4
+        with:
+          path: SimpleSampler
+
+      - uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: 8.0.12
+          path: JUCE
+
+      - name: Checkout FxmeJuceTools
+        uses: actions/checkout@v4
+        with:
+          repository: odoare/FxmeJuceTools
+          path: _fxme_tmp
+
+      - name: Install FxmeJuceTools module
+        shell: bash
+        run: |
+          mkdir -p JUCE/usermodules
+          mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
+
+      - name: Configure & Build
+        run: |
+          cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
+          cmake --build SimpleSampler/build --config Release --parallel
+
+      - name: Package
+        run: |
+          mkdir -p vst3_staging
+          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3" vst3_staging/
+          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3" vst3_staging/
+          zip -r ${{ github.workspace }}/FxmeSampler-VST3-Linux-x86_64.zip vst3_staging/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: FxmeSampler-VST3-Linux-x86_64.zip
+
+  # ── Linux arm64 ───────────────────────────────────────────────────────────
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libasound2-dev libx11-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libfreetype-dev libfontconfig1-dev libgl1-mesa-dev
+
+      - uses: actions/checkout@v4
+        with:
+          path: SimpleSampler
+
+      - uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: 8.0.12
+          path: JUCE
+
+      - name: Checkout FxmeJuceTools
+        uses: actions/checkout@v4
+        with:
+          repository: odoare/FxmeJuceTools
+          path: _fxme_tmp
+
+      - name: Install FxmeJuceTools module
+        shell: bash
+        run: |
+          mkdir -p JUCE/usermodules
+          mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
+
+      - name: Configure & Build
+        run: |
+          cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
+          cmake --build SimpleSampler/build --config Release --parallel
+
+      - name: Package
+        run: |
+          mkdir -p vst3_staging
+          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3" vst3_staging/
+          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3" vst3_staging/
+          zip -r ${{ github.workspace }}/FxmeSampler-VST3-Linux-arm64.zip vst3_staging/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: FxmeSampler-VST3-Linux-arm64.zip
+
+  # ── Windows x86_64 ────────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: SimpleSampler
+
+      - uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: 8.0.12
+          path: JUCE
+
+      - name: Checkout FxmeJuceTools
+        uses: actions/checkout@v4
+        with:
+          repository: odoare/FxmeJuceTools
+          path: _fxme_tmp
+
+      - name: Install FxmeJuceTools module
+        shell: bash
+        run: |
+          mkdir -p JUCE/usermodules
+          mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
+
+      - name: Configure & Build
+        run: |
+          cmake -B SimpleSampler/build -S SimpleSampler -G "Visual Studio 17 2022"
+          cmake --build SimpleSampler/build --config Release --parallel
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Build installers
+        shell: bash
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          NSIS="/c/Program Files (x86)/NSIS/makensis.exe"
+          PKG_DIR="${{ github.workspace }}/SimpleSampler/packaging/windows"
+          BUILD_DIR="${{ github.workspace }}/SimpleSampler/build"
+
+          # Black Widow Drums
+          cp -r "$BUILD_DIR/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3" "$PKG_DIR/"
+          pushd "$PKG_DIR"
+          "$NSIS" -DAPPNAME="Black Widow Drums" -DSLUGNAME=BlackWidowDrums "-DPLUGFILE=Black Widow Drums.vst3" -DVERSION="$VERSION" installer.nsi
+          rm -rf "Black Widow Drums.vst3"
+          popd
+
+          # Century Drums
+          cp -r "$BUILD_DIR/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3" "$PKG_DIR/"
+          pushd "$PKG_DIR"
+          "$NSIS" -DAPPNAME=CenturyDrums -DSLUGNAME=CenturyDrums -DPLUGFILE=CenturyDrums.vst3 -DVERSION="$VERSION" installer.nsi
+          popd
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installers
+          path: |
+            SimpleSampler/packaging/windows/BlackWidowDrums-Windows-Setup.exe
+            SimpleSampler/packaging/windows/CenturyDrums-Windows-Setup.exe
+
+  # ── macOS universal (arm64 + x86_64) ──────────────────────────────────────
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: SimpleSampler
+
+      - uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: 8.0.12
+          path: JUCE
+
+      - name: Checkout FxmeJuceTools
+        uses: actions/checkout@v4
+        with:
+          repository: odoare/FxmeJuceTools
+          path: _fxme_tmp
+
+      - name: Install FxmeJuceTools module
+        shell: bash
+        run: |
+          mkdir -p JUCE/usermodules
+          mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
+
+      - name: Configure & Build
+        run: |
+          cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
+          cmake --build SimpleSampler/build --config Release --parallel
+
+      - name: Verify universal binaries
+        run: |
+          lipo -info "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3/Contents/MacOS/Black Widow Drums"
+          lipo -info "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3/Contents/MacOS/CenturyDrums"
+
+      - name: Build pkg installer
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          mkdir -p pkg_root/Library/Audio/Plug-Ins/VST3
+          mkdir -p pkg_root/Library/Audio/Plug-Ins/Components
+          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3" \
+                "pkg_root/Library/Audio/Plug-Ins/VST3/"
+          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3" \
+                "pkg_root/Library/Audio/Plug-Ins/VST3/"
+          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/AU/Black Widow Drums.component" \
+                "pkg_root/Library/Audio/Plug-Ins/Components/"
+          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/AU/CenturyDrums.component" \
+                "pkg_root/Library/Audio/Plug-Ins/Components/"
+          pkgbuild \
+            --root pkg_root \
+            --identifier com.fxmechanics.FxmeSampler \
+            --version "$VERSION" \
+            --install-location / \
+            FxmeSampler-macOS.pkg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-pkg
+          path: FxmeSampler-macOS.pkg
+
+      - name: Package VST3 and AU zips
+        run: |
+          mkdir -p vst3_staging au_staging
+          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3" vst3_staging/
+          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3" vst3_staging/
+          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/AU/Black Widow Drums.component" au_staging/
+          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/AU/CenturyDrums.component" au_staging/
+          zip -r ${{ github.workspace }}/FxmeSampler-VST3-macOS-universal.zip vst3_staging/
+          zip -r ${{ github.workspace }}/FxmeSampler-AU-macOS-universal.zip au_staging/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-vst3
+          path: FxmeSampler-VST3-macOS-universal.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-au
+          path: FxmeSampler-AU-macOS-universal.zip
+
+  # ── Publish GitHub Release ────────────────────────────────────────────────
+  release:
+    needs: [build-linux-x86_64, build-linux-arm64, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artefacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.zip
+            artifacts/*.pkg
+            artifacts/*.exe
+          generate_release_notes: true

@@ -154,6 +154,14 @@ juce_add_binary_data(CenturyDrumsBinaryData SOURCES
     "Data/wav/TOMH TOMH 08 0 47 47 47.wav"
 )
 
+# Embedded WAV arrays are huge; optimizing/LTO-ing byte arrays wastes RAM and
+# can OOM the machine. Nothing to optimize here.
+set_target_properties(CenturyDrumsBinaryData PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION OFF)
+target_compile_options(CenturyDrumsBinaryData PRIVATE
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O0 -fno-lto>
+    $<$<CXX_COMPILER_ID:MSVC>:/Od>)
+
 target_sources(CenturyDrums PRIVATE
     # Shared engine — relative to this kit directory
     ../../Source/AmbixToMS.cpp

@@ -90,6 +90,14 @@ juce_add_binary_data(BlackWidowDrumsBinaryData SOURCES
     data/wav/Room\ IR2.wav
 )
 
+# Embedded WAV arrays are huge; optimizing/LTO-ing byte arrays wastes RAM and
+# can OOM the machine. Nothing to optimize here.
+set_target_properties(BlackWidowDrumsBinaryData PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION OFF)
+target_compile_options(BlackWidowDrumsBinaryData PRIVATE
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O0 -fno-lto>
+    $<$<CXX_COMPILER_ID:MSVC>:/Od>)
+
 target_sources(BlackWidowDrums PRIVATE
     # Shared engine — relative to this kit directory
     ../../Source/AmbixToMS.cpp

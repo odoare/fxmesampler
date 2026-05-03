@@ -187,9 +187,15 @@ void FxmeSamplerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (int i = 0; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
-    // Resize buffer if needed (e.g. if XML loaded after prepareToPlay)
+    // Resize buffer if needed (e.g. if XML loaded after prepareToPlay).
+    // avoidReallocating=true keeps the audio thread allocation-free: the buffer
+    // was sized to the worst case in prepareToPlay, so this should be a no-op
+    // unless the host changes block size mid-session.
     if (samplerOutputBuffer.getNumChannels() != sampler.getNumOutputChannels() || samplerOutputBuffer.getNumSamples() != buffer.getNumSamples())
-        samplerOutputBuffer.setSize(sampler.getNumOutputChannels(), buffer.getNumSamples());
+        samplerOutputBuffer.setSize(sampler.getNumOutputChannels(), buffer.getNumSamples(),
+                                    /*keepExistingContent*/ false,
+                                    /*clearExtraSpace*/     false,
+                                    /*avoidReallocating*/   true);
 
     double bpm = 120.0;
     if (auto* ph = getPlayHead())

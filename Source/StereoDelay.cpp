@@ -175,7 +175,6 @@ void StereoDelay::checkParameters()
 
 void StereoDelay::setBPM(double bpm)
 {
-    std::cout << "BPM: " << bpm << std::endl;
     if (currentBPM != bpm)
     {
         currentBPM = bpm;

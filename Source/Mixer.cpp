@@ -291,7 +291,6 @@ void Mixer::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParamete
 
 void Mixer::setBPM(double bpm)
 {
-    juce::ScopedLock sl (lock);
     for (auto& strip : strips)
         strip->setBPM(bpm);
     masterStrip.setBPM(bpm);

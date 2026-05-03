@@ -27,6 +27,12 @@ void FrequencyResponseGraph::setReferences (juce::Slider& lsF, juce::Slider& lsG
     hsFreq = &hsF; hsGain = &hsG;
     postGain = &postG;
     onBtn = &onB;
+
+    handles[0] = { lsFreq, lsGain, nullptr, juce::Colour::fromRGB (100, 180, 255), "L" };
+    handles[1] = { b1Freq, b1Gain, b1Q,     juce::Colour::fromRGB (255, 220,   0), "1" };
+    handles[2] = { b2Freq, b2Gain, b2Q,     juce::Colour::fromRGB ( 80, 220,  80), "2" };
+    handles[3] = { b3Freq, b3Gain, b3Q,     juce::Colour::fromRGB (255, 140,   0), "3" };
+    handles[4] = { hsFreq, hsGain, nullptr, juce::Colour::fromRGB (255,  80, 180), "H" };
     updateCurve();
 }
 
@@ -41,6 +47,43 @@ static double getMagnitude (double b0, double b1, double b2, double a1, double a
     std::complex<double> num = b0 + b1 * z_1 + b2 * z_2;
     std::complex<double> den = 1.0 + a1 * z_1 + a2 * z_2;
     return std::abs(num) / std::abs(den);
+}
+
+float FrequencyResponseGraph::freqToX (double freq) const noexcept
+{
+    return (float) (getWidth() * std::log (freq / 20.0) / std::log (20000.0 / 20.0));
+}
+
+double FrequencyResponseGraph::xToFreq (float x) const noexcept
+{
+    return 20.0 * std::pow (20000.0 / 20.0, (double) x / getWidth());
+}
+
+float FrequencyResponseGraph::gainToY (double gainDb) const noexcept
+{
+    return (float) juce::jmap (gainDb, -24.0, 24.0, (double) getHeight(), 0.0);
+}
+
+double FrequencyResponseGraph::yToGain (float y) const noexcept
+{
+    return juce::jmap ((double) y, 0.0, (double) getHeight(), 24.0, -24.0);
+}
+
+juce::Rectangle<float> FrequencyResponseGraph::getHandleRect (int i) const noexcept
+{
+    if (handles[i].freqSlider == nullptr) return {};
+    constexpr float size = 14.0f;
+    float x = freqToX (handles[i].freqSlider->getValue());
+    float y = gainToY (handles[i].gainSlider->getValue());
+    return { x - size * 0.5f, y - size * 0.5f, size, size };
+}
+
+int FrequencyResponseGraph::findHandleAt (juce::Point<int> pos) const noexcept
+{
+    for (int i = 0; i < 5; ++i)
+        if (handles[i].freqSlider != nullptr && getHandleRect (i).expanded (5.0f).contains (pos.toFloat()))
+            return i;
+    return -1;
 }
 
 void FrequencyResponseGraph::updateCurve()
@@ -110,12 +153,10 @@ void FrequencyResponseGraph::updateCurve()
     double b0_hs, b1_hs, b2_hs, a1_hs, a2_hs;
     calcCoeffs (hsFreq->getValue(), 0.0, hsGain->getValue(), 2, b0_hs, b1_hs, b2_hs, a1_hs, a2_hs);
 
-    double globalGain = juce::Decibels::decibelsToGain (postGain->getValue());
-
     for (int x = 0; x < w; ++x)
     {
         double freq = 20.0 * std::pow (20000.0 / 20.0, x / (double) w);
-        double mag = globalGain;
+        double mag = 1.0;
         mag *= getMagnitude (b0_ls, b1_ls, b2_ls, a1_ls, a2_ls, freq, sr);
         mag *= getMagnitude (b0_b1, b1_b1, b2_b1, a1_b1, a2_b1, freq, sr);
         mag *= getMagnitude (b0_b2, b1_b2, b2_b2, a1_b2, a2_b2, freq, sr);
@@ -128,6 +169,28 @@ void FrequencyResponseGraph::updateCurve()
         if (x == 0) curvePath.startNewSubPath ((float) x, (float) y);
         else        curvePath.lineTo ((float) x, (float) y);
     }
+
+    auto computeBandPath = [&](juce::Path& path,
+                               double bb0, double bb1, double bb2, double aa1, double aa2)
+    {
+        path.clear();
+        for (int x = 0; x < w; ++x)
+        {
+            double freq = 20.0 * std::pow (20000.0 / 20.0, x / (double) w);
+            double bandMag = getMagnitude (bb0, bb1, bb2, aa1, aa2, freq, sr);
+            double bandDb = juce::Decibels::gainToDecibels (bandMag);
+            double y = juce::jmap (bandDb, -24.0, 24.0, (double) getHeight(), 0.0);
+            if (x == 0) path.startNewSubPath ((float) x, (float) y);
+            else        path.lineTo ((float) x, (float) y);
+        }
+    };
+
+    computeBandPath (bandPaths[0], b0_ls, b1_ls, b2_ls, a1_ls, a2_ls);
+    computeBandPath (bandPaths[1], b0_b1, b1_b1, b2_b1, a1_b1, a2_b1);
+    computeBandPath (bandPaths[2], b0_b2, b1_b2, b2_b2, a1_b2, a2_b2);
+    computeBandPath (bandPaths[3], b0_b3, b1_b3, b2_b3, a1_b3, a2_b3);
+    computeBandPath (bandPaths[4], b0_hs, b1_hs, b2_hs, a1_hs, a2_hs);
+
     repaint();
 }
 
@@ -158,12 +221,96 @@ void FrequencyResponseGraph::paint (juce::Graphics& g)
         g.drawHorizontalLine ((int) y, 0.0f, (float) getWidth());
     }
 
-    if (onBtn && onBtn->getToggleState())
-        g.setColour (juce::Colours::cyan);
-    else
-        g.setColour (juce::Colours::grey);
+    bool eqOn = (onBtn && onBtn->getToggleState());
+
+    for (int i = 0; i < 5; ++i)
+    {
+        juce::Colour c = eqOn ? handles[i].colour : juce::Colours::grey;
+        g.setColour (c.withAlpha (0.5f));
+        g.strokePath (bandPaths[i], juce::PathStrokeType (1.0f));
+    }
+
+    g.setColour (eqOn ? juce::Colours::cyan : juce::Colours::grey);
     g.strokePath (curvePath, juce::PathStrokeType (2.0f));
+
+    for (int i = 0; i < 5; ++i)
+    {
+        if (handles[i].freqSlider == nullptr) continue;
+        auto rect = getHandleRect (i);
+        bool hovered = (i == hoveredHandle);
+        bool dragged = (i == draggedHandle);
+
+        float alpha = dragged ? 1.0f : (hovered ? 0.9f : 0.65f);
+        g.setColour (handles[i].colour.withAlpha (alpha));
+        g.fillRect (rect);
+        g.setColour (juce::Colours::white.withAlpha (alpha));
+        g.drawRect (rect, 1.5f);
+
+        g.setFont (juce::Font (8.0f, juce::Font::bold));
+        g.setColour (juce::Colours::black.withAlpha (alpha));
+        g.drawFittedText (handles[i].label, rect.toNearestInt(), juce::Justification::centred, 1);
+    }
+
     g.drawRect (getLocalBounds(), 1);
+}
+
+void FrequencyResponseGraph::mouseDown (const juce::MouseEvent& e)
+{
+    draggedHandle = findHandleAt (e.getPosition());
+    repaint();
+}
+
+void FrequencyResponseGraph::mouseDrag (const juce::MouseEvent& e)
+{
+    if (draggedHandle < 0) return;
+    auto& h = handles[draggedHandle];
+
+    double newFreq = juce::jlimit (h.freqSlider->getMinimum(), h.freqSlider->getMaximum(),
+                                   xToFreq ((float) e.x));
+    h.freqSlider->setValue (newFreq, juce::sendNotification);
+
+    double newGain = juce::jlimit (h.gainSlider->getMinimum(), h.gainSlider->getMaximum(),
+                                   yToGain ((float) e.y));
+    h.gainSlider->setValue (newGain, juce::sendNotification);
+}
+
+void FrequencyResponseGraph::mouseUp (const juce::MouseEvent&)
+{
+    draggedHandle = -1;
+    repaint();
+}
+
+void FrequencyResponseGraph::mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel)
+{
+    int h = findHandleAt (e.getPosition());
+    if (h >= 0 && handles[h].qSlider != nullptr)
+    {
+        double q = handles[h].qSlider->getValue();
+        q = juce::jlimit (handles[h].qSlider->getMinimum(), handles[h].qSlider->getMaximum(),
+                          q + (double) wheel.deltaY * 1.5);
+        handles[h].qSlider->setValue (q, juce::sendNotification);
+    }
+}
+
+void FrequencyResponseGraph::mouseMove (const juce::MouseEvent& e)
+{
+    int h = findHandleAt (e.getPosition());
+    if (h != hoveredHandle)
+    {
+        hoveredHandle = h;
+        repaint();
+        setMouseCursor (h >= 0 ? juce::MouseCursor::CrosshairCursor : juce::MouseCursor::NormalCursor);
+    }
+}
+
+void FrequencyResponseGraph::mouseExit (const juce::MouseEvent&)
+{
+    if (hoveredHandle >= 0)
+    {
+        hoveredHandle = -1;
+        repaint();
+        setMouseCursor (juce::MouseCursor::NormalCursor);
+    }
 }
 
 //==============================================================================

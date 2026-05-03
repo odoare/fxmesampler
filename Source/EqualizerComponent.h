@@ -46,13 +46,24 @@ public:
                         juce::Slider& postG,
                         juce::ToggleButton& onB);
     void paint (juce::Graphics& g) override;
-
-    /**
-     * @brief Updates the curve path based on current slider values.
-     */
     void updateCurve();
 
+    void mouseDown (const juce::MouseEvent& e) override;
+    void mouseDrag (const juce::MouseEvent& e) override;
+    void mouseUp (const juce::MouseEvent& e) override;
+    void mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) override;
+    void mouseMove (const juce::MouseEvent& e) override;
+    void mouseExit (const juce::MouseEvent& e) override;
+
 private:
+    struct BandHandle {
+        juce::Slider* freqSlider = nullptr;
+        juce::Slider* gainSlider = nullptr;
+        juce::Slider* qSlider = nullptr; // nullptr for shelf bands
+        juce::Colour colour;
+        const char* label = "";
+    };
+
     juce::Slider *lsFreq = nullptr, *lsGain = nullptr;
     juce::Slider *b1Freq = nullptr, *b1Q = nullptr, *b1Gain = nullptr;
     juce::Slider *b2Freq = nullptr, *b2Q = nullptr, *b2Gain = nullptr;
@@ -62,6 +73,18 @@ private:
     juce::ToggleButton* onBtn = nullptr;
 
     juce::Path curvePath;
+    std::array<juce::Path, 5> bandPaths;
+
+    std::array<BandHandle, 5> handles;
+    int draggedHandle = -1;
+    int hoveredHandle = -1;
+
+    float freqToX (double freq) const noexcept;
+    double xToFreq (float x) const noexcept;
+    float gainToY (double gainDb) const noexcept;
+    double yToGain (float y) const noexcept;
+    juce::Rectangle<float> getHandleRect (int index) const noexcept;
+    int findHandleAt (juce::Point<int> pos) const noexcept;
 };
 
 /**

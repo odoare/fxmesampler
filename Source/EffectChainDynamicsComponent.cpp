@@ -9,10 +9,11 @@
 #include "EffectChainDynamicsComponent.h"
 
 EffectChainDynamicsComponent::EffectChainDynamicsComponent (EffectChainDynamics& c, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix)
-    : chain (c), 
-      eqComp (c.getEQ(), apvts, prefix), 
-      compComp (c.getComp(), apvts, prefix), 
-      tubeComp (c.getTube(), apvts, prefix)
+    : chain (c),
+      eqComp (c.getEQ(), apvts, prefix),
+      compComp (c.getComp(), apvts, prefix),
+      tubeComp (c.getTube(), apvts, prefix),
+      transComp (c.getTransient(), apvts, prefix)
 {
     addAndMakeVisible (orderBox);
     orderBox.addItem ("EQ -> Comp -> Tube", 1);
@@ -26,6 +27,7 @@ EffectChainDynamicsComponent::EffectChainDynamicsComponent (EffectChainDynamics&
     addAndMakeVisible (eqComp);
     addAndMakeVisible (compComp);
     addAndMakeVisible (tubeComp);
+    addAndMakeVisible (transComp);
 }
 
 void EffectChainDynamicsComponent::resized()
@@ -37,6 +39,7 @@ void EffectChainDynamicsComponent::resized()
     fb1.flexDirection = juce::FlexBox::Direction::column;
     fb2.flexDirection = juce::FlexBox::Direction::row;       
     
+    fb1.items.add(fi(transComp).withFlex(1.0f).withMargin(juce::FlexItem::Margin(3.f, 3.f, 6.f, 6.f)));
     fb1.items.add(fi(compComp).withFlex(1.2f).withMargin(juce::FlexItem::Margin(3.f, 3.f, 6.f, 6.f)));
     fb1.items.add(fi(tubeComp).withFlex(0.8f).withMargin(juce::FlexItem::Margin(3.f, 6.f, 6.f, 3.f)));
     

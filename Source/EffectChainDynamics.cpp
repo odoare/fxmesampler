@@ -17,6 +17,7 @@ void EffectChainDynamics::prepare (double sampleRate, int samplesPerBlock, int n
     eq.prepare (sampleRate, numChannels);
     comp.prepare (sampleRate, numChannels);
     tube.prepare (sampleRate);
+    trans.prepare (sampleRate, numChannels);
     juce::ignoreUnused (samplesPerBlock);
 }
 
@@ -26,6 +27,7 @@ void EffectChainDynamics::assignParameters (juce::AudioProcessorValueTreeState& 
     eq.assignParameters (apvts, prefix);
     comp.assignParameters (apvts, prefix);
     tube.assignParameters (apvts, prefix);
+    trans.assignParameters (apvts, prefix);
 }
 
 void EffectChainDynamics::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
@@ -42,6 +44,7 @@ void EffectChainDynamics::addParameters (std::vector<std::unique_ptr<juce::Range
     Equalizer::addParameters (params, prefix);
     Compressor::addParameters (params, prefix);
     Tube::addParameters (params, prefix);
+    Transient::addParameters (params, prefix);
 }
 
 void EffectChainDynamics::checkParameters()
@@ -49,11 +52,15 @@ void EffectChainDynamics::checkParameters()
     eq.checkParameters();
     comp.checkParameters();
     tube.checkParameters();
+    trans.checkParameters();
 }
 
 void EffectChainDynamics::process (juce::AudioBuffer<float>& buffer)
 {
     checkParameters();
+
+    // Transient shaper runs first — most musical position before EQ/Comp/Tube.
+    trans.process (buffer);
 
     int order = 0;
     if (orderParam) order = (int) *orderParam;

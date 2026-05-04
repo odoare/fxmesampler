@@ -126,6 +126,8 @@ target_sources(BlackWidowDrums PRIVATE
     ../../Source/SampleGroupComponent.cpp
     ../../Source/StereoDelay.cpp
     ../../Source/StereoDelayComponent.cpp
+    ../../Source/Transient.cpp
+    ../../Source/TransientComponent.cpp
     ../../Source/Tube.cpp
     ../../Source/TubeComponent.cpp
     ../../Source/VuMeter.cpp

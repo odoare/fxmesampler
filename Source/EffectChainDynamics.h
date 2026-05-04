@@ -11,6 +11,7 @@
 #include "EffectChain.h"
 #include "Equalizer.h"
 #include "Compressor.h"
+#include "Transient.h"
 #include "Tube.h"
 #include <atomic>
 
@@ -27,11 +28,13 @@ public:
     Equalizer& getEQ() { return eq; }
     Compressor& getComp() { return comp; }
     Tube& getTube() { return tube; }
+    Transient& getTransient() { return trans; }
 
 private:
     Equalizer eq;
     Compressor comp;
     Tube tube;
+    Transient trans;
     std::atomic<float>* orderParam = nullptr;
 
     void checkParameters();

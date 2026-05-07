@@ -9,80 +9,61 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <array>
 #include "Equalizer.h"
 
 /**
  * @class FrequencyResponseGraph
- * @brief Component that draws the frequency response curve of the equalizer.
+ * @brief Component that draws the frequency response curve of the equalizer
+ *        and per-band response curves with draggable handles.
  */
 class FrequencyResponseGraph : public juce::Component
 {
 public:
     FrequencyResponseGraph() = default;
 
-    /**
-     * @brief Sets references to the sliders controlling the EQ parameters.
-     * @param lsF Low Shelf Frequency slider.
-     * @param lsG Low Shelf Gain slider.
-     * @param b1F Band 1 Frequency slider.
-     * @param b1Q Band 1 Q slider.
-     * @param b1G Band 1 Gain slider.
-     * @param b2F Band 2 Frequency slider.
-     * @param b2Q Band 2 Q slider.
-     * @param b2G Band 2 Gain slider.
-     * @param b3F Band 3 Frequency slider.
-     * @param b3Q Band 3 Q slider.
-     * @param b3G Band 3 Gain slider.
-     * @param hsF High Shelf Frequency slider.
-     * @param hsG High Shelf Gain slider.
-     * @param postG Post Gain slider.
-     * @param onB On/Off button.
-     */
-    void setReferences (juce::Slider& lsF, juce::Slider& lsG,
-                        juce::Slider& b1F, juce::Slider& b1Q, juce::Slider& b1G,
-                        juce::Slider& b2F, juce::Slider& b2Q, juce::Slider& b2G,
-                        juce::Slider& b3F, juce::Slider& b3Q, juce::Slider& b3G,
-                        juce::Slider& hsF, juce::Slider& hsG,
+    /** Per-band references the graph reads to compute the response. */
+    struct BandRefs
+    {
+        juce::ComboBox* type = nullptr;
+        juce::Slider*   freq = nullptr;
+        juce::Slider*   q    = nullptr;
+        juce::Slider*   gain = nullptr;
+        juce::Colour    colour;
+        const char*     label = "";
+    };
+
+    void setReferences (std::array<BandRefs, Equalizer::NumBands> bands,
                         juce::Slider& postG,
                         juce::ToggleButton& onB);
+
     void paint (juce::Graphics& g) override;
     void updateCurve();
 
-    void mouseDown (const juce::MouseEvent& e) override;
-    void mouseDrag (const juce::MouseEvent& e) override;
-    void mouseUp (const juce::MouseEvent& e) override;
+    void mouseDown      (const juce::MouseEvent& e) override;
+    void mouseDrag      (const juce::MouseEvent& e) override;
+    void mouseUp        (const juce::MouseEvent& e) override;
     void mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) override;
-    void mouseMove (const juce::MouseEvent& e) override;
-    void mouseExit (const juce::MouseEvent& e) override;
+    void mouseMove      (const juce::MouseEvent& e) override;
+    void mouseExit      (const juce::MouseEvent& e) override;
 
 private:
-    struct BandHandle {
-        juce::Slider* freqSlider = nullptr;
-        juce::Slider* gainSlider = nullptr;
-        juce::Slider* qSlider = nullptr; // nullptr for shelf bands
-        juce::Colour colour;
-        const char* label = "";
-    };
+    std::array<BandRefs, Equalizer::NumBands> bands;
+    juce::Slider*       postGain = nullptr;
+    juce::ToggleButton* onBtn    = nullptr;
 
-    juce::Slider *lsFreq = nullptr, *lsGain = nullptr;
-    juce::Slider *b1Freq = nullptr, *b1Q = nullptr, *b1Gain = nullptr;
-    juce::Slider *b2Freq = nullptr, *b2Q = nullptr, *b2Gain = nullptr;
-    juce::Slider *b3Freq = nullptr, *b3Q = nullptr, *b3Gain = nullptr;
-    juce::Slider *hsFreq = nullptr, *hsGain = nullptr;
-    juce::Slider *postGain = nullptr;
-    juce::ToggleButton* onBtn = nullptr;
+    juce::Path                                          curvePath;
+    std::array<juce::Path, Equalizer::NumBands>         bandPaths;
 
-    juce::Path curvePath;
-    std::array<juce::Path, 5> bandPaths;
-
-    std::array<BandHandle, 5> handles;
     int draggedHandle = -1;
     int hoveredHandle = -1;
 
-    float freqToX (double freq) const noexcept;
-    double xToFreq (float x) const noexcept;
+    Equalizer::BandType getBandType (int i) const noexcept;
+
+    float freqToX (double freq)  const noexcept;
+    double xToFreq (float x)     const noexcept;
     float gainToY (double gainDb) const noexcept;
-    double yToGain (float y) const noexcept;
+    double yToGain (float y)     const noexcept;
     juce::Rectangle<float> getHandleRect (int index) const noexcept;
     int findHandleAt (juce::Point<int> pos) const noexcept;
 };
@@ -94,13 +75,9 @@ private:
 class EqualizerComponent : public juce::Component
 {
 public:
-    /**
-     * @brief Constructor.
-     * @param equalizerToControl The Equalizer instance.
-     * @param apvts The APVTS.
-     * @param prefix The parameter ID prefix.
-     */
-    EqualizerComponent (Equalizer& equalizerToControl, juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
+    EqualizerComponent (Equalizer& equalizerToControl,
+                        juce::AudioProcessorValueTreeState& apvts,
+                        const juce::String& prefix);
     ~EqualizerComponent() override;
 
     void paint (juce::Graphics&) override;
@@ -111,26 +88,30 @@ private:
     juce::AudioProcessorValueTreeState& apvts;
 
     juce::ToggleButton onButton;
-    juce::Label titleLabel;
-    
-    // LowShelf, Band1, Band2, Band3, HighShelf
-    // LS: F, G. B1: F, Q, G. B2: F, Q, G. B3: F, Q, G. HS: F, G.
-    fxme::FxmeSlider lsFreq, lsGain;
-    fxme::FxmeSlider b1Freq, b1Q, b1Gain;
-    fxme::FxmeSlider b2Freq, b2Q, b2Gain;
-    fxme::FxmeSlider b3Freq, b3Q, b3Gain;
-    fxme::FxmeSlider hsFreq, hsGain;
+    juce::Label        titleLabel;
+
+    std::array<juce::ComboBox,     Equalizer::NumBands> bandType;
+    std::array<fxme::FxmeSlider,   Equalizer::NumBands> bandFreq;
+    std::array<fxme::FxmeSlider,   Equalizer::NumBands> bandQ;
+    std::array<fxme::FxmeSlider,   Equalizer::NumBands> bandGain;
+    std::array<juce::Label,        Equalizer::NumBands> bandTypeLabel; // unused placeholder, kept for future
     fxme::FxmeSlider postGainSlider;
 
     FrequencyResponseGraph responseGraph;
 
-    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
-    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using SliderAttachment   = juce::AudioProcessorValueTreeState::SliderAttachment;
+    using ButtonAttachment   = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
     std::unique_ptr<ButtonAttachment> onAtt;
+    std::array<std::unique_ptr<ComboBoxAttachment>, Equalizer::NumBands> bandTypeAtt;
+
+    fxme::FxmeLookAndFeel fxmeLookAndFeel;
 
     void setSliderColours (juce::Slider& s, juce::Colour c);
-    fxme::FxmeLookAndFeel fxmeLookAndFeel;
+    void updateBandVisibility (int bandIndex);
+    bool bandShowsQ    (int bandIndex) const;
+    bool bandShowsGain (int bandIndex) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EqualizerComponent)
 };

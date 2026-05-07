@@ -33,12 +33,12 @@ void EffectChainDynamics::assignParameters (juce::AudioProcessorValueTreeState& 
 void EffectChainDynamics::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix)
 {
     juce::StringArray orderOptions;
-    orderOptions.add ("EQ -> Comp -> Tube");
-    orderOptions.add ("EQ -> Tube -> Comp");
-    orderOptions.add ("Comp -> EQ -> Tube");
-    orderOptions.add ("Comp -> Tube -> EQ");
-    orderOptions.add ("Tube -> EQ -> Comp");
-    orderOptions.add ("Tube -> Comp -> EQ");
+    orderOptions.add ("Trans -> EQ -> Comp -> Tube");
+    orderOptions.add ("Trans -> EQ -> Tube -> Comp");
+    orderOptions.add ("Trans -> Comp -> EQ -> Tube");
+    orderOptions.add ("Trans -> Comp -> Tube -> EQ");
+    orderOptions.add ("Trans -> Tube -> EQ -> Comp");
+    orderOptions.add ("Trans -> Tube -> Comp -> EQ");
     params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { prefix + "_Order", 1 }, prefix + " Order", orderOptions, 0));
 
     Equalizer::addParameters (params, prefix);

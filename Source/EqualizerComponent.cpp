@@ -8,6 +8,8 @@
 
 #include "EqualizerComponent.h"
 
+#include <complex>
+
 //==============================================================================
 // FrequencyResponseGraph Implementation
 //==============================================================================
@@ -443,6 +445,8 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
         s.setRange (mn, mx);
         s.setValue (def);
         s.setTooltip (tip);
+        s.setName (tip);
+        s.setShowLabel (true);
         s.setLookAndFeel (&fxmeLookAndFeel);
         setSliderColours (s, color);
         s.onValueChange = [this] { responseGraph.updateCurve(); };
@@ -465,12 +469,15 @@ EqualizerComponent::EqualizerComponent (Equalizer& eq, juce::AudioProcessorValue
 
         setupSlider (bandFreq[i], cfg.minFreq, cfg.maxFreq, cfg.defFreq,
                      juce::String (cfg.suffix) + " Freq");
+        bandFreq[i].setName ("Freq");
         bandFreq[i].setAttachment (new SliderAttachment (apvts, pid + "_Freq", bandFreq[i]));
 
         setupSlider (bandQ[i], 0.1, 10.0, 1.0, juce::String (cfg.suffix) + " Q");
+        bandQ[i].setName ("Q");
         bandQ[i].setAttachment (new SliderAttachment (apvts, pid + "_Q", bandQ[i]));
 
         setupSlider (bandGain[i], -24.0, 24.0, 0.0, juce::String (cfg.suffix) + " Gain");
+        bandGain[i].setName ("Gain");
         bandGain[i].setAttachment (new SliderAttachment (apvts, pid + "_Gain", bandGain[i]));
 
         updateBandVisibility (i);

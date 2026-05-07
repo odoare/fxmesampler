@@ -19,14 +19,14 @@ void StereoDelayComponent::setupSlider(juce::Slider& slider, juce::Label& label,
 {
     juce::Colour color = juce::Colours::green;
 
-    addAndMakeVisible(label);
-    label.setText(text, juce::NotificationType::dontSendNotification);
-    label.setJustificationType(juce::Justification::centred);
+    juce::ignoreUnused (label);
 
     addAndMakeVisible(slider);
     slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     slider.setTooltip(text);
+    slider.setName(text);
+    slider.getProperties().set("showLabel", true);
     slider.setLookAndFeel(&fxmeLookAndFeel);
     setSliderColours(slider, color);
 }
@@ -133,31 +133,24 @@ void StereoDelayComponent::resized()
     fTop.items.add(fi(titleLabel).withFlex(1.f));
     fTop.items.add(fi(bpmLabel).withFlex(0.3f));
 
-    auto setupSliderBox = [](juce::FlexBox& box, juce::Label& label, juce::Slider& slider)
+    auto barSliderBox = [](juce::FlexBox& box, juce::Label& label, juce::Slider& slider)
     {
         box.flexDirection = juce::FlexBox::Direction::column;
         box.items.add(fi(label).withFlex(0.2f));
         box.items.add(fi(slider).withFlex(0.8f));
     };
 
-    juce::FlexBox b1, b2, b3, b4, b5, b6, b7, b8, b9;
-    setupSliderBox(b1, delayLLabel, delayLSlider);
-    setupSliderBox(b2, delayRLabel, delayRSlider);
-    setupSliderBox(b3, fdbkLLabel, fdbkLSlider);
-    setupSliderBox(b4, fdbkRLabel, fdbkRSlider);
-    setupSliderBox(b5, crossFdbkLabel, crossFdbkSlider);
-    setupSliderBox(b6, cutoffLabel, cutoffSlider);
-    setupSliderBox(b7, qLabel, qSlider);
-    setupSliderBox(b8, dryGainLabel, dryGainSlider);
-    setupSliderBox(b9, wetGainLabel, wetGainSlider);
+    juce::FlexBox b8, b9;
+    barSliderBox(b8, dryGainLabel, dryGainSlider);
+    barSliderBox(b9, wetGainLabel, wetGainSlider);
 
-    fSliders1.items.add(fi(b1).withFlex(1.f));
-    fSliders1.items.add(fi(b2).withFlex(1.f));
-    fSliders1.items.add(fi(b3).withFlex(1.f));
-    fSliders1.items.add(fi(b4).withFlex(1.f));
-    fSliders2.items.add(fi(b5).withFlex(1.f));
-    fSliders2.items.add(fi(b6).withFlex(1.f));
-    fSliders2.items.add(fi(b7).withFlex(1.f));
+    fSliders1.items.add(fi(delayLSlider).withFlex(1.f));
+    fSliders1.items.add(fi(delayRSlider).withFlex(1.f));
+    fSliders1.items.add(fi(fdbkLSlider).withFlex(1.f));
+    fSliders1.items.add(fi(fdbkRSlider).withFlex(1.f));
+    fSliders2.items.add(fi(crossFdbkSlider).withFlex(1.f));
+    fSliders2.items.add(fi(cutoffSlider).withFlex(1.f));
+    fSliders2.items.add(fi(qSlider).withFlex(1.f));
     fSliders2.items.add(fi(b8).withFlex(0.25f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 5.f)));
     fSliders2.items.add(fi(b9).withFlex(0.25f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 5.f)));
 

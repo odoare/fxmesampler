@@ -72,6 +72,8 @@ void TransientComponent::setupSlider (fxme::FxmeSlider& slider, juce::Label& lab
     slider.setRange (min, max);
     slider.setValue (def);
     slider.setTooltip (text);
+    slider.setName (text);
+    slider.setShowLabel (true);
     slider.setLookAndFeel (&fxmeLookAndFeel);
     setSliderColours (slider, color);
 }

@@ -57,12 +57,28 @@ private:
 
     ImpulseResponsePlot irPlot;
     std::atomic<bool> graphNeedsUpdate { false };
-    
+
     fxme::FxmeLookAndFeel fxmeLookAndFeel;
+
+    juce::String prefix;
+    int externalSlotId = 0;          // ComboBox id of the External entry
+    bool userIRPick = false;         // Set on combo mouseDown to distinguish user vs state-driven changes
+    std::unique_ptr<juce::FileChooser> chooser;
+
+    struct IRBoxClickWatcher : juce::MouseListener
+    {
+        ConvolReverbComponent& owner;
+        IRBoxClickWatcher (ConvolReverbComponent& o) : owner (o) {}
+        void mouseDown (const juce::MouseEvent&) override { owner.userIRPick = true; }
+    };
+    IRBoxClickWatcher irBoxClickWatcher { *this };
 
     void setupSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
     void setupBarSlider (juce::Slider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
     void setSliderColours (juce::Slider& s, juce::Colour c);
+
+    void openExternalIRChooser();
+    void refreshExternalItemText();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConvolReverbComponent)
 };

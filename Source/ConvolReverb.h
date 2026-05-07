@@ -36,6 +36,15 @@ public:
     float getCurrentLengthRatio() const { return currentLengthRatio; }
     int getCurrentShapeType() const { return currentShapeType; }
 
+    // External IR file support — the slot lives at index getExternalIndex(),
+    // one past the last built-in. The path is persisted in the APVTS state
+    // tree (not as a parameter, since hosts can't automate strings).
+    void setExternalIRPath (const juce::String& path);
+    juce::String getExternalIRPath() const;
+    int getExternalIndex() const noexcept { return (int) irResources.size(); }
+    static juce::Identifier externalPathPropertyId (const juce::String& prefix)
+        { return juce::Identifier (prefix + "_Rev_ExtPath"); }
+
     // APVTS integration
     void assignParameters (juce::AudioProcessorValueTreeState& apvts, const juce::String& prefix);
     static void addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix, int numIRs = 0);
@@ -83,7 +92,13 @@ private:
     float lastWetGain = -100.0f;
     float lastOn = -1.0f;
 
+    juce::AudioProcessorValueTreeState* apvtsRef = nullptr;
+    juce::Identifier extPathId;
+    juce::String externalPath;
+
     void loadResource (const juce::String& resourceName);
+    void loadExternalIR(); // Loads the external IR file from externalPath
+    void loadIRFromReader (juce::AudioFormatReader& reader);
     void updateModifiedIR(); // Applies length/shape to originalIR and loads into wdlReverb
     void loadImpulseToEngine (const juce::AudioBuffer<float>& buffer);
     void checkParameters();

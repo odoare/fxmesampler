@@ -94,13 +94,17 @@ void ConvolReverb::setImpulseList (const juce::StringArray& names, const juce::S
 
 void ConvolReverb::selectImpulse (int index)
 {
-    if (index < 0 || index >= (int)irResources.size())
+    const int extIdx = getExternalIndex();
+    if (index < 0 || index > extIdx)
         return;
 
     if (currentIndex != index)
     {
         currentIndex = index;
-        loadResource (irResources[currentIndex]);
+        if (index == extIdx)
+            loadExternalIR();
+        else
+            loadResource (irResources[currentIndex]);
         updateModifiedIR();
     }
 }
@@ -146,13 +150,18 @@ void ConvolReverb::assignParameters (juce::AudioProcessorValueTreeState& apvts, 
     dryGainParam = apvts.getRawParameterValue (prefix + "_Rev_DryGain");
     wetGainParam = apvts.getRawParameterValue (prefix + "_Rev_WetGain");
     onParam = apvts.getRawParameterValue (prefix + "_Rev_On");
+
+    apvtsRef = &apvts;
+    extPathId = externalPathPropertyId (prefix);
+    externalPath = apvts.state.getProperty (extPathId, "").toString();
 }
 
 void ConvolReverb::addParameters (std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& prefix, int numIRs)
 {
-    // IR selection: range depends on the number of loaded IRs, but we need a fixed range for APVTS
-    // We set the range to [1, numIRs] so it matches the 1-based IDs of the ComboBox.
-    int maxVal = (numIRs > 0) ? numIRs : 1;
+    // IR selection: built-ins occupy 1..numIRs and the External slot is at
+    // numIRs + 1, so the param max is numIRs + 1.
+    int builtinMax = (numIRs > 0) ? numIRs : 1;
+    int maxVal = builtinMax + 1; // +1 for the External slot
     params.push_back (std::make_unique<juce::AudioParameterInt> (juce::ParameterID { prefix + "_Rev_IR", 1 }, prefix + " Rev IR", 1, maxVal, 1));
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { prefix + "_Rev_Length", 1 }, prefix + " Rev Length", 0.0f, 1.0f, 1.0f));
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { prefix + "_Rev_On", 1 }, prefix + " Rev On", true));
@@ -188,52 +197,105 @@ void ConvolReverb::loadResource (const juce::String& resourceName)
         std::unique_ptr<juce::AudioFormatReader> reader (wavFormat.createReaderFor (stream, true));
 
         if (reader)
-        {
-            if (currentSampleRate > 0 && reader->sampleRate > 0 && std::abs(reader->sampleRate - currentSampleRate) > 1.0)
-            {
-                WDL_Resampler resampler;
-                resampler.SetMode(true, 0, true); // Sinc interpolation
-                resampler.SetRates(reader->sampleRate, currentSampleRate);
-                resampler.SetFeedMode(true);
-
-                int numChannels = (int)reader->numChannels;
-                int numInputSamples = (int)reader->lengthInSamples;
-
-                juce::AudioBuffer<float> tempBuffer(numChannels, numInputSamples);
-                reader->read(&tempBuffer, 0, numInputSamples, 0, true, true);
-
-                WDL_ResampleSample* wdlIn = nullptr;
-                resampler.ResamplePrepare(numInputSamples, numChannels, &wdlIn);
-
-                for (int i = 0; i < numInputSamples; ++i)
-                    for (int c = 0; c < numChannels; ++c)
-                        wdlIn[i * numChannels + c] = (WDL_ResampleSample)tempBuffer.getSample(c, i);
-
-                int maxOutSamples = (int)(numInputSamples * currentSampleRate / reader->sampleRate) + 1024;
-                std::vector<WDL_ResampleSample> wdlOut(maxOutSamples * numChannels);
-
-                int outSamples = resampler.ResampleOut(wdlOut.data(), numInputSamples, maxOutSamples, numChannels);
-
-                originalIR.setSize(numChannels, outSamples);
-                for (int i = 0; i < outSamples; ++i)
-                    for (int c = 0; c < numChannels; ++c)
-                        originalIR.setSample(c, i, (float)wdlOut[i * numChannels + c]);
-            }
-            else
-            {
-                originalIR.setSize ((int)reader->numChannels, (int)reader->lengthInSamples);
-                reader->read (&originalIR, 0, (int)reader->lengthInSamples, 0, true, true);
-            }
-        }
+            loadIRFromReader (*reader);
         else
-        {
-            originalIR.clear(); // Clear if loading fails
-        }
+            originalIR.clear();
     }
     else
     {
         originalIR.clear(); // Clear if resource not found
     }
+}
+
+void ConvolReverb::loadIRFromReader (juce::AudioFormatReader& reader)
+{
+    if (currentSampleRate > 0 && reader.sampleRate > 0 && std::abs (reader.sampleRate - currentSampleRate) > 1.0)
+    {
+        WDL_Resampler resampler;
+        resampler.SetMode (true, 0, true); // Sinc interpolation
+        resampler.SetRates (reader.sampleRate, currentSampleRate);
+        resampler.SetFeedMode (true);
+
+        int numChannels = (int) reader.numChannels;
+        int numInputSamples = (int) reader.lengthInSamples;
+
+        juce::AudioBuffer<float> tempBuffer (numChannels, numInputSamples);
+        reader.read (&tempBuffer, 0, numInputSamples, 0, true, true);
+
+        WDL_ResampleSample* wdlIn = nullptr;
+        resampler.ResamplePrepare (numInputSamples, numChannels, &wdlIn);
+
+        for (int i = 0; i < numInputSamples; ++i)
+            for (int c = 0; c < numChannels; ++c)
+                wdlIn[i * numChannels + c] = (WDL_ResampleSample) tempBuffer.getSample (c, i);
+
+        int maxOutSamples = (int) (numInputSamples * currentSampleRate / reader.sampleRate) + 1024;
+        std::vector<WDL_ResampleSample> wdlOut (maxOutSamples * numChannels);
+
+        int outSamples = resampler.ResampleOut (wdlOut.data(), numInputSamples, maxOutSamples, numChannels);
+
+        originalIR.setSize (numChannels, outSamples);
+        for (int i = 0; i < outSamples; ++i)
+            for (int c = 0; c < numChannels; ++c)
+                originalIR.setSample (c, i, (float) wdlOut[i * numChannels + c]);
+    }
+    else
+    {
+        originalIR.setSize ((int) reader.numChannels, (int) reader.lengthInSamples);
+        reader.read (&originalIR, 0, (int) reader.lengthInSamples, 0, true, true);
+    }
+}
+
+void ConvolReverb::loadExternalIR()
+{
+    // Refresh path from APVTS state in case it was restored after assignParameters.
+    if (apvtsRef != nullptr)
+        externalPath = apvtsRef->state.getProperty (extPathId, externalPath).toString();
+
+    juce::File f (externalPath);
+    if (externalPath.isEmpty() || ! f.existsAsFile())
+    {
+        // Fall back silently to the first built-in IR so the wet path keeps
+        // producing audio when the saved file is missing.
+        if (! irResources.isEmpty())
+            loadResource (irResources[0]);
+        else
+            originalIR.clear();
+        return;
+    }
+
+    juce::AudioFormatManager fm;
+    fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> reader (fm.createReaderFor (f));
+
+    if (reader != nullptr)
+        loadIRFromReader (*reader);
+    else if (! irResources.isEmpty())
+        loadResource (irResources[0]);
+    else
+        originalIR.clear();
+}
+
+void ConvolReverb::setExternalIRPath (const juce::String& path)
+{
+    if (apvtsRef != nullptr)
+        apvtsRef->state.setProperty (extPathId, path, nullptr);
+
+    juce::ScopedLock sl (lock);
+    externalPath = path;
+    if (currentIndex == getExternalIndex())
+    {
+        loadExternalIR();
+        updateModifiedIR();
+    }
+}
+
+juce::String ConvolReverb::getExternalIRPath() const
+{
+    juce::ScopedLock sl (lock);
+    if (apvtsRef != nullptr)
+        return apvtsRef->state.getProperty (extPathId, externalPath).toString();
+    return externalPath;
 }
 
 juce::AudioBuffer<float> ConvolReverb::getModifiedIR() const
@@ -347,14 +409,18 @@ void ConvolReverb::loadImpulseToEngine (const juce::AudioBuffer<float>& buffer)
     }
     else
     {
-        impulseBuffer.SetNumChannels (nch);
+        // Promote a mono impulse to stereo by duplicating it onto both engine
+        // channels; otherwise process() only convolves the left side of a
+        // stereo input.
+        const int engineChannels = (nch == 1) ? 2 : nch;
+        impulseBuffer.SetNumChannels (engineChannels);
         impulseBuffer.SetLength (len);
         impulseBuffer.samplerate = currentSampleRate;
 
-        for (int c = 0; c < nch; ++c)
+        for (int c = 0; c < engineChannels; ++c)
         {
             auto* dest = impulseBuffer.impulses[c].Get();
-            auto* src = buffer.getReadPointer (c);
+            auto* src = buffer.getReadPointer (juce::jmin (c, nch - 1));
             for (int i = 0; i < len; ++i)
                 dest[i] = (WDL_FFT_REAL) src[i];
         }
@@ -367,13 +433,14 @@ void ConvolReverb::checkParameters()
 {
     if (irParam && (int)*irParam != lastIR)
     {
-        // Parameter is 1-based (to match ComboBox IDs), selectImpulse is 0-based
+        // Parameter is 1-based (to match ComboBox IDs), selectImpulse is 0-based.
+        // Index irResources.size() is the External slot.
         int val = (int)*irParam;
         int index = val - 1;
 
-        if (index >= 0 && index < irResources.size())
+        if (index >= 0 && index <= (int) irResources.size())
             selectImpulse (index);
-            
+
         lastIR = val;
     }
 

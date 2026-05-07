@@ -19,9 +19,7 @@ void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& labe
 {
     juce::Colour color = juce::Colours::yellowgreen;
 
-    addAndMakeVisible (label);
-    label.setText (text, juce::NotificationType::dontSendNotification);
-    label.setJustificationType (juce::Justification::centred);
+    juce::ignoreUnused (label);
 
     addAndMakeVisible (slider);
     slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -29,6 +27,8 @@ void ConvolReverbComponent::setupSlider (juce::Slider& slider, juce::Label& labe
     slider.setRange (min, max);
     slider.setValue (def);
     slider.setTooltip (text);
+    slider.setName (text);
+    slider.getProperties().set ("showLabel", true);
     slider.setLookAndFeel(&fxmeLookAndFeel);
     setSliderColours(slider, color);
 }
@@ -188,8 +188,8 @@ void ImpulseResponsePlot::paint(juce::Graphics& g)
         g.strokePath (irPlotPathR, juce::PathStrokeType (1.5f));
 }
 
-ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProcessorValueTreeState& state, const juce::String& prefix)
-    : reverb (r), apvts (state), irPlot(r)
+ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProcessorValueTreeState& state, const juce::String& pfx)
+    : reverb (r), apvts (state), irPlot(r), prefix (pfx)
 {
     addAndMakeVisible (titleLabel);
     titleLabel.setText ("Convolution Reverb", juce::NotificationType::dontSendNotification);
@@ -209,8 +209,42 @@ ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProces
     const auto& names = reverb.getImpulseNames();
     for (int i = 0; i < names.size(); ++i)
         irBox.addItem (juce::File (names[i]).getFileNameWithoutExtension(), i + 1);
+    externalSlotId = names.size() + 1;
+    irBox.addItem ("External\xe2\x80\xa6", externalSlotId); // U+2026 horizontal ellipsis
+    refreshExternalItemText();
+
+    irBox.addMouseListener (&irBoxClickWatcher, true);
+
+    irBox.onChange = [this]
+    {
+        graphNeedsUpdate = true;
+
+        if (irBox.getSelectedId() == externalSlotId && userIRPick)
+        {
+            userIRPick = false;
+            openExternalIRChooser();
+        }
+        else
+        {
+            userIRPick = false;
+        }
+    };
+
     irAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Rev_IR", irBox);
-    irBox.onChange = [this] { graphNeedsUpdate = true; };
+
+    // If the saved External path points at a missing file, revert silently to the
+    // first built-in IR (matches the chosen fallback semantics).
+    if (irBox.getSelectedId() == externalSlotId)
+    {
+        const auto savedPath = reverb.getExternalIRPath();
+        if (savedPath.isEmpty() || ! juce::File (savedPath).existsAsFile())
+        {
+            reverb.setExternalIRPath ({});
+            if (auto* p = apvts.getParameter (prefix + "_Rev_IR"))
+                p->setValueNotifyingHost (p->convertTo0to1 (1.0f));
+            refreshExternalItemText();
+        }
+    }
 
     setupSlider (lengthSlider, lengthLabel, "Length", 0.0, 1.0, 1.0);
     lengthSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Rev_Length", lengthSlider));
@@ -245,7 +279,70 @@ ConvolReverbComponent::ConvolReverbComponent (ConvolReverb& r, juce::AudioProces
     irPlot.updateGraph();
 }
 
-ConvolReverbComponent::~ConvolReverbComponent() {}
+ConvolReverbComponent::~ConvolReverbComponent()
+{
+    irBox.removeMouseListener (&irBoxClickWatcher);
+}
+
+void ConvolReverbComponent::refreshExternalItemText()
+{
+    if (externalSlotId == 0)
+        return;
+
+    const auto path = reverb.getExternalIRPath();
+    if (path.isNotEmpty() && juce::File (path).existsAsFile())
+        irBox.changeItemText (externalSlotId, "Ext: " + juce::File (path).getFileNameWithoutExtension());
+    else
+        irBox.changeItemText (externalSlotId, "External\xe2\x80\xa6");
+}
+
+void ConvolReverbComponent::openExternalIRChooser()
+{
+    const auto startDir = [this]
+    {
+        const auto cur = reverb.getExternalIRPath();
+        if (cur.isNotEmpty())
+        {
+            juce::File f (cur);
+            if (f.existsAsFile())
+                return f.getParentDirectory();
+        }
+        return juce::File::getSpecialLocation (juce::File::userDocumentsDirectory);
+    }();
+
+    chooser = std::make_unique<juce::FileChooser> (
+        "Select an impulse response file",
+        startDir,
+        "*.wav;*.aif;*.aiff;*.flac");
+
+    auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+
+    chooser->launchAsync (flags, [this] (const juce::FileChooser& fc)
+    {
+        const auto results = fc.getResults();
+        if (results.isEmpty())
+        {
+            // User cancelled — revert combo to whatever the parameter currently holds.
+            if (auto* raw = apvts.getRawParameterValue (prefix + "_Rev_IR"))
+            {
+                int paramId = (int) *raw;
+                if (paramId == externalSlotId && reverb.getExternalIRPath().isEmpty())
+                    paramId = 1;
+                irBox.setSelectedId (paramId, juce::sendNotificationSync);
+            }
+            return;
+        }
+
+        const auto file = results[0];
+        reverb.setExternalIRPath (file.getFullPathName());
+        refreshExternalItemText();
+        graphNeedsUpdate = true;
+
+        // Make sure the parameter actually points at the External slot now.
+        if (auto* p = apvts.getParameter (prefix + "_Rev_IR"))
+            p->setValueNotifyingHost (p->convertTo0to1 ((float) externalSlotId));
+    });
+}
 
 void ConvolReverbComponent::timerCallback()
 {
@@ -293,18 +390,14 @@ void ConvolReverbComponent::resized()
     fBoxes.items.add(fi(irBox).withFlex(0.8f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 5.f, 0)));
     fBoxes.items.add(fi(shapeLabel).withFlex(0.5f));
     fBoxes.items.add(fi(shapeBox).withFlex(0.8f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 5.f, 0)));
-    fSl1.items.add(fi(lengthLabel).withFlex(0.2f));
-    fSl1.items.add(fi(lengthSlider).withFlex(0.8f));
-    fSl2.items.add(fi(startOffsetLabel).withFlex(0.2f));
-    fSl2.items.add(fi(startOffsetSlider).withFlex(0.8f));
     fDry.items.add(fi(dryGainLabel).withFlex(0.2f));
     fDry.items.add(fi(dryGainSlider).withFlex(0.8f));
     fWet.items.add(fi(wetGainLabel).withFlex(0.2f));
     fWet.items.add(fi(wetGainSlider).withFlex(0.8f));
 
     fSliders.items.add(fi(fBoxes).withFlex(1.f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 0)));
-    fSliders.items.add(fi(fSl1).withFlex(1.f));
-    fSliders.items.add(fi(fSl2).withFlex(1.f));
+    fSliders.items.add(fi(lengthSlider).withFlex(1.f));
+    fSliders.items.add(fi(startOffsetSlider).withFlex(1.f));
     fSliders.items.add(fi(fDry).withFlex(.25f).withMargin(juce::FlexItem::Margin(0.f, 5.f, 0.f, 10.f)));
     fSliders.items.add(fi(fWet).withFlex(.25f).withMargin(juce::FlexItem::Margin(0.f, 10.f, 0.f, 5.f)));
     

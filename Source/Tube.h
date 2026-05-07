@@ -23,8 +23,10 @@ class Tube
 public:
     enum class TubeModel
     {
-        Standard,
-        Dynamic
+        Standard = 0,
+        Dynamic  = 1,
+        Triode   = 2,
+        ClassAB  = 3
     };
 
     Tube();
@@ -34,6 +36,8 @@ public:
 
     void setDrive (float drivedB);
     void setBias (float bias);
+    void setTone (float tone);
+    void setSag (float sag);
     void setOutput (float gaindB);
     void setOn (bool shouldBeOn);
     void setModel (TubeModel model);
@@ -50,16 +54,31 @@ private:
 
     float drive = 1.0f;
     float bias = 0.0f;
+    float tone = 0.0f;       // -1..+1, frequency-dependent saturation
+    float toneGain = 1.0f;   // = 4^tone, pre-emphasis amount
+    float sag = 0.0f;        // 0..1, power-supply sag intensity
     float outputGain = 1.0f;
-    float envelope = 0.0f; // For Dynamic model
 
-    std::vector<float> x1, y1; // DC Blocker state
+    // Power-supply sag state (RC rail model)
+    float railVoltage = 1.0f;
+
+    // Filter coefficients
+    float toneLpCoef = 0.0f;   // one-pole LP (~1.5 kHz) for tone shelf
+    float sagAttackCoef = 0.0f;
+    float sagReleaseCoef = 0.0f;
+
+    // Per-channel state
+    std::vector<float> x1, y1;             // DC blocker
+    std::vector<float> xLpState, satLpState; // tone pre/post-LP
 
     std::atomic<float>* onParam = nullptr;
     std::atomic<float>* driveParam = nullptr;
     std::atomic<float>* biasParam = nullptr;
+    std::atomic<float>* toneParam = nullptr;
+    std::atomic<float>* sagParam = nullptr;
     std::atomic<float>* outParam = nullptr;
     std::atomic<float>* modelParam = nullptr;
 
     float lastOn = -1.0f, lastDrive = -100.0f, lastBias = -1.0f, lastOut = -100.0f, lastModel = -1.0f;
+    float lastTone = -100.0f, lastSag = -1.0f;
 };

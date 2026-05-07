@@ -42,7 +42,10 @@ TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state
 
     addAndMakeVisible (modelBox);
     modelBox.addItem ("Standard", 1);
-    modelBox.addItem ("Dynamic", 2);
+    modelBox.addItem ("Dynamic",  2);
+    modelBox.addItem ("Triode",   3);
+    modelBox.addItem ("Class AB", 4);
+    modelBox.setTooltip ("Tube Model. \n Standard: tanh. \n Dynamic: tanh + power-supply sag. \n Triode: asymmetric Dempwolf-style 12AX7 curve. \n Class AB: push-pull with crossover behaviour.");
     modelAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (apvts, prefix + "_Tube_Model", modelBox);
 
     addAndMakeVisible (titleLabel);
@@ -51,12 +54,19 @@ TubeComponent::TubeComponent (Tube& t, juce::AudioProcessorValueTreeState& state
     titleLabel.setFont (juce::Font (16.0f, juce::Font::bold));
 
     setupSlider (driveSlider, driveLabel, "Drive (dB)", 0.0, 40.0, 0.0);
-    setupSlider (biasSlider, biasLabel, "Bias", 0.0, 0.5, 0.0);
+    setupSlider (biasSlider,  biasLabel,  "Bias",        0.0, 0.5,  0.0);
+    setupSlider (toneSlider,  toneLabel,  "Tone",       -1.0, 1.0,  0.0);
+    setupSlider (sagSlider,   sagLabel,   "Sag",         0.0, 1.0,  0.5);
     setupBarSlider (outSlider, outLabel, "Output (dB)", -20.0, 20.0, 0.0);
-    
-    driveSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Drive", driveSlider));
-    biasSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Bias", biasSlider));
-    outSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Out", outSlider));
+
+    toneSlider.setTooltip ("Tone. \n Pre-emphasis before saturation, matching cut after. \n Positive = bright/edgy, negative = warm/dark.");
+    sagSlider.setTooltip  ("Sag. \n Power-supply rail droop. \n Affects Dynamic, Triode, and Class AB models. Standard ignores it.");
+
+    driveSlider.setAttachment (new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Drive", driveSlider));
+    biasSlider .setAttachment (new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Bias",  biasSlider));
+    toneSlider .setAttachment (new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Tone",  toneSlider));
+    sagSlider  .setAttachment (new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Sag",   sagSlider));
+    outSlider  .setAttachment (new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Tube_Out",   outSlider));
 }
 
 TubeComponent::~TubeComponent() {}
@@ -124,6 +134,8 @@ void TubeComponent::resized()
     f2.items.add(fi(tubeImage).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 0.f)));
     f2.items.add(fi(driveSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
     f2.items.add(fi(biasSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
+    f2.items.add(fi(toneSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
+    f2.items.add(fi(sagSlider).withFlex(1.f).withMargin(juce::FlexItem::Margin(5.f, 5.f, 5.f, 5.f)));
     f2.items.add(fi(outSlider).withFlex(0.3f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 5.f, 5.f)));
 
     fMain.items.add(fi(f1).withFlex(0.2f).withMargin(juce::FlexItem::Margin(5.f, 0.f, 10.f, 0)));

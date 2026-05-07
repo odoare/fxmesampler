@@ -38,8 +38,8 @@ private:
     juce::ComboBox modelBox;
     juce::Label titleLabel;
     juce::ImageComponent tubeImage;
-    juce::Label driveLabel, biasLabel, outLabel;
-    fxme::FxmeSlider driveSlider, biasSlider;
+    juce::Label driveLabel, biasLabel, toneLabel, sagLabel, outLabel;
+    fxme::FxmeSlider driveSlider, biasSlider, toneSlider, sagSlider;
     fxme::FxmeSlider outSlider;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;

@@ -31,11 +31,16 @@ private:
     juce::Label titleLabel;
     VuMeterComponent grMeter;
     juce::Label preGainLabel, attackLabel, releaseLabel, threshLabel, ratioLabel, gainLabel;
+    juce::Label kneeLabel, peakRmsLabel;
     fxme::FxmeSlider preGainSlider, attackSlider, releaseSlider, threshSlider, ratioSlider, gainSlider;
+    fxme::FxmeSlider kneeSlider, peakRmsSlider;
+    juce::ComboBox relModeBox;
 
-    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using ButtonAttachment   = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
-    std::unique_ptr<ButtonAttachment> onAtt;
+    std::unique_ptr<ButtonAttachment>   onAtt;
+    std::unique_ptr<ComboBoxAttachment> relModeAtt;
 
     void setupSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);
     void setupBarSlider (fxme::FxmeSlider& slider, juce::Label& label, const juce::String& text, double min, double max, double def);

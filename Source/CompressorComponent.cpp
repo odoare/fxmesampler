@@ -34,13 +34,24 @@ CompressorComponent::CompressorComponent (Compressor& comp, juce::AudioProcessor
     setupSlider (releaseSlider, releaseLabel, "Release (ms)", 10.0, 1000.0, 100.0);
     setupSlider (threshSlider, threshLabel, "Thresh (dB)", -60.0, 0.0, 0.0);
     setupSlider (ratioSlider, ratioLabel, "Ratio", 1.0, 20.0, 1.0);
+    setupSlider (kneeSlider, kneeLabel, "Knee (dB)", 0.0, 24.0, 0.0);
+    setupSlider (peakRmsSlider, peakRmsLabel, "Peak / RMS", 0.0, 1.0, 0.0);
     setupBarSlider (gainSlider, gainLabel, "Gain (dB)", -24.0, 24.0, 0.0);
+
+    addAndMakeVisible (relModeBox);
+    relModeBox.addItem ("Linear",  1);
+    relModeBox.addItem ("Opto",    2);
+    relModeBox.addItem ("Vintage", 3);
+    relModeBox.setTooltip ("Release Mode — Linear: fixed release. Opto: release slows with instantaneous GR. Vintage: release slows with sustained GR.");
+    relModeAtt = std::make_unique<ComboBoxAttachment> (apvts, prefix + "_Comp_RelMode", relModeBox);
 
     preGainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_PreGain", preGainSlider));
     attackSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Attack", attackSlider));
     releaseSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Release", releaseSlider));
     threshSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Thresh", threshSlider));
     ratioSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Ratio", ratioSlider));
+    kneeSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Knee", kneeSlider));
+    peakRmsSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_PeakRms", peakRmsSlider));
     gainSlider.setAttachment(new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, prefix + "_Comp_Gain", gainSlider));
 
     addAndMakeVisible (grMeter);
@@ -104,21 +115,24 @@ void CompressorComponent::paint (juce::Graphics& g)
 void CompressorComponent::resized()
 {
     auto area = getLocalBounds().reduced (5.f);
-    using fi = juce::FlexItem;    
+    using fi = juce::FlexItem;
     juce::FlexBox f1, f2, f3, f4, f5, fMain;
-    f1.flexDirection =  juce::FlexBox::Direction::row;
+    f1.flexDirection = juce::FlexBox::Direction::row;
     f2.flexDirection = juce::FlexBox::Direction::row;
-    f3.flexDirection =  juce::FlexBox::Direction::row;
+    f3.flexDirection = juce::FlexBox::Direction::row;
     f4.flexDirection = juce::FlexBox::Direction::column;
     f5.flexDirection = juce::FlexBox::Direction::row;
     fMain.flexDirection = juce::FlexBox::Direction::column;
 
     f1.items.add(fi(onButton).withFlex(0.2f));
-    f1.items.add(fi(titleLabel).withFlex(1.5f));
+    f1.items.add(fi(titleLabel).withFlex(1.0f));
+    f1.items.add(fi(relModeBox).withFlex(0.7f).withMargin(juce::FlexItem::Margin(0.f, 4.f, 0.f, 4.f)));
     f2.items.add(fi(attackSlider).withFlex(1.f));
     f2.items.add(fi(releaseSlider).withFlex(1.f));
+    f2.items.add(fi(kneeSlider).withFlex(1.f));
     f3.items.add(fi(threshSlider).withFlex(1.f));
     f3.items.add(fi(ratioSlider).withFlex(1.f));
+    f3.items.add(fi(peakRmsSlider).withFlex(1.f));
     f4.items.add(fi(f2).withFlex(1.f));
     f4.items.add(fi(f3).withFlex(1.f));
     f5.items.add(fi(preGainSlider).withFlex(0.15f));

@@ -165,10 +165,6 @@ target_compile_options(CenturyDrumsBinaryData PRIVATE
 target_sources(CenturyDrums PRIVATE
     # Shared engine — relative to this kit directory
     ../../Source/AmbixToMS.cpp
-    ../../Source/Compressor.cpp
-    ../../Source/CompressorComponent.cpp
-    ../../Source/ConvolReverb.cpp
-    ../../Source/ConvolReverbComponent.cpp
     ../../Source/EffectChain.cpp
     ../../Source/EffectChainComponent.cpp
     ../../Source/EffectChainDelay.cpp
@@ -177,8 +173,6 @@ target_sources(CenturyDrums PRIVATE
     ../../Source/EffectChainDynamicsComponent.cpp
     ../../Source/EffectChainReverb.cpp
     ../../Source/EffectChainReverbComponent.cpp
-    ../../Source/Equalizer.cpp
-    ../../Source/EqualizerComponent.cpp
     ../../Source/Mixer.cpp
     ../../Source/MixerComponent.cpp
     ../../Source/MixerStrips.cpp
@@ -188,19 +182,37 @@ target_sources(CenturyDrums PRIVATE
     ../../Source/Sampler.cpp
     ../../Source/SamplerComponent.cpp
     ../../Source/SampleGroupComponent.cpp
-    ../../Source/StereoDelay.cpp
-    ../../Source/StereoDelayComponent.cpp
-    ../../Source/Transient.cpp
-    ../../Source/TransientComponent.cpp
-    ../../Source/Tube.cpp
-    ../../Source/TubeComponent.cpp
-    ../../Source/VuMeter.cpp
-    ../../Source/VuMeterComponent.cpp
     ../../Source/WelcomeTabComponent.cpp
-    # WDL convolution library
-    ../../WDL/WDL/convoengine.cpp
-    ../../WDL/WDL/fft.c
-    ../../WDL/WDL/resample.cpp
+    # FxmeFX effects submodule
+    ../../FxmeFX/Source/Compressor/Compressor.cpp
+    ../../FxmeFX/Source/Compressor/CompressorComponent.cpp
+    ../../FxmeFX/Source/ConvolReverb/ConvolReverb.cpp
+    ../../FxmeFX/Source/ConvolReverb/ConvolReverbComponent.cpp
+    ../../FxmeFX/Source/Equalizer/Equalizer.cpp
+    ../../FxmeFX/Source/Equalizer/EqualizerComponent.cpp
+    ../../FxmeFX/Source/StereoDelay/StereoDelay.cpp
+    ../../FxmeFX/Source/StereoDelay/StereoDelayComponent.cpp
+    ../../FxmeFX/Source/Transient/Transient.cpp
+    ../../FxmeFX/Source/Transient/TransientComponent.cpp
+    ../../FxmeFX/Source/Tube/Tube.cpp
+    ../../FxmeFX/Source/Tube/TubeComponent.cpp
+    ../../FxmeFX/Source/VuMeter/VuMeter.cpp
+    ../../FxmeFX/Source/VuMeter/VuMeterComponent.cpp
+    # WDL convolution library (vendored inside FxmeFX submodule)
+    ../../FxmeFX/WDL/WDL/convoengine.cpp
+    ../../FxmeFX/WDL/WDL/fft.c
+    ../../FxmeFX/WDL/WDL/resample.cpp
+)
+
+target_include_directories(CenturyDrums PRIVATE
+    ../../Source
+    ../../FxmeFX/Source/Compressor
+    ../../FxmeFX/Source/ConvolReverb
+    ../../FxmeFX/Source/Equalizer
+    ../../FxmeFX/Source/StereoDelay
+    ../../FxmeFX/Source/Transient
+    ../../FxmeFX/Source/Tube
+    ../../FxmeFX/Source/VuMeter
 )
 
 juce_generate_juce_header(CenturyDrums)

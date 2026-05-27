@@ -2,6 +2,10 @@
 
 FxmeSampler is a JUCE-based sampling instrument plugin featuring, a flexible multi-channel mixer, built-in convolution reverb, and advanced velocity mapping. All configurations are defined via a portable `mapping.xml` file embedded in the plugin resources.
 
+Licence: LGPL3, see LICENSE file
+
+** Contact: olivier.doare@ensta.fr **
+
 ## Overview
 
 The instrument's architecture is defined by a `mapping.xml` file embedded in the plugin's binary resources. This file controls:
@@ -10,6 +14,8 @@ The instrument's architecture is defined by a `mapping.xml` file embedded in the
 *   **Routing:** How samples are routed to mixer channels.
 *   **Mixer Layout:** Definition of strips, buses, and effect chains.
 *   **UI Customization:** Colors, icons, and welcome screen.
+
+> **Effects as standalone plugins:** All the effects used in FxmeSampler (EQ, dynamics, reverb, delay, saturation, etc.) are also available as independent VST3/AU plugins in the [FxmeFX](https://github.com/odoare/FxmeFX) repository.
 
 ## Installation
 

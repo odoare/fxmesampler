@@ -61,61 +61,6 @@ jobs:
           name: linux-x86_64
           path: FxmeSampler-VST3-Linux-x86_64.zip
 
-  # ── Linux arm64 ───────────────────────────────────────────────────────────
-  build-linux-arm64:
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            libasound2-dev libx11-dev libxrandr-dev libxinerama-dev \
-            libxcursor-dev libfreetype-dev libfontconfig1-dev libgl1-mesa-dev
-
-      - uses: actions/checkout@v4
-        with:
-          path: SimpleSampler
-          submodules: recursive
-
-      - uses: actions/checkout@v4
-        with:
-          repository: juce-framework/JUCE
-          ref: 8.0.12
-          path: JUCE
-
-      - name: Checkout FxmeJuceTools
-        uses: actions/checkout@v4
-        with:
-          repository: odoare/FxmeJuceTools
-          path: _fxme_tmp
-
-      - name: Install FxmeJuceTools module
-        shell: bash
-        run: |
-          mkdir -p JUCE/usermodules
-          mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
-
-      - name: Configure & Build
-        run: |
-          cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
-          # Build the large BinaryData targets one at a time to avoid OOM.
-          cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
-          cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
-          # BinaryData is cached; build one job at a time (runner has 7 GB RAM).
-          cmake --build SimpleSampler/build --config Release --parallel 1
-
-      - name: Package
-        run: |
-          mkdir -p vst3_staging
-          cp -r "SimpleSampler/build/Kits/BlackWidow/BlackWidowDrums_artefacts/Release/VST3/Black Widow Drums.vst3" vst3_staging/
-          cp -r "SimpleSampler/build/Kits/Century/CenturyDrums_artefacts/Release/VST3/CenturyDrums.vst3" vst3_staging/
-          zip -r ${{ github.workspace }}/FxmeSampler-VST3-Linux-arm64.zip vst3_staging/
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-arm64
-          path: FxmeSampler-VST3-Linux-arm64.zip
-
   # ── Windows x86_64 ────────────────────────────────────────────────────────
   build-windows:
     runs-on: windows-latest
@@ -273,7 +218,7 @@ jobs:
 
   # ── Publish GitHub Release ────────────────────────────────────────────────
   release:
-    needs: [build-linux-x86_64, build-linux-arm64, build-windows, build-macos]
+    needs: [build-linux-x86_64, build-windows, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -224,5 +224,3 @@ This resulted in **Impulse Responses (IRs)**. The Room channel in the mixer func
 *   **Spatial FX Bus:** A secondary bus hosting a combined **Delay and Convolution Reverb** for additional depth and atmosphere.
 
 ![image info](./doc/BlackWidowGUI.png)
-
-*Note: Due to the high-resolution source material, the Black Widow sample library is distributed separately from the core source code.*

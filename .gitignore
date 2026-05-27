@@ -10,3 +10,4 @@
 /packaging/windows/SimpleSampler-Windows-Setup.exe
 /JUCE
 /CMakeFiles
+*.code-workspace

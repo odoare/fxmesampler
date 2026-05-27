@@ -43,6 +43,10 @@ jobs:
       - name: Configure & Build
         run: |
           cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
+          # Build the large BinaryData targets one at a time to avoid OOM.
+          cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
+          cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
+          # BinaryData is cached; build the rest in full parallel.
           cmake --build SimpleSampler/build --config Release --parallel
 
       - name: Package
@@ -91,9 +95,20 @@ jobs:
           mkdir -p JUCE/usermodules
           mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
 
+      - name: Add swap space
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
       - name: Configure & Build
         run: |
           cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
+          # Build the large BinaryData targets one at a time to avoid OOM.
+          cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
+          cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
+          # BinaryData is cached; build the rest in full parallel.
           cmake --build SimpleSampler/build --config Release --parallel
 
       - name: Package
@@ -138,6 +153,10 @@ jobs:
       - name: Configure & Build
         run: |
           cmake -B SimpleSampler/build -S SimpleSampler -G "Visual Studio 17 2022"
+          # Build the large BinaryData targets one at a time to avoid OOM.
+          cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
+          cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
+          # BinaryData is cached; build the rest in full parallel.
           cmake --build SimpleSampler/build --config Release --parallel
 
       - name: Install NSIS
@@ -202,6 +221,10 @@ jobs:
       - name: Configure & Build
         run: |
           cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
+          # Build the large BinaryData targets one at a time to avoid OOM.
+          cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
+          cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
+          # BinaryData is cached; build the rest in full parallel.
           cmake --build SimpleSampler/build --config Release --parallel
 
       - name: Verify universal binaries

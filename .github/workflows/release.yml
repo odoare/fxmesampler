@@ -46,8 +46,8 @@ jobs:
           # Build the large BinaryData targets one at a time to avoid OOM.
           cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
           cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
-          # BinaryData is cached; build the rest in full parallel.
-          cmake --build SimpleSampler/build --config Release --parallel
+          # BinaryData is cached; build the rest (capped at 2 to stay within 16 GB RAM).
+          cmake --build SimpleSampler/build --config Release --parallel 2
 
       - name: Package
         run: |
@@ -95,21 +95,14 @@ jobs:
           mkdir -p JUCE/usermodules
           mv _fxme_tmp/module/FxmeJuceTools JUCE/usermodules/FxmeJuceTools
 
-      - name: Add swap space
-        run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-
       - name: Configure & Build
         run: |
           cmake -B SimpleSampler/build -S SimpleSampler -DCMAKE_BUILD_TYPE=Release
           # Build the large BinaryData targets one at a time to avoid OOM.
           cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
           cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
-          # BinaryData is cached; build the rest in full parallel.
-          cmake --build SimpleSampler/build --config Release --parallel
+          # BinaryData is cached; build one job at a time (runner has 7 GB RAM).
+          cmake --build SimpleSampler/build --config Release --parallel 1
 
       - name: Package
         run: |
@@ -224,8 +217,8 @@ jobs:
           # Build the large BinaryData targets one at a time to avoid OOM.
           cmake --build SimpleSampler/build --config Release --target BlackWidowDrumsBinaryData --parallel 1
           cmake --build SimpleSampler/build --config Release --target CenturyDrumsBinaryData   --parallel 1
-          # BinaryData is cached; build the rest in full parallel.
-          cmake --build SimpleSampler/build --config Release --parallel
+          # BinaryData is cached; build capped at 2 (7 GB RAM + universal binary overhead).
+          cmake --build SimpleSampler/build --config Release --parallel 2
 
       - name: Verify universal binaries
         run: |
